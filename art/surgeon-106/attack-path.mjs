@@ -10,7 +10,7 @@ const { NodeIO } = req("@gltf-transform/core");
 const { ALL_EXTENSIONS } = req("@gltf-transform/extensions");
 const { MeshoptDecoder } = req("meshoptimizer");
 const [, , glb, scaleText, contentPath] = process.argv;
-const TOTAL = 80, BASE = [0, 0.4, 0], TIP = [0, 0.86, 0], GRIP = [0.2243, 0, -0.4158, 0.8814], scale = Number(scaleText);
+const TOTAL = 80, BASE = [0, 0.4, 0], TIP = [0, 0.86, 0], GRIP = [0.3392, 0, -0.5725, 0.7465], scale = Number(scaleText);
 await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.decoder": MeshoptDecoder });
 const root = (await io.read(glb)).getRoot();

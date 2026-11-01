@@ -913,8 +913,8 @@
         "strafeRight": "StrafeRight"
       },
       "deferred": true,
-      "bytes": 578364,
-      "sha256": "080b37db5c63f33d309fa3c0bfbcfc074317c77f779ee3d67a00cbf23b992d9f",
+      "bytes": 578368,
+      "sha256": "15ea6d30ee3a5ae995c20b9a36e9fd53d4afb55d055f33f48e9d32245578ef94",
       "provenance": {
         "source": "Mixamo Whiteclown (N. Hallin) full-phone-mixamorig body on the 106 rig",
         "sourceSHA256": "43de2157b256db41ae7588d932d7ca458cf42a57b1d7b44af3bb5036c9900c9d",
