@@ -212,7 +212,9 @@ export function validatePhysicsRigs(d) {
       if (Object.values(m.partAlias).some((v) => typeof v !== "string")) fail("physicsRigs", `${name}.partAlias must map part ids to part ids`);
       continue;
     }
-    closed(m, ["rig", "body", "live"]);
+    closed(m, ["rig", "body", "live"], ["impulseScale"]);
+    // impulseScale: the kill shove times this (a body much lighter than the 65 kg the impulse rows are tuned on would otherwise fly far)
+    if (Object.hasOwn(m, "impulseScale")) number("physicsRigs", `${name}.impulseScale`, m.impulseScale, 0.001);
     if (!Object.hasOwn(d.rigs, m.rig)) fail("physicsRigs", `${name}.rig must be one of rigs`);
     if (m.body !== "physicsBody" && !Object.hasOwn(d.bodies, m.body)) fail("physicsRigs", `${name}.body must be physicsBody or one of bodies`);
   }

@@ -301,7 +301,7 @@ export function startDeath(view, bindScene, entity, spec = rigOf(CFG.rigRef)) {
     seat = spec.frame ? frameOf(view, chainOf(spec)) : null;
     rig ??= build(view.model, bindScene);
     // A chain body is heavier or lighter than the 65 kg humanoid the impulse rows are tuned on: the shove scales with its mass.
-    const mass = spec.chain ? chainOf(spec).row.total_mass_kg / spec.impulseReferenceKg : 1,
+    const mass = spec.chain ? chainOf(spec).row.total_mass_kg / spec.impulseReferenceKg : spec.impulseScale ?? 1,
       k = killVector(seat?.frame ?? view.root, entity).map((v) => v * mass),
       push = plan ? k.map((v) => v * plan.row.push) : k,
       part = impulseRow(entity.deathImpact).part;
