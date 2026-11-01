@@ -5480,6 +5480,127 @@
         ]
       },
       "scale_baked": 1
+    },
+    "perseus-106": {
+      "id": "perseus-106",
+      "source": "perseus-106.glb (Armagedom Web/public/assets/appearances) bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the model scale)",
+      "height_m": 1.6344,
+      "neck_len": 0.057,
+      "torso_len": 0.4167,
+      "shoulder_w": 0.385,
+      "upper_arm_len": 0.2734,
+      "forearm_len": 0.2305,
+      "thigh_len": 0.4052,
+      "shin_len": 0.3774,
+      "foot_len": 0.2001,
+      "chest_w": 0.3923,
+      "waist_w": 0.3619,
+      "hip_w": 0.3065,
+      "chest_d": 0.306,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0,
+          0.9568,
+          0.0231
+        ],
+        "Spine": [
+          0,
+          1.0605,
+          0.0129
+        ],
+        "Spine1": [
+          0,
+          1.1814,
+          0.001
+        ],
+        "Spine2": [
+          0,
+          1.3197,
+          -0.0127
+        ],
+        "Neck": [
+          0,
+          1.4752,
+          -0.0281
+        ],
+        "Head": [
+          0,
+          1.5301,
+          -0.0126
+        ],
+        "LeftArm": [
+          0.1925,
+          1.4222,
+          -0.029
+        ],
+        "LeftForeArm": [
+          0.4651,
+          1.407,
+          -0.0434
+        ],
+        "LeftHand": [
+          0.6952,
+          1.4148,
+          -0.0316
+        ],
+        "RightArm": [
+          -0.1925,
+          1.4222,
+          -0.0272
+        ],
+        "RightForeArm": [
+          -0.4651,
+          1.407,
+          -0.0428
+        ],
+        "RightHand": [
+          -0.6952,
+          1.4148,
+          -0.0313
+        ],
+        "LeftUpLeg": [
+          0.0893,
+          0.8992,
+          0.0123
+        ],
+        "LeftLeg": [
+          0.1279,
+          0.4962,
+          -0.0032
+        ],
+        "LeftFoot": [
+          0.1493,
+          0.121,
+          -0.0386
+        ],
+        "LeftToeBase": [
+          0.172,
+          0,
+          0.1195
+        ],
+        "RightUpLeg": [
+          -0.0893,
+          0.8992,
+          0.0149
+        ],
+        "RightLeg": [
+          -0.1279,
+          0.4962,
+          -0.0043
+        ],
+        "RightFoot": [
+          -0.1493,
+          0.121,
+          -0.039
+        ],
+        "RightToeBase": [
+          -0.172,
+          0,
+          0.1183
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -5922,6 +6043,11 @@
       "rig": "mixamo-106",
       "body": "mh-npc-reyes",
       "live": false
+    },
+    "perseus-106": {
+      "rig": "mixamo-106",
+      "body": "perseus-106",
+      "live": true
     }
   },
   "impulseReferenceKg": 65
