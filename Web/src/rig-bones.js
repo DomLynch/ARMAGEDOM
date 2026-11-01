@@ -10,6 +10,7 @@ export function setRigBones(model, description) {
   for (const key in FIELDS) if (description?.[FIELDS[key]]) names[key] = description[FIELDS[key]];
   model.userData.rigBones = names;
   if (description?.pistolGrip) model.userData.pistolGrip = description.pistolGrip;
+  if (description?.rifleGrip) model.userData.rifleGrip = description.rifleGrip;
   if (description?.knifeGripDegrees) model.userData.rigGrip = description.knifeGripDegrees;
 }
 // three strips ':' etc. from node names on load, so a "mixamorig:RightHand" row resolves as "mixamorigRightHand".
