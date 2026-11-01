@@ -5892,8 +5892,8 @@
       "live": true
     },
     "boss-south-nightborn": {
-      "rig": "v1-65",
-      "body": "scavenger-65",
+      "rig": "mixamo-106",
+      "body": "perseus-106",
       "live": true
     },
     "boss-warden": {
