@@ -12,7 +12,6 @@
   "notBodyDirs": ["weapons", "cash"],
   "exceptions": {
     "donor/warrior-phone.glb": 2410,
-    "bosses/boss-butcher.glb": 2490,
     "hunters/hunter-pitborn-106.cut.glb": 3410
   }
 }
