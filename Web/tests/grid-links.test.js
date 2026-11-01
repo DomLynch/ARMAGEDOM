@@ -37,8 +37,8 @@ test("each exit rectangle lies on the picture edge that faces its neighbour on t
 test("every area is reachable from Westminster once the Matron is down", () => {
   assert.equal(registry.initialArea, "westminster");
   assert.deepEqual([...registry.reachable("westminster")].sort(), [...registry.ids].sort());
-  // Leaving Westminster is what the tutorial gates; every other link keeps its existing requirements.
-  for (const l of registry.links("westminster")) assert.equal(l.requiresDefeat, "boss-witch-v1", `westminster>${l.to}`);
+  // Westminster exits are ungated (Dom, 31 Oct); no link carries a boss requirement.
+  for (const l of registry.links("westminster")) assert.equal(l.requiresDefeat, undefined, `westminster>${l.to}`);
   assert.deepEqual(
     links.filter((l) => l.from !== "westminster" && l.requiresDefeat).map((l) => `${l.from}>${l.to}`),
     [],
