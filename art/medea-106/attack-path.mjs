@@ -1,6 +1,6 @@
 // Bakes the Ember Matron's strike path (boss-witch-attack in world/area-content.json) from the Medea GLB's own Attack clip.
 // usage: node attack-path.mjs <boss-westminster-witch.glb> <manifest scale> <area-content.json>   (rewrites the boss-witch-attack rows in place)
-// One row per tick (windup+active+recovery+1): [baseX, baseY, baseZ, tipX, tipY, tipZ] of the right hand (she carries no blade: base at the wrist, tip 0.3 m along the hand bone, check the axis in the game) in model space times the manifest scale,
+// One row per tick (windup+active+recovery+1): [baseX, baseY, baseZ, tipX, tipY, tipZ] of the right hand (she carries no blade: base at the wrist, tip 0.6 m along the hand bone, check the axis in the game) in model space times the manifest scale,
 // sampled at clip time = tick / total * duration (native swings play the clip linearly over the whole attack).
 import { createRequire } from "node:module";
 import fs from "node:fs";
@@ -9,7 +9,7 @@ const { NodeIO } = req("@gltf-transform/core");
 const { ALL_EXTENSIONS } = req("@gltf-transform/extensions");
 const { MeshoptDecoder } = req("meshoptimizer");
 const [, , glb, scaleText, contentPath] = process.argv;
-const TOTAL = 80, BASE = [0, 0, 0], TIP = [0, 0.3, 0], scale = Number(scaleText);
+const TOTAL = 80, BASE = [0, 0, 0], TIP = [0, 0.6, 0], scale = Number(scaleText);
 await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.decoder": MeshoptDecoder });
 const root = (await io.read(glb)).getRoot();
