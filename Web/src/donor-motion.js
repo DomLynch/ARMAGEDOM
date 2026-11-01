@@ -17,10 +17,14 @@ export function equipDonorPlayer(asset, part) {
   });
   for (const node of remove) node.removeFromParent();
   hand.add(blade.clone(true));
-  const overrides = new Set(part.animations.map((clip) => clip.name));
+  // A body on another skeleton (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
+  const fits = (clip) =>
+      clip.tracks.every((t) => asset.scene.getObjectByName(THREE.PropertyBinding.parseTrackName(t.name).nodeName)),
+    own = part.animations.filter(fits),
+    overrides = new Set(own.map((clip) => clip.name));
   return {
     scene: asset.scene,
-    animations: [...part.animations, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
+    animations: [...own, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
   };
 }
 export function donorSwingPhase(age, timing, source) {

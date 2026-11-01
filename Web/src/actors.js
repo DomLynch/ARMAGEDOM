@@ -131,6 +131,12 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
   const response = await fetch(manifestURL);
   if (!response.ok) throw Error(`Character manifest HTTP ${response.status}`);
   const manifest = await response.json();
+  // A row's `playerSwap` ({ param, value, model, use, fields }) lets ?param=value dress `model` with the fields of row `use`.
+  const swap = manifest.playerSwap;
+  if (swap && new URLSearchParams(globalThis.location?.search ?? "").get(swap.param) === swap.value && manifest.models[swap.use])
+    for (const field of swap.fields)
+      if (manifest.models[swap.use][field] !== undefined) manifest.models[swap.model][field] = manifest.models[swap.use][field];
+      else delete manifest.models[swap.model][field];
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const models = new Map(),
     pendingModels = new Map();
