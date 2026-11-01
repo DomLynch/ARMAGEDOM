@@ -32,6 +32,7 @@ export function rigOf(model) {
       parts: family.parts === "physicsDeath.parts" ? CFG.parts : family.parts,
       virtual: family.virtual ?? {},
       body: m.body === "physicsBody" ? GAME_DATA.physicsBody.row : RIGS.bodies[m.body],
+      impulseScale: m.impulseScale ?? 1,
     };
   }
   records.set(model, record);

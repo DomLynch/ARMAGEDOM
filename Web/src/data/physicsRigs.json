@@ -6491,7 +6491,12 @@
       "body": "whiteclown-106",
       "live": true
     },
-    "boss-westminster-witch": {"rig":"mixamo-106","body":"medea-106","live":true},
+    "boss-westminster-witch": {
+      "rig": "mixamo-106",
+      "body": "medea-106",
+      "impulseScale": 0.25,
+      "live": true
+    },
     "boss-south-nightborn": {
       "rig": "mixamo-106",
       "body": "stalker-106",
