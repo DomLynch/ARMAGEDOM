@@ -1591,7 +1591,7 @@
         "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/perseus-106/build-perseus.mjs: nine own clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped; Return, Riposte, Parry, BlockImpact, Deflected, StrafeLeft, StrafeRight taken from hunters/hunter-pitborn-106.glb (same 106 skeleton names) and delta-retargeted to his rest pose (rest rotations differ up to 16.6 degrees at the feet), Hips translation scaled by the hips height ratio 1.0078; textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
-        "note": "the player 'vagrant' row stays the donor warrior unless ?player=perseus (playerSwap) dresses it with this row; the hand, arm and torso bones are named here and read through rig-bones.js; vest and finisher mesh names and stride are still hero-only; the ragdoll row is named by ragdollRow (physicsRigs.json)"
+        "note": "playerSwap dresses the player 'vagrant' row with this row by default (1 Nov 2026, Dom); ?player=hero keeps the old donor warrior; the hand, arm and torso bones are named here and read through rig-bones.js; vest and finisher mesh names and stride are still hero-only; the ragdoll row is named by ragdollRow (physicsRigs.json)"
       },
       "bytes": 1189952,
       "sha256": "b9f787acc731e4657d409c277d6546166d795d9d5d58f18df983ff73e295c7a9"
@@ -3992,6 +3992,7 @@
   "playerSwap": {
     "param": "player",
     "value": "perseus",
+    "offValue": "hero",
     "model": "vagrant",
     "use": "perseus-106",
     "fields": ["url", "scale", "stride", "sprintStride", "knifeGripDegrees", "forwardCorrection", "clips", "upperBone", "headBone", "handBone", "upperArmBone", "foreArmBone", "torsoBone", "ragdollRow", "bytes", "sha256"]
