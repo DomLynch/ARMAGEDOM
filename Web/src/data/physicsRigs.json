@@ -5722,6 +5722,127 @@
         ]
       },
       "scale_baked": 1
+    },
+    "knight-106": {
+      "id": "knight-106",
+      "source": "knight-106.glb (Web/public/assets/bosses) bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the model scale)",
+      "height_m": 2.0504,
+      "neck_len": 0.1063,
+      "torso_len": 0.4403,
+      "shoulder_w": 0.452,
+      "upper_arm_len": 0.3074,
+      "forearm_len": 0.267,
+      "thigh_len": 0.4848,
+      "shin_len": 0.5158,
+      "foot_len": 0.2141,
+      "chest_w": 0.4606,
+      "waist_w": 0.4249,
+      "hip_w": 0.3233,
+      "chest_d": 0.3593,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0,
+          1.1872,
+          -0.0183
+        ],
+        "Spine": [
+          0,
+          1.3194,
+          -0.0183
+        ],
+        "Spine1": [
+          -0.0001,
+          1.4116,
+          -0.0183
+        ],
+        "Spine2": [
+          -0.0001,
+          1.5222,
+          -0.0183
+        ],
+        "Neck": [
+          -0.0002,
+          1.7595,
+          -0.0327
+        ],
+        "Head": [
+          -0.0002,
+          1.8598,
+          0.0026
+        ],
+        "LeftArm": [
+          0.226,
+          1.6636,
+          -0.0606
+        ],
+        "LeftForeArm": [
+          0.5334,
+          1.6636,
+          -0.0606
+        ],
+        "LeftHand": [
+          0.8004,
+          1.6636,
+          -0.056
+        ],
+        "RightArm": [
+          -0.226,
+          1.6636,
+          -0.0606
+        ],
+        "RightForeArm": [
+          -0.5334,
+          1.6636,
+          -0.0606
+        ],
+        "RightHand": [
+          -0.8004,
+          1.6636,
+          -0.056
+        ],
+        "LeftUpLeg": [
+          0.0942,
+          1.1385,
+          0.0007
+        ],
+        "LeftLeg": [
+          0.0942,
+          0.6543,
+          0.0251
+        ],
+        "LeftFoot": [
+          0.0942,
+          0.1415,
+          -0.0309
+        ],
+        "LeftToeBase": [
+          0.1114,
+          0,
+          0.1288
+        ],
+        "RightUpLeg": [
+          -0.0942,
+          1.1385,
+          0.0007
+        ],
+        "RightLeg": [
+          -0.0942,
+          0.6543,
+          0.0251
+        ],
+        "RightFoot": [
+          -0.0942,
+          0.1415,
+          -0.0309
+        ],
+        "RightToeBase": [
+          -0.1114,
+          0,
+          0.1288
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -5786,8 +5907,8 @@
       "live": true
     },
     "boss-area7-knight": {
-      "rig": "v1-65",
-      "body": "warden-65",
+      "rig": "mixamo-106",
+      "body": "knight-106",
       "live": true
     },
     "boss-butcher": {
