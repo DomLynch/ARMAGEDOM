@@ -888,7 +888,6 @@
       "upperArmBone": "mixamorig:RightArm",
       "foreArmBone": "mixamorig:RightForeArm",
       "torsoBone": "mixamorig:Spine",
-      "knifeGripDegrees": [35, 0, 0],
       "measure": {
         "source": "glb bind pose (art/surgeon-106/build-boss.mjs output)",
         "heightMetres": 2.1641,
@@ -914,8 +913,8 @@
         "strafeRight": "StrafeRight"
       },
       "deferred": true,
-      "bytes": 577264,
-      "sha256": "41b0d43d1d9c5075d4982d389336fed7adff5cd6da5429f5147fa091a18d18b9",
+      "bytes": 578364,
+      "sha256": "080b37db5c63f33d309fa3c0bfbcfc074317c77f779ee3d67a00cbf23b992d9f",
       "provenance": {
         "source": "Mixamo Whiteclown (N. Hallin) full-phone-mixamorig body on the 106 rig",
         "licence": "Mixamo, cleared by Dom 2026-10-23",

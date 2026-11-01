@@ -61,6 +61,8 @@ for (const name of BORROW) {
   }
 }
 if (!root.listNodes().some((n) => n.getName() === "fk_socket_hand_r")) throw Error("no fk_socket_hand_r");
-await doc.transform(prune(), dedup(), textureCompress({ encoder: sharp, targetFormat: "webp", quality: 85 }), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
+// The Surgeon holds a runtime-built bone saw (engine/bone-saw-view.js): it takes the place of the WeaponDrawn grip node, so bake an empty one under the hand socket, tilted (the quaternion is the per-weapon hand offset: the saw blade points 20 degrees inside the thrust line at the Riposte active pose, so its line crosses the player centre, tests/donor-motion.test.js).
+root.listNodes().find((n) => n.getName() === "fk_socket_hand_r").addChild(doc.createNode("WeaponDrawn").setRotation([0.2243, 0, -0.4158, 0.8814]));
+await doc.transform(prune({ keepLeaves: true }), dedup(), textureCompress({ encoder: sharp, targetFormat: "webp", quality: 85 }), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
 await io.write(outPath, doc);
 console.log("clips", have.join(","), "nodes", root.listNodes().length);

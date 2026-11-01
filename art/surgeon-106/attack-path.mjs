@@ -10,11 +10,11 @@ const { NodeIO } = req("@gltf-transform/core");
 const { ALL_EXTENSIONS } = req("@gltf-transform/extensions");
 const { MeshoptDecoder } = req("meshoptimizer");
 const [, , glb, scaleText, contentPath] = process.argv;
-const TOTAL = 80, BASE = [0, 0.4, 0], TIP = [0, 0.86, 0], GRIP = 35 * Math.PI / 180, scale = Number(scaleText);
+const TOTAL = 80, BASE = [0, 0.4, 0], TIP = [0, 0.86, 0], GRIP = [0.2243, 0, -0.4158, 0.8814], scale = Number(scaleText);
 await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.decoder": MeshoptDecoder });
 const root = (await io.read(glb)).getRoot();
-const clip = root.listAnimations().find((a) => a.getName() === "Attack");
+const clip = root.listAnimations().find((a) => a.getName() === (process.env.CLIP ?? "Attack"));
 const sword = root.listNodes().find((n) => n.getName() === "fk_socket_hand_r");
 const slerp = (a, b, t) => {
   let d = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
@@ -48,7 +48,8 @@ for (let tick = 0; tick <= TOTAL; tick++) {
     else if (ch.getTargetPath() === "translation") node.setTranslation(v);
   }
   const m = sword.getWorldMatrix();
-  const at = (q) => { const p = [q[0], q[1] * Math.cos(GRIP) - q[2] * Math.sin(GRIP), q[1] * Math.sin(GRIP) + q[2] * Math.cos(GRIP)]; return [0, 1, 2].map((r) => (m[r] * p[0] + m[4 + r] * p[1] + m[8 + r] * p[2] + m[12 + r]) * scale); };
+  const rot = (v) => { const [x, y, z, w] = GRIP, t = [2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])]; return [v[0] + w * t[0] + y * t[2] - z * t[1], v[1] + w * t[1] + z * t[0] - x * t[2], v[2] + w * t[2] + x * t[1] - y * t[0]]; };
+  const at = (q) => { const p = rot(q); return [0, 1, 2].map((r) => (m[r] * p[0] + m[4 + r] * p[1] + m[8 + r] * p[2] + m[12 + r]) * scale); };
   frames.push([...at(BASE), ...at(TIP)].map((v) => Number(v.toFixed(4))));
 }
 const text = fs.readFileSync(contentPath, "utf8"), key = '"boss-surgeon-attack": [', start = text.indexOf(key);
