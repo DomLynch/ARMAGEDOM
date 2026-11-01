@@ -1,5 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
-import { drawTally } from "./heat-tally-view.js";
+import { drawTally } from "./heat-tally-draw.js";
 
 // The heat tally as a screen overlay in the top right corner, below the menu button (layout in data/heat.json `hud`). The same gouges as
 // the world sprite, on two stacked canvases: the settled marks, and the newest mark whose CSS opacity does the fade (no repaint).
