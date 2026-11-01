@@ -11,7 +11,8 @@ const checkNumbers = (path, o) => {
 };
 
 function validateLook(s) {
-  closed(s, ["label", "centre", "colours", "mark", "companions", "strike"]);
+  closed(s, ["label", "placement", "centre", "colours", "mark", "companions", "strike"]);
+  if (s.placement !== "hud" && s.placement !== "world") fail("heat", "look.placement must be hud or world");
   number("heat", "look.centre", s.centre, 0);
   closed(s.colours, ["fill", "core", "edge", "glow", "glowAlpha", "glowBlurPx"]);
   for (const k of ["fill", "core", "edge", "glow"]) checkHex(`look.colours.${k}`, s.colours[k]);
@@ -95,6 +96,7 @@ export function validateHeat(d) {
     "valuables",
     "pressure",
     "world",
+    "hud",
     "look",
   ]);
   number("heat", "tierMessageSeconds", d.tierMessageSeconds, 0.1);
@@ -118,6 +120,9 @@ export function validateHeat(d) {
   for (const k of ["heightMetres", "widthMetresPerGroup", "canvasPxPerGroup", "canvasHeightPx"]) number("heat", `world.${k}`, d.world[k], 0.1);
   count("heat", "world.maxGroups", d.world.maxGroups, 1, 12);
   count("heat", "world.renderOrder", d.world.renderOrder, 0, 1000);
+  closed(d.hud, ["widthPxPerGroup", "topOffsetPx", "rightOffsetPx", "zIndex"]);
+  for (const k of ["widthPxPerGroup", "topOffsetPx", "rightOffsetPx"]) number("heat", `hud.${k}`, d.hud[k], 0);
+  count("heat", "hud.zIndex", d.hud.zIndex, 0, 1000);
   validateLook(d.look);
   const top = d.pressure.tiers[d.pressure.tiers.length - 1].minHeat;
   count("heat", "maxHeat", d.maxHeat, top, d.world.maxGroups * d.groupSize); // reaches the top tier and fits the tally's groups

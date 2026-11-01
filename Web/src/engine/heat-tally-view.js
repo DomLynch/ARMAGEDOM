@@ -1,5 +1,6 @@
 import * as T from "three";
 import { GAME_DATA } from "./game-data.js";
+import { createHeatTallyHud } from "./heat-tally-hud.js";
 import { gougeOutline, groupSlots, seeded } from "./heat-tally-strokes.js";
 
 // The heat tally above the player (look in data/heat.json): groups of `groupSize`, the last of each full group a strike through the
@@ -36,7 +37,7 @@ function drawGouge(ctx, outline, core, alpha) {
 
 // Paint the tally on its canvas. part "rest" draws every slot but the newest; part "newest" draws only the newest, so the fade needs no
 // repaint: the newest slot sits in its own sprite whose material opacity does the dimming.
-function drawTally(ctx, count, part) {
+export function drawTally(ctx, count, part) {
   const w = HEAT.world,
     size = HEAT.groupSize,
     look = HEAT.look,
@@ -74,8 +75,9 @@ function makeSprite(scene, count, groups, part) {
 }
 
 // Two textures per count (the settled marks, and the newest mark); a fade only changes the newest sprite's opacity, never builds a texture.
-export function createHeatTallyView(scene) {
+export function createHeatTallyView(scene, placement = HEAT.look.placement) {
   if (typeof globalThis.document?.createElement !== "function") return null;
+  if (placement === "hud") return createHeatTallyHud();
   let key = null,
     sprites = [];
   const dispose = () => {

@@ -29,10 +29,12 @@
     "maxGroups": 4,
     "renderOrder": 60
   },
+  "hud": { "widthPxPerGroup": 72, "topOffsetPx": 58, "rightOffsetPx": 0, "zIndex": 4 },
   "look": {
-    "label": "Burnt amber rake scratches",
+    "label": "Dark red rake scratches",
+    "placement": "hud",
     "centre": 0.5,
-    "colours": { "fill": "a8620f", "core": "ff9a50", "edge": "3a1608", "glow": "5a2610", "glowAlpha": 0.75, "glowBlurPx": 9 },
+    "colours": { "fill": "7a1218", "core": "b8323a", "edge": "2a0508", "glow": "4a0a0e", "glowAlpha": 0.75, "glowBlurPx": 9 },
     "mark": {
       "lengthPx": 156, "widthPx": 14, "bendPx": 4, "segments": 16, "edgeJitterPx": 2.2, "notchProb": 0.24, "notchPx": 9, "notchBias": 0.35, "tipSharpness": 2,
       "entryPower": 0.6, "bodyPower": 0.7, "tiltJitterDeg": 2, "baseTiltDeg": 26, "spacingPx": 40, "edgeLinePx": 1.6, "coreShare": 0.4

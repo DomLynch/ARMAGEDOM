@@ -1144,3 +1144,17 @@ body.desktop-ui:not(.touch) #pistol-interact {
 .menu-open #key-hints {
   visibility: hidden;
 }
+#heat-tally {
+  position: absolute;
+  pointer-events: none;
+}
+#heat-tally[hidden] {
+  display: none;
+}
+#heat-tally canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
