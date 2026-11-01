@@ -61,6 +61,7 @@ import dogBite from "./dog-data/bite-scaled.json" with { type: "json" };
 import dogMidClip from "./dog-data/mid-slash.json" with { type: "json" };
 import dogBlade from "./dog-data/blade-path.json" with { type: "json" };
 import dogReceiverAppend from "./dog-data/receiver-append.json" with { type: "json" };
+import { createBodyContact } from "./body-contact.js";
 import { createRatBiteReceiver, ratLowBlade } from "./rat-contact.js";
 import { rigCapability, rigNumber, rigText } from "./rig-capabilities.js";
 // The larger feral variant of a rig is the one at its `feralScale` (a rig without one has none).
@@ -975,14 +976,17 @@ export function createActors(
       return { libraries: [...gauntKits.values()].map((kit) => kit.stats()), preparationError: gauntPreparationError };
     },
     ratContact() {
-      // Bite receivers bind the hero's lower-leg faces; a swapped body (own hand bone) has none, so its player takes no rat/dog contact.
-      if (library.manifest.models.vagrant?.handBone) return null;
+      // The hero binds recorded lower-leg faces; a swapped body (manifest `bodyContact`) binds its own bones' faces (body-contact.js).
+      const bodySpec = library.manifest.models.vagrant?.bodyContact,
+        bodyOf = (view) => (bodySpec ? (view.bodyContact ??= createBodyContact(view.model, bodySpec)) : null);
       const point = new THREE.Vector3(),
         ray = new THREE.Raycaster();
       function preparePlayer(view) {
         if (view.footReceiver) return;
-        view.footReceiver = createRatBiteReceiver(view.model, footBindings.bindings);
-        view.footPoints = [];
+        const body = bodyOf(view);
+        view.footReceiver = createRatBiteReceiver(view.model, body ? body.bindings("foot") : footBindings.bindings);
+        view.footPoints = body ? body.footPoints(bodySpec.footPart, LOOK.footWeightMin) : [];
+        if (body) return;
         for (const binding of footBindings.bindings) {
           const mesh = view.model.getObjectByName(binding.runtimeName),
             g = mesh.geometry,
@@ -1032,21 +1036,26 @@ export function createActors(
             !player.dogReceiver &&
             game.enemies.some((e) => feralVariant(e.rig, views.get(e.id)?.description.scale))
           ) {
-            const bindings = footBindings.bindings.map((b) => ({
-              ...b,
-              faceBindings: [
-                ...b.faceBindings,
-                ...dogReceiverAppend
-                  .filter((f) => f.runtimeName === b.runtimeName)
-                  .map(({ face, vertices }) => ({ face, vertices })),
-              ],
-            }));
+            const body = bodyOf(player),
+              bindings = body
+                ? body.bindings("dog")
+                : footBindings.bindings.map((b) => ({
+                    ...b,
+                    faceBindings: [
+                      ...b.faceBindings,
+                      ...dogReceiverAppend
+                        .filter((f) => f.runtimeName === b.runtimeName)
+                        .map(({ face, vertices }) => ({ face, vertices })),
+                    ],
+                  }));
             player.dogReceiver = createRatBiteReceiver(player.model, bindings);
           }
           if (!player.salamanderReceiver) {
             const own = game.enemies.find((e) => rigCapability(e.rig, "calfFaceReceiver")),
               faces = own && views.get(own.id)?.description.contact.calfFaces;
-            if (faces) {
+            if (faces && bodySpec)
+              player.salamanderReceiver = createRatBiteReceiver(player.model, bodyOf(player).bindings("salamander"));
+            else if (faces) {
               const bindings = [];
               for (const { runtimeName, face, vertices } of faces) {
                 let binding = bindings.find((b) => b.runtimeName === runtimeName);
@@ -1060,7 +1069,10 @@ export function createActors(
             }
           }
           if (!player.wolfReceiver && game.enemies.some((e) => rigCapability(e.rig, "bodyReceiver")))
-            player.wolfReceiver = createRatBiteReceiver(player.model, wolfBodyReceiverBindings(player.model));
+            player.wolfReceiver = createRatBiteReceiver(
+              player.model,
+              bodySpec ? bodyOf(player).bindings("wolf") : wolfBodyReceiverBindings(player.model),
+            );
           const rats = new Map();
           for (const e of game.enemies)
             if (rigCapability(e.rig, "lowStrike")) {
@@ -1133,6 +1145,21 @@ export function createActors(
           let best = null,
             distance = Infinity;
           player.root.updateMatrixWorld(true);
+          const body = bodyOf(player),
+            consider = (goal, face) => {
+              const next = { x: goal.x, y: goal.y, z: -goal.z, face },
+                d = Math.hypot(next.x - dog.pos.x, next.y, next.z - dog.pos.z);
+              if (d < distance && world.lineClear(dog.pos, next)) {
+                best = next;
+                distance = d;
+              }
+            };
+          if (body) {
+            // A creature reaches the body surface nearest it, then `contactDepth` (rigCapabilities, 0 surface to 1 limb axis) inwards.
+            const depth = rigNumber(dog.rig, "contactDepth") ?? 0;
+            for (const p of body.reachPoints(rigText(dog.rig, "contactPart"), depth, visible, () => new THREE.Vector3())) consider(p);
+            return best;
+          }
           for (const binding of view.description.contact.calfFaces) {
             const mesh = player.model.getObjectByName(binding.runtimeName);
             if (!visible(mesh)) continue;
@@ -1144,12 +1171,7 @@ export function createActors(
             goal.multiplyScalar(1 / 3); // tuning-ok: the mean of a binding's three vertices
             const band = view.description.contact.calfBand ?? LOOK.calfBand;
             if (goal.y < band[0] || goal.y > band[1]) continue;
-            const next = { x: goal.x, y: goal.y, z: -goal.z, face: binding.face },
-              d = Math.hypot(next.x - dog.pos.x, next.y, next.z - dog.pos.z);
-            if (d < distance && world.lineClear(dog.pos, next)) {
-              best = next;
-              distance = d;
-            }
+            consider(goal, binding.face);
           }
           return best;
         },
