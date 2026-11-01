@@ -46,3 +46,16 @@ for (const key of ["player-rifle", "player-shotgun", "player-rocket-launcher"])
     }
     pose.dispose();
   });
+
+test("a throw while posing restores the arm bones", async () => {
+  const body = await loadGeometry(asset(row.url)),
+    gun = await loadGeometry(asset(models["player-rifle"].url)),
+    model = body.scene,
+    before = new Map();
+  setRigBones(model, row);
+  const pose = createRiflePose(model, { description: models["player-rifle"], gltf: gun });
+  model.traverse((o) => o.isBone && before.set(o, o.quaternion.clone()));
+  model.getObjectByName("mixamorigLeftHand").name = "gone"; // the right arm is already posed when the left arm fails
+  assert.throws(() => pose.apply("Rifle_Aim", 0));
+  for (const [bone, q] of before) assert(bone.quaternion.angleTo(q) < 1e-3, `${bone.name} restored after a throw`);
+});

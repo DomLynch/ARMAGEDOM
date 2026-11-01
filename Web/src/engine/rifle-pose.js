@@ -7,10 +7,10 @@ function reachArm(upper, fore, wrist, target, bend) {
     a = shoulder.distanceTo(fore.getWorldPosition(new T.Vector3())),
     b = fore.getWorldPosition(new T.Vector3()).distanceTo(wrist.getWorldPosition(new T.Vector3())),
     dir = target.clone().sub(shoulder),
-    d = Math.max(Math.abs(a - b) + 1e-6, Math.min(a + b - 1e-6, dir.length())); // tuning-ok: numeric epsilon keeping the arm off full lock
+    d = Math.max(Math.abs(a - b) + 1e-6, Math.min(a + b - 1e-6, dir.length()));
   dir.normalize();
   const side = bend.clone().addScaledVector(dir, -bend.dot(dir)).normalize(),
-    along = (a * a - b * b + d * d) / (2 * d), // tuning-ok: law of cosines
+    along = (a * a - b * b + d * d) / (d + d),
     height = Math.sqrt(Math.max(0, a * a - along * along));
   pointBone(upper, fore, shoulder.clone().addScaledVector(dir, along).addScaledVector(side, height));
   pointBone(fore, wrist, shoulder.clone().addScaledVector(dir, d));
@@ -193,10 +193,16 @@ export function createRiflePose(model, source) {
         if (grip) {
           for (const bone of gripBones) saved.set(bone, bone.quaternion.clone());
           const unit = at / clip.duration;
-          holdTwoHanded(model, mount, grip, length, {
-            kick: name === "Rifle_Fire" ? 1 - unit : 0,
-            reload: name === "Rifle_Reload" ? Math.sin(Math.PI * unit) : 0,
-          });
+          try {
+            holdTwoHanded(model, mount, grip, length, {
+              kick: name === "Rifle_Fire" ? 1 - unit : 0,
+              reload: name === "Rifle_Reload" ? Math.sin(Math.PI * unit) : 0,
+            });
+          } catch (error) {
+            active = true;
+            restore();
+            throw error;
+          }
         }
         for (const track of clip.tracks) track.bone.quaternion.fromArray(track.sample.evaluate(at)).normalize();
         active = true;
