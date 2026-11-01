@@ -6,7 +6,7 @@ Constants (parent source and release sha, candidate source, fingerprint and rele
 releases.json rows for N and N-1; nothing is edited per release. The candidate row must already carry
 releaseSHA (add it after packaging, before running this).
 """
-import argparse, json, pathlib, shutil
+import argparse, json, pathlib, re, shutil
 
 ap = argparse.ArgumentParser()
 ap.add_argument('n', type=int)
@@ -48,18 +48,59 @@ for name in ['activate-preview.sh', 'nginx-preview.conf', 'publish-reviewed.sh',
 
 edit('rollback-owned-routing.py', VERSION_SHIFT)
 edit('wait-route-ready.py', [(f'rollout={P}', f'rollout={N}')])
-edit('promote-root.py', VERSION_SHIFT + [
-    (f'ROOT{P} active', f'ROOT{N} active'),
-    (f"'{PPP}', '{PP}']:", f"'{PPP}', '{PP}', '{P}']:"),
-])
-edit('verify-served.py', VERSION_SHIFT + [
-    (f'root{P}', f'root{N}'),
-    (f"[('{PP}',", f"[('{P}','{par['releaseSHA']}'),('{PP}',"),
-])
+edit('promote-root.py', VERSION_SHIFT + [(f'ROOT{P} active', f'ROOT{N} active')])
+
+
+def patch_promote(path, floor, last):
+    """Verify the previews floor..last (the rollback floor onward) instead of a hard-coded list of every historical
+    build, and abort naming the build if one is missing."""
+    t = path.read_bytes().decode()
+    lst = re.compile(r"for n in \[(?:'\d+', )*'\d+'\]:")
+    assert len(lst.findall(t)) == 1, 'promote-root.py list literal not found exactly once'
+    t = lst.sub('for n in %r:' % [str(k) for k in range(floor, last + 1)], t)
+    old = " m=json.loads((root/'release.json').read_text())"
+    assert t.count(old) == 1
+    guard = " assert (root/'release.json').exists(), 'Missing preview build %s: restore it before flipping' % root\n"
+    t = t.replace(old, guard + old)
+    path.write_bytes(t.encode())
+
+
+def patch_served(path, rows, floor, last):
+    """verify-served compares each earlier preview's release sha over HTTP: restrict it to floor..last, from releases.json."""
+    t = path.read_bytes().decode()
+    lst = re.compile(r"for version,release_sha in \[(?:\('\d+','[0-9a-f]{64}'\),?)+\]:")
+    assert len(lst.findall(t)) == 1, 'verify-served.py prior list not found exactly once'
+    old = dict(re.findall(r"\('(\d+)','([0-9a-f]{64})'\)", lst.search(t).group(0)))
+    pairs = [(str(k), rows[str(k)]['releaseSHA']) for k in range(last, floor - 1, -1)]
+    for k, sha in pairs:
+        assert old.get(k, sha) == sha, ('releases.json disagrees with the old list', k)
+    t = lst.sub('for version,release_sha in [' + ','.join("('%s','%s')" % p for p in pairs) + ']:', t)
+    path.write_bytes(t.encode())
+
+
+def patch_routing(path):
+    """The domlynch.com legacy-alias check must not need the old preview build to exist: assert the 301 and its Location
+    without following it (the redirect is the contract; the 2026100x builds are archived)."""
+    t = path.read_bytes().decode()
+    if 'legacy alias 301' in t:
+        return
+    pat = re.compile(r"r=urllib\.request\.urlopen\('https://domlynch\.com/armagedom/preview/(three-2026\d{4}-\d{3})/\?touch=1',timeout=15\);assert '/\1/\?touch=1' in r\.url")
+    assert len(pat.findall(t)) == 1, 'verify-routing.py domlynch alias check not found exactly once'
+    t = pat.sub(lambda m: (
+        "try:opener.open('https://domlynch.com/armagedom/preview/%s/?touch=1',timeout=15);raise AssertionError('legacy alias 301 missing')\n"
+        "except urllib.error.HTTPError as e:assert e.code==301 and 'playarmagedom.com/armagedom/preview/%s/?touch=1' in e.headers['Location'],'legacy alias 301'"
+        % (m.group(1), m.group(1))), t)
+    path.write_bytes(t.encode())
+
+
+patch_promote(DST / 'promote-root.py', int(rows.get('_floor', 323)), P)
+edit('verify-served.py', VERSION_SHIFT + [(f'root{P}', f'root{N}')])
+patch_served(DST / 'verify-served.py', rows, int(rows.get('_floor', 323)), P)
 edit('verify-routing.py', VERSION_SHIFT + [
     (f'rollout={P}', f'rollout={N}'),
     (par['releaseSHA'], cand['releaseSHA']),
 ])
+patch_routing(DST / 'verify-routing.py')
 
 (DST / f'mksums{P}.py').rename(DST / f'mksums{N}.py')
 

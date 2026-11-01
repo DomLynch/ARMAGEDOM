@@ -31,14 +31,14 @@ for s in "$PSHA" "$SHA"; do
   for try in 1 2 3 4 5; do git -C "$CACHE" fetch -q --depth=1 origin "$s" && break; [ "$try" = 5 ] && { echo "FETCH_FAILED $s" >&2; exit 1; }; sleep 5; done
 done
 repo=$CACHE
-mkdir -p "$W/baselines/deploy$N-b$P"
-git -C "$CACHE" archive "$PSHA" Web | tar -x -C "$W/baselines/deploy$N-b$P"
+mkdir -p "$D/parent/deploy$N-b$P"
+git -C "$CACHE" archive "$PSHA" Web | tar -x -C "$D/parent/deploy$N-b$P"
 mkdir src && git -C "$CACHE" archive "$SHA" | tar -x -C src
 cd src/Web
 npm ci --no-audit --no-fund > ../../npmci.log 2>&1
 cd ..
 
-bash "$HERE/prep-baselines.sh" "$D/src/Web/node_modules" "deploy$N-b$P"
+bash "$HERE/prep-baselines.sh" "$D"
 bash "$HERE/gate.sh" "$N" "$D"
 grep -h EXIT ../rb.log ../build.log ../pack.log
 grep -q 'RB_EXIT=0' ../rb.log && grep -q 'BUILD_EXIT=0' ../build.log && grep -q 'ASSETS_EXIT=0' ../build.log && grep -q 'PACK_EXIT=0' ../pack.log \
@@ -46,8 +46,7 @@ grep -q 'RB_EXIT=0' ../rb.log && grep -q 'BUILD_EXIT=0' ../build.log && grep -q 
 
 # Presence layout: candidate rows must equal the parent's (otherwise a presence restart is needed).
 node Web/scripts/area-presence-rows.mjs ../area.json 2> ../area.err
-ln -sfn "$D/src/Web/node_modules" "$W/baselines/deploy$N-b$P/Web/node_modules"
-( cd "$W/baselines/deploy$N-b$P" && node Web/scripts/area-presence-rows.mjs "$D/area-parent.json" 2> "$D/area-parent.err" )
+( cd "$D/roots/deploy$N-b$P" && node Web/scripts/area-presence-rows.mjs "$D/area-parent.json" 2> "$D/area-parent.err" )
 cmp ../area.json ../area-parent.json && echo AREA_IDENTICAL || { echo AREA_DIFFERS; grep -m1 version ../area.json; }
 
 python3 "$HERE/mkmanifest.py" "$N" "$SHA" "$FP" "$HERE/releases.json" ../assets.log release-manifest.json

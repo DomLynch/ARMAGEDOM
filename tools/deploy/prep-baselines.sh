@@ -1,6 +1,8 @@
 #!/bin/bash
 # Idempotently materialise the frozen rollback baselines under $ARMA_WORK/baselines (one Web tree each).
-# Usage: prep-baselines.sh <candidate node_modules path> <this release's own baseline name>
+# Usage: prep-baselines.sh <deploy dir>   (the cache under $ARMA_WORK/baselines is never modified)
+# Per run, $D/roots/<name> is a hardlinked copy of each cached baseline (no extra disk) with this build's node_modules
+# linked in, so two builds can share one read-only cache without touching each other.
 # Rows of baselines.txt are "deployN-bM <source sha>" and are rebuilt from GitHub with git archive.
 # The 14 oldest baselines (deploy226-b224 .. deploy238-b237) have no recorded sha: they are copied once from the
 # read-only VPS harvest at $ARMA_FROZEN (default /mnt/c/arma-work/baselines-frozen).
@@ -9,7 +11,8 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 W=${ARMA_WORK:-$HOME/arma-work}
 URL=${ARMA_REPO_URL:-https://github.com/DomLynch/ARMAGEDOM.git}
 FROZEN=${ARMA_FROZEN:-/mnt/c/arma-work/baselines-frozen}
-NM=${1:?candidate node_modules}
+D=${1:?deploy dir}
+NM=$D/src/Web/node_modules
 mkdir -p "$W/baselines" "$W/baseline-git"
 git -C "$W/baseline-git" rev-parse -q --git-dir >/dev/null 2>&1 || { git init -q "$W/baseline-git"; git -C "$W/baseline-git" remote add origin "$URL"; }
 for d in "$FROZEN"/deploy*; do
@@ -29,7 +32,10 @@ fetch_one() {
 export -f fetch_one; export W URL; export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.version GIT_CONFIG_VALUE_0=HTTP/1.1
 # 5 in parallel; the cache under $W/baselines persists, so later releases only fetch what is new.
 grep -v '^$' "$HERE/baselines.txt" | xargs -P 5 -L 1 bash -c 'fetch_one "$0" "$1"'
-for d in "$W"/baselines/deploy*; do
-  [ -d "$d/Web" ] && ln -sfn "$NM" "$d/Web/node_modules"
+rm -rf "$D/roots" && mkdir -p "$D/roots"
+for d in "$W"/baselines/deploy* "$D"/parent/deploy*; do
+  [ -d "$d/Web" ] || continue
+  cp -al "$d" "$D/roots/$(basename "$d")"
+  ln -sfn "$NM" "$D/roots/$(basename "$d")/Web/node_modules"
 done
-echo "baselines ready: $(ls "$W/baselines" | wc -l)"
+echo "baselines ready: $(ls "$D/roots" | wc -l)"

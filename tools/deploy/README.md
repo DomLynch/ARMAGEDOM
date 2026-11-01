@@ -24,3 +24,6 @@ No secrets belong in this folder; read them from the environment.
 
 ## Freeze list (VPS)
 Never delete or move without Dom's per-folder word: `/opt/armagedom-preview-staging` (the `-ops`, `-private` and `-root-ops` dirs of the LIVE, ROLLBACK and FLOOR builds hold the rollback evidence: nginx before/after copies, private release.json, routing receipts), `/var/www/playarmagedom.com`, the nginx `playarmagedom-three-*.conf` snippets, `/opt/armagedom-realtime`. A cleanup archive copy is not a substitute: restore before a flip.
+
+## Flip checks verify what still exists (2026-11-01)
+`mk.py` no longer carries a hard-coded list of every historical preview. `promote-root.py` verifies the previews from the rollback floor (`_floor` in `releases.json`, 323) to the parent and aborts naming any missing build; `verify-served.py` compares only those builds' release shas (from `releases.json`); `verify-routing.py` asserts the domlynch.com legacy alias answers 301 without following it. Older builds are archived and unreachable by rollback.

@@ -6,7 +6,7 @@ N=${1:?release number}
 D=${2:?deploy dir}
 W=${ARMA_WORK:-$HOME/arma-work}
 ROOTS=""
-for d in "$W"/baselines/deploy*; do
+for d in "$D"/roots/deploy*; do
   ROOTS=${ROOTS:+$ROOTS:}$d
 done
 cd "$D/src/Web"
