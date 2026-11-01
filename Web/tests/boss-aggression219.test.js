@@ -33,9 +33,10 @@ for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){
   if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);
   for(const[action,a]of Object.entries(p.attacks)){
-   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks'].includes(key))assert.deepEqual(a[key],oa[key]);
+   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(id==='veteran'?['clip']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy
    const frames=bosses.paths[a.path],oldFrames=base.bosses.paths[a.path];
    assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);
+   if(id==='veteran')continue; // 1 Nov: the Marshal path is re-baked from the new body's own Heavy clip (art/boss-borough-marshal-106), not resampled from the old maul clip
    // DonorMotion samples native clips uniformly, so physical contact must use
    // the same source phase rather than retaining stale active-only samples.
    for(let i=0;i<frames.length;i++){

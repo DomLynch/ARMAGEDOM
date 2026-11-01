@@ -5601,6 +5601,127 @@
         ]
       },
       "scale_baked": 1
+    },
+    "marshal-106": {
+      "id": "marshal-106",
+      "source": "marshal-106.glb (Armagedom Web/public/assets/bosses) bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the model scale)",
+      "height_m": 2.1348,
+      "neck_len": 0.169,
+      "torso_len": 0.4975,
+      "shoulder_w": 0.5054,
+      "upper_arm_len": 0.2988,
+      "forearm_len": 0.304,
+      "thigh_len": 0.3615,
+      "shin_len": 0.5568,
+      "foot_len": 0.2399,
+      "chest_w": 0.515,
+      "waist_w": 0.4751,
+      "hip_w": 0.4825,
+      "chest_d": 0.4017,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0,
+          1.1007,
+          -0.003
+        ],
+        "Spine": [
+          0,
+          1.2463,
+          -0.0028
+        ],
+        "Spine1": [
+          0,
+          1.3643,
+          -0.0042
+        ],
+        "Spine2": [
+          0,
+          1.4676,
+          -0.004
+        ],
+        "Neck": [
+          0,
+          1.743,
+          -0.0303
+        ],
+        "Head": [
+          0,
+          1.8781,
+          0.0713
+        ],
+        "LeftArm": [
+          0.2527,
+          1.7018,
+          -0.0849
+        ],
+        "LeftForeArm": [
+          0.5515,
+          1.7018,
+          -0.0849
+        ],
+        "LeftHand": [
+          0.8677,
+          1.7018,
+          -0.0794
+        ],
+        "RightArm": [
+          -0.2527,
+          1.7018,
+          -0.0849
+        ],
+        "RightForeArm": [
+          -0.5515,
+          1.7018,
+          -0.0849
+        ],
+        "RightHand": [
+          -0.8432,
+          1.7018,
+          -0.0798
+        ],
+        "LeftUpLeg": [
+          0.1406,
+          1.0541,
+          -0.0021
+        ],
+        "LeftLeg": [
+          0.1406,
+          0.6956,
+          0.0446
+        ],
+        "LeftFoot": [
+          0.1401,
+          0.144,
+          -0.0312
+        ],
+        "LeftToeBase": [
+          0.1489,
+          0,
+          0.1605
+        ],
+        "RightUpLeg": [
+          -0.1406,
+          1.0541,
+          -0.0021
+        ],
+        "RightLeg": [
+          -0.1405,
+          0.6956,
+          0.0446
+        ],
+        "RightFoot": [
+          -0.1401,
+          0.144,
+          -0.0312
+        ],
+        "RightToeBase": [
+          -0.1489,
+          0,
+          0.1605
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -5660,8 +5781,8 @@
       "live": true
     },
     "boss-area8-veteran": {
-      "rig": "v1-65",
-      "body": "warden-65",
+      "rig": "mixamo-106",
+      "body": "marshal-106",
       "live": true
     },
     "boss-area7-knight": {
