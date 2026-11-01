@@ -7,7 +7,7 @@ function reachArm(upper, fore, wrist, target, bend) {
     a = shoulder.distanceTo(fore.getWorldPosition(new T.Vector3())),
     b = fore.getWorldPosition(new T.Vector3()).distanceTo(wrist.getWorldPosition(new T.Vector3())),
     dir = target.clone().sub(shoulder),
-    d = Math.max(Math.abs(a - b) + 1e-6, Math.min(a + b - 1e-6, dir.length()));
+    d = Math.max(Math.abs(a - b) + Number.EPSILON, Math.min(a + b - Number.EPSILON, dir.length()));
   dir.normalize();
   const side = bend.clone().addScaledVector(dir, -bend.dot(dir)).normalize(),
     along = (a * a - b * b + d * d) / (d + d),
