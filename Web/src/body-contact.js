@@ -1,6 +1,9 @@
 import { sanitizeBoneName } from "./rig-bones.js";
 
-const CORNERS = ["a", "b", "c"].length; // the corners of a triangle
+// The corners of a triangle: a, b, c.
+function cornerCount() {
+  return ["a", "b", "c"].length;
+}
 
 // Bite receivers for a swapped player body (a manifest row with `bodyContact`), built from that body's own skinned meshes and bones.
 // The row names the bones: `parts` maps a body part to bone groups (one group per side), `receivers` lists the parts each creature
@@ -38,7 +41,8 @@ export function createBodyContact(model, spec) {
     const groups = spec.parts[name];
     if (!groups) throw Error("Body contact has no part " + name);
     const faces = [],
-      sides = [];
+      sides = [],
+      CORNERS = cornerCount();
     for (const mesh of meshes) {
       const index = mesh.geometry.index;
       for (const bones of groups) {
