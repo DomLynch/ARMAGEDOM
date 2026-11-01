@@ -4,7 +4,8 @@ import { rigBone } from "../rig-bones.js";
 export function createRiflePose(model, source) {
   const data = source?.description?.pose,
     asset = source?.gltf,
-    hand = data?.mount?.bone ? model.getObjectByName(data.mount.bone) : rigBone(model, "hand");
+    hand =
+      data?.mount?.bone && !model.userData?.rigBones?.hand ? model.getObjectByName(data.mount.bone) : rigBone(model, "hand");
   if (
     !data ||
     !hand?.isBone ||

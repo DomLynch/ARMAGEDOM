@@ -17,8 +17,10 @@ export function equipDonorPlayer(asset, part) {
   });
   for (const node of remove) node.removeFromParent();
   hand.add(blade.clone(true));
-  // A body on another skeleton (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
-  const fits = (clip) =>
+  // A body whose row names its own hand bone (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
+  const custom = !!asset.scene.userData?.rigBones?.hand,
+    fits = (clip) =>
+      !custom ||
       clip.tracks.every((t) => asset.scene.getObjectByName(THREE.PropertyBinding.parseTrackName(t.name).nodeName)),
     own = part.animations.filter(fits),
     overrides = new Set(own.map((clip) => clip.name));

@@ -46,3 +46,15 @@ test("weapon-file clips that name hero bones do not shadow the body's own clip",
   assert.deepEqual(out.animations.map((c) => c.name).sort(), ["Fits", "Heavy"]);
   assert.equal(out.animations.find((c) => c.name === "Heavy"), own);
 });
+test("the hero rig (no named hand bone) keeps every weapon-file clip", () => {
+  const scene = new THREE.Group(),
+    hand = new THREE.Bone();
+  hand.name = "hand_r";
+  scene.add(hand);
+  const part = new THREE.Group(),
+    blade = new THREE.Group();
+  blade.name = "WeaponDrawn";
+  part.add(blade);
+  const clip = new THREE.AnimationClip("Heavy", 1, [new THREE.QuaternionKeyframeTrack("elsewhere.quaternion", [0, 1], [0, 0, 0, 1, 0, 0, 0, 1])]);
+  assert.deepEqual(equipDonorPlayer({ scene, animations: [] }, { scene: part, animations: [clip] }).animations.map((c) => c.name), ["Heavy"]);
+});
