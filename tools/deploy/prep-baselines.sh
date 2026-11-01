@@ -20,7 +20,7 @@ done
 while read -r name sha; do
   [ -n "$name" ] || continue
   [ -d "$W/baselines/$name/Web" ] && continue
-  git -C "$W/baseline-git" fetch -q --depth=1 origin "$sha"
+  for try in 1 2 3; do git -C "$W/baseline-git" fetch -q --depth=1 origin "$sha" && break; [ "$try" = 3 ] && exit 1; sleep 5; done
   mkdir -p "$W/baselines/$name"
   git -C "$W/baseline-git" archive "$sha" Web | tar -x -C "$W/baselines/$name"
 done < "$HERE/baselines.txt"

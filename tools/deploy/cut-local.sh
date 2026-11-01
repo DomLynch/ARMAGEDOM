@@ -24,7 +24,9 @@ cd "$D"
 
 # Fresh checkout by sha, as the VPS cut did: parent Web tree is this release's rollback baseline.
 git init -q repo && git -C repo remote add origin "$URL"
-git -C repo fetch -q --depth=1 origin "$PSHA" "$SHA"
+for s in "$PSHA" "$SHA"; do
+  for try in 1 2 3; do git -C repo fetch -q --depth=1 origin "$s" && break; [ "$try" = 3 ] && exit 1; sleep 5; done
+done
 mkdir -p "$W/baselines/deploy$N-b$P"
 git -C repo archive "$PSHA" Web | tar -x -C "$W/baselines/deploy$N-b$P"
 mkdir src && git -C repo archive "$SHA" | tar -x -C src
