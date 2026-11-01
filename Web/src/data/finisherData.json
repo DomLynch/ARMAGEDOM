@@ -878,13 +878,13 @@
         "id": "boss-warden",
         "material": "flesh",
         "bodyBones": [
-          "spine_02",
-          "spine_01",
-          "spine_03"
+          "mixamorigSpine2",
+          "mixamorigSpine1",
+          "mixamorigSpine"
         ],
         "headBones": [
-          "Head",
-          "neck_01"
+          "mixamorigHead",
+          "mixamorigNeck"
         ],
         "radius": 0.16
       },
