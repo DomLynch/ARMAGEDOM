@@ -13,3 +13,8 @@
 - Contact path: `paths["boss-veteran-attack"]` in `Web/public/world/area-content.json` is 81 rows of the maul head (WeaponDrawn-local
   y 0.66 and 0.86) sampled from the Heavy clip at clip time = tick / 80 * duration, model space times manifest scale (1).
   The same points reproduce the old baked path from the old `Maul_Heavy` clip to within 0.02 m.
+
+Note on the baked path: the rows are the sampled maul-head points multiplied by 1.1 (reach calibration). tests/public-area-bosses.test.js
+requires the active blade to reach a player at range 1.8 with the pinned contactScale 1.3225; the new Heavy swing is a low side sweep
+with a slightly shorter forward reach than the old Maul_Heavy, and 1.1 is the smallest factor that passes. The attack range
+(1.8), timing (36/8/36) and contactScale stay as they were. The attack clip is now Heavy.
