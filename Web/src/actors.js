@@ -975,6 +975,8 @@ export function createActors(
       return { libraries: [...gauntKits.values()].map((kit) => kit.stats()), preparationError: gauntPreparationError };
     },
     ratContact() {
+      // The bite receivers bind the hero body's lower-leg faces; a body that names its own hand bone (?player swap) has none, so its player takes no rat/dog contact.
+      if (library.manifest.models.vagrant?.handBone) return null;
       const point = new THREE.Vector3(),
         ray = new THREE.Raycaster();
       function preparePlayer(view) {
