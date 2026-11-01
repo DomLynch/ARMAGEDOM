@@ -39,3 +39,7 @@ No paid GPU; suitable bounded HF CPU requires actual approved hardware/rate
 verification. Heavy jobs run remotely under the workspace compute policy. Do not edit unrelated projects,
 Claude settings or handovers. Shared Codex coordination for all lanes:
 /Users/domininclynch/Desktop/Business/Vibe Coding Management/codex-state/armagedom.md.
+
+## Release path (from 2026-11-01)
+
+VPS builds are retired. The VPS is production only: it never runs `npm ci`, the gate or a build. Builds, gates and packaging run on the laptop in WSL2 (Ubuntu-24.04, Node 22.x to match the VPS); the Windows-side Node at `C:\arma-work` is for dev tests only, never for cuts. Full detail and the five commands: `tools/deploy/README.md`.
