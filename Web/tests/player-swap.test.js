@@ -5,19 +5,21 @@ import * as THREE from "three";
 import { equipDonorPlayer } from "../src/donor-motion.js";
 
 const manifest = JSON.parse(readFileSync(new URL("../public/assets/manifest-hollow.json", import.meta.url), "utf8")),
-  swap = manifest.playerSwap,
-  row = manifest.models[swap.use];
+  row = manifest.models.vagrant;
 function glbJson(url) {
   const bytes = readFileSync(url);
   return JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString("utf8"));
 }
 const body = glbJson(new URL("../public/assets/" + row.url, import.meta.url));
 
-test("?player=perseus swaps only the named fields of the vagrant row, and the rig stays hero", () => {
-  assert.equal(swap.model, "vagrant");
-  assert.ok(!swap.fields.includes("rig") && !swap.fields.includes("equipment") && !swap.fields.includes("motion"));
-  for (const field of ["url", "clips", "handBone", "upperArmBone", "foreArmBone", "torsoBone", "upperBone", "headBone"])
-    assert.ok(swap.fields.includes(field) && row[field] !== undefined, field);
+test("the player row is the Perseus body on the hero rig id, with no flag or swap block left", () => {
+  assert.equal(manifest.playerSwap, undefined);
+  assert.equal(manifest.models["perseus-106"], undefined);
+  assert.equal(row.url, "appearances/perseus-106.glb");
+  assert.equal(row.rig, "hero");
+  assert.ok(row.equipment);
+  for (const field of ["clips", "handBone", "upperArmBone", "foreArmBone", "torsoBone", "upperBone", "headBone"])
+    assert.ok(row[field] !== undefined, field);
 });
 test("every clip and bone the Perseus row names exists in its GLB", () => {
   const clips = new Set(body.animations.map((a) => a.name)),

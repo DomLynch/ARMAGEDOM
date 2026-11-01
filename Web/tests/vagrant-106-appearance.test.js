@@ -19,8 +19,8 @@ test("the vagrant on the 106 rig is a deferred appearance row that matches its f
   assert.equal(bytes.length, row.bytes);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), row.sha256);
   assert.equal(manifest.files["vagrant-106"].sha256, row.sha256);
-  // The player's own model row is the donor warrior on the hero rig: pistol, vest, finisher and flame code read its bone names.
-  assert.equal(manifest.models.vagrant.url, "donor/warrior-phone.glb");
+  // The player's own model row has been the Perseus body (106 bones) on the hero rig id since 1 Nov 2026; this vagrant-106 row is another appearance.
+  assert.equal(manifest.models.vagrant.url, "appearances/perseus-106.glb");
   assert.equal(manifest.models.vagrant.rig, "hero");
 });
 

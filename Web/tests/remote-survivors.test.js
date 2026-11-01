@@ -1,7 +1,8 @@
+import {donorPlayerRow} from "./helpers/donor-player.js";
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import * as THREE from 'three';
 import {loadGeometry} from '../../art/donor/probe.mjs';
 import {createSurvivorKit,survivorVariantIndex,SURVIVOR_VARIANTS} from '../src/engine/remote-survivors.js';
-const read=p=>readFileSync(new URL('../public/assets/'+p,import.meta.url)),manifest=JSON.parse(read('manifest-hollow.json')),description=manifest.models.vagrant;
+const read=p=>readFileSync(new URL('../public/assets/'+p,import.meta.url)),manifest=JSON.parse(read('manifest-hollow.json')),description=donorPlayerRow();/* the survivor kit is built on the donor warrior skeleton and clips (the player row is Perseus since 1 Nov 2026) */
 const source=async()=>({description,gltf:await loadGeometry(read(description.url)),equipment:await loadGeometry(read(description.equipment.url))});
 const meshes=root=>{const out=[];root.traverse(o=>{if(o.isMesh)out.push(o);});return out;};
 test('the same player id always gets the same variant and every variant is used',()=>{

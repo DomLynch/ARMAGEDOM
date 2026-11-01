@@ -1,0 +1,34 @@
+{
+  "url": "donor/warrior-phone.glb",
+  "rig": "hero",
+  "motion": "donor-knife",
+  "scale": 1,
+  "forwardCorrection": 0,
+  "stride": 1,
+  "clips": {
+    "idle": "Armed",
+    "walk": "ArmedWalk",
+    "run": "Run",
+    "slash": "Attack",
+    "return": "Return",
+    "stab": "Riposte",
+    "heavy": "Heavy",
+    "special": "Skill_Pommel",
+    "guard": "Guard",
+    "dodge": "Roll",
+    "hit": "Hit",
+    "death": "Death",
+    "parry": "Parry",
+    "block": "BlockImpact",
+    "deflected": "Deflected"
+  },
+  "equipment": {
+    "url": "donor/knife-phone.glb",
+    "mount": "hand_r",
+    "node": "WeaponDrawn",
+    "overrides": [
+      "Heavy",
+      "Death_QuietOne"
+    ]
+  }
+}

@@ -41,8 +41,11 @@ const skeleton = () => {
   return g;
 };
 const player = (extra = {}) => ({ id: 0, kind: -1, hp: 0, maxHP: 10, response: { clip: "Death", start: 1 }, ...extra });
-const playerView = () => ({ root: new THREE.Group(), model: skeleton(), description: manifest.vagrant, physicsDeath: undefined });
-const library = () => ({ models: new Map([["vagrant", { description: manifest.vagrant, gltf: { scene: skeleton() } }]]) });
+// The pool, rank and respawn logic is body-independent: these tests drive it with the 65-bone hero rig (the remote survivor's row), since the
+// player row itself is the 106-bone Perseus body (its own ragdoll is in physics-death-perseus.test.js).
+const HERO = CFG.remote.modelRef;
+const playerView = () => ({ root: new THREE.Group(), model: skeleton(), description: manifest[HERO], physicsDeath: undefined });
+const library = () => ({ models: new Map([[HERO, { description: manifest[HERO], gltf: { scene: skeleton() } }]]) });
 const loadChunk = async () => {
   const impl = await import("../src/engine/physics-death-impl.js");
   usePhysicsDeathImpl(impl);
@@ -50,8 +53,12 @@ const loadChunk = async () => {
   return impl;
 };
 
-test("the player model and the remote survivor have live rows on the unscaled scavenger body, measured from their own GLB", () => {
-  for (const name of ["vagrant", CFG.remote.modelRef]) {
+test("the remote survivor has a live row on the unscaled scavenger body, the player on the unscaled Perseus body, measured from their own GLB", () => {
+  // the player row became the Perseus body on 1 Nov 2026 (scale 0.92 on the actor root, the ragdoll body measured at x1)
+  assert.equal(RIGS.models.vagrant.live, true);
+  assert.equal(rigOf("vagrant").body, RIGS.bodies["perseus-106"]);
+  assert.equal(RIGS.bodies["perseus-106"].scale_baked, 1);
+  for (const name of [CFG.remote.modelRef]) {
     assert.equal(RIGS.models[name].live, true, name);
     assert.equal(rigOf(name).body, RIGS.bodies["scavenger-65"], name);
     assert.equal(manifest[name].scale, 1, `${name}: the manifest scale is baked into the row, so the row is unscaled`);
@@ -121,7 +128,7 @@ test("the player never loses the ragdoll to a full pool: crowd corpses are evict
     // a hunter, a boss and a remote player die after: none can take the player's body
     for (const extra of [{ markedHunter: true }, { bossProfile: {} }, { remotePlayer: true }, {}]) {
       const other = { root: new THREE.Group(), model: skeleton(), physicsDeath: undefined },
-        s = impl.startDeath(other, skeleton(), { id: 70, hp: 0, maxHP: 10, ...extra }, rigOf("vagrant"));
+        s = impl.startDeath(other, skeleton(), { id: 70, hp: 0, maxHP: 10, ...extra }, rigOf(HERO));
       if (s) held.push(s);
       assert.ok(mine.rd, `the player's body survived a ${Object.keys(extra)[0] ?? "crowd"} death`);
     }
@@ -136,18 +143,18 @@ test("eviction order: crowd first, then remote players, then (for a hunter) neve
     held = [fakeCorpse(BUDGET.ranks.remote), fakeCorpse(BUDGET.ranks.crowd), fakeCorpse(BUDGET.ranks.player)];
   try {
     const mk = () => ({ root: new THREE.Group(), model: skeleton(), physicsDeath: undefined }),
-      hunterA = impl.startDeath(mk(), skeleton(), { id: 71, markedHunter: true, hp: 0, maxHP: 10 }, rigOf("vagrant"));
+      hunterA = impl.startDeath(mk(), skeleton(), { id: 71, markedHunter: true, hp: 0, maxHP: 10 }, rigOf(HERO));
     assert.ok(hunterA);
     held.push(hunterA);
     assert.equal(held[1].rd, null, "the crowd corpse went first although the remote one is older");
     assert.ok(held[0].rd, "the remote corpse is still there");
-    const hunterB = impl.startDeath(mk(), skeleton(), { id: 72, bossProfile: {}, hp: 0, maxHP: 10 }, rigOf("vagrant"));
+    const hunterB = impl.startDeath(mk(), skeleton(), { id: 72, bossProfile: {}, hp: 0, maxHP: 10 }, rigOf(HERO));
     assert.ok(hunterB);
     held.push(hunterB);
     assert.equal(held[0].rd, null, "then the remote corpse");
     assert.ok(held[2].rd, "the player's corpse is never taken");
     // the pool now holds the player and two hunters: a third hunter finds nobody lower than it and is baked
-    assert.equal(impl.startDeath(mk(), skeleton(), { id: 73, markedHunter: true, hp: 0, maxHP: 10 }, rigOf("vagrant")), null);
+    assert.equal(impl.startDeath(mk(), skeleton(), { id: 73, markedHunter: true, hp: 0, maxHP: 10 }, rigOf(HERO)), null);
   } finally {
     for (const s of held) releaseDeath(s);
   }

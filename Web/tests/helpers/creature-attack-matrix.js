@@ -1,3 +1,4 @@
+import { withDonorPlayer } from "./donor-player.js";
 // Alpha item 3 (MEASURE ONLY): every live creature x every attack the player can hold.
 // The matrix is built from existing rows, not hand-written lists:
 //   creatures -> the real area spawn rows (AREA_MOB_SPAWNS / population policy / AREA_DRONE_SPAWNS) as
@@ -41,7 +42,7 @@ const read = (path) => JSON.parse(fs.readFileSync(new URL("../../public/" + path
 const registry = createAreaRegistry({ manifest: read("world/manifest.json") });
 const content = validateAreaMetadata(read("world/area-content.json"), registry);
 const assets = new URL("../../public/assets/", import.meta.url);
-const manifest = JSON.parse(fs.readFileSync(new URL("manifest-hollow.json", assets)));
+const manifest = withDonorPlayer(JSON.parse(fs.readFileSync(new URL("manifest-hollow.json", assets))));
 
 // ---------------------------------------------------------------------------------------------
 // Known gaps: cell id ("<creature>/<attack>") -> cause. Empty means every cell must pass.
@@ -177,7 +178,7 @@ async function loadAsset(url) {
 for (const [name, description] of Object.entries(manifest.models))
   models.set(name, {
     description,
-    gltf: name === "vagrant-cleaver" ? models.get("vagrant").gltf : await loadAsset(description.url),
+    gltf: await loadAsset(description.url),
     equipment: description.equipment ? await loadAsset(description.equipment.url) : null,
   });
 const sources = new Set([...models.values()].flatMap((m) => [m.gltf, m.equipment].filter(Boolean)));

@@ -32,7 +32,7 @@ test("a corpse is never lifted off the floor: the skin touches it", async () => 
 
 test("the floor table passes its validator, names only models that ragdoll live and bones their GLB has", async () => {
   validatePhysicsFloor(FLOOR);
-  assert.deepEqual(Object.keys(FLOOR.models).sort(), [...BOSSES, "perseus-106"].sort());
+  assert.deepEqual(Object.keys(FLOOR.models).sort(), [...BOSSES, "vagrant", "vagrant-cleaver"].sort());
   for (const [model, { bones }] of Object.entries(FLOOR.models)) {
     assert.equal(GAME_DATA.physicsRigs.models[model].live, true, model);
     const gltf = await loadGeometryOnly(new URL(`../public/assets/${manifest[model].url}`, import.meta.url)),
