@@ -949,6 +949,7 @@
       "sha256": "28f390aed858f9335ec72fa8632c360d7baece4fb94be4e660d3047276d0aff3",
       "provenance": {
         "source": "Mixamo Warrok (W. Kurniawan) warrok-w-kurniawan-full-phone-mixamorig.glb on the 106 rig",
+        "sourceSHA256": "51314e948c4b5af4b61f58cee2955495aa46cab06719f28954828db162594417",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/borough-butcher-106/build-butcher.mjs: 9 own clips kept, Layer_* gear dropped, 7 roles borrowed from the Pitborn hunter and delta-retargeted, weapons/pitborn-cleaver-phone.glb baked as WeaponDrawn under fk_socket_hand_r, WebP q85, meshopt",
         "previous": {
