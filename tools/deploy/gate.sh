@@ -6,8 +6,9 @@ N=${1:?release number}
 D=${2:?deploy dir}
 W=${ARMA_WORK:-$HOME/arma-work}
 ROOTS=""
+# Relative to src/Web (no drive letter): the test splits the list on ':' and Windows paths contain one.
 for d in "$D"/roots/deploy*; do
-  ROOTS=${ROOTS:+$ROOTS:}$d
+  ROOTS=${ROOTS:+$ROOTS:}../../roots/$(basename "$d")
 done
 cd "$D/src/Web"
 env ROLLBACK_BASELINE_ROOTS="$ROOTS" node --test tests/rollback-saves.test.js > ../../rb.log 2>&1

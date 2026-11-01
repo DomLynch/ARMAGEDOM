@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build, gate and package release N on the laptop (WSL2 Ubuntu, Node 22.x). No VPS access.
+# Build, gate and package release N on the laptop (Windows, Git Bash, Node 22.23.2 portable at C:/arma-work/node22). No VPS access.
 # Usage: cut-local.sh N <full candidate sha> <fingerprint>
 # Output: $ARMA_WORK/out/three-<date>-N.tgz and its .sha256 sidecar.
 set -euo pipefail
@@ -32,8 +32,8 @@ for s in "$PSHA" "$SHA"; do
 done
 repo=$CACHE
 mkdir -p "$D/parent/deploy$N-b$P"
-git -C "$CACHE" archive "$PSHA" Web | tar -x -C "$D/parent/deploy$N-b$P"
-mkdir src && git -C "$CACHE" archive "$SHA" | tar -x -C src
+git -C "$CACHE" -c core.autocrlf=false archive "$PSHA" Web | tar -x -C "$D/parent/deploy$N-b$P"
+mkdir src && git -C "$CACHE" -c core.autocrlf=false archive "$SHA" | tar -x -C src
 cd src/Web
 npm ci --no-audit --no-fund > ../../npmci.log 2>&1
 cd ..
@@ -45,8 +45,8 @@ grep -q 'RB_EXIT=0' ../rb.log && grep -q 'BUILD_EXIT=0' ../build.log && grep -q 
   || { echo "GATE FAILED" >&2; exit 1; }
 
 # Presence layout: candidate rows must equal the parent's (otherwise a presence restart is needed).
-node Web/scripts/area-presence-rows.mjs ../area.json 2> ../area.err
-( cd "$D/roots/deploy$N-b$P" && node Web/scripts/area-presence-rows.mjs "$D/area-parent.json" 2> "$D/area-parent.err" )
+node "$HERE/area-rows.mjs" . ../area.json 2> ../area.err
+node "$HERE/area-rows.mjs" "$D/roots/deploy$N-b$P" "$D/area-parent.json" 2> "$D/area-parent.err"
 cmp ../area.json ../area-parent.json && echo AREA_IDENTICAL || { echo AREA_DIFFERS; grep -m1 version ../area.json; }
 
 python3 "$HERE/mkmanifest.py" "$N" "$SHA" "$FP" "$HERE/releases.json" ../assets.log release-manifest.json

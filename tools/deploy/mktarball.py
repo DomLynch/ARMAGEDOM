@@ -49,5 +49,5 @@ with tarfile.open(tgz, 'w:gz') as tf:
         with open(p, 'rb') as fh:
             tf.addfile(ti, fh)
 tsha = hashlib.sha256(tgz.read_bytes()).hexdigest()
-(outdir / f'{version}.tgz.sha256').write_text(f'{tsha}  {version}.tgz\n')
+(outdir / f'{version}.tgz.sha256').write_bytes(f'{tsha}  {version}.tgz\n'.encode())  # bytes: Windows text mode would write CRLF
 print('TGZ', tgz, tsha)
