@@ -1,7 +1,9 @@
 import * as T from "three";
+import { rigBone } from "../rig-bones.js";
 export function createRigidHandEquipment(model, source) {
   const data = source.description.pose,
-    hand = model.getObjectByName(data.mount.bone),
+    // A body whose row names its hand bone (the 106-rig Perseus) mounts there; the donor keeps the pose data's own bone.
+    hand = model.userData?.rigBones?.hand ? rigBone(model, "hand") : model.getObjectByName(data.mount.bone),
     original = source.gltf.scene.getObjectByName(data.root);
   if (!hand?.isBone || !original) throw Error("Rigid hand equipment unavailable");
   const mount = new T.Group(),
