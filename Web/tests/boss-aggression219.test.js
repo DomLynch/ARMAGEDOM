@@ -28,15 +28,16 @@ for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){
   // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
   assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
   assert.equal(p.homeLeash,18);
-  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay'])]);
+  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[])]);
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);
   if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);
   for(const[action,a]of Object.entries(p.attacks)){
-   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(id==='veteran'?['clip']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy
+   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(id==='veteran'?['clip']:[]),...(id==='knight'?['clip','range']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy; the Station Breaker is the Mixamo Knight (clip Heavy, sword range 1.4)
    const frames=bosses.paths[a.path],oldFrames=base.bosses.paths[a.path];
    assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);
    if(id==='veteran')continue; // 1 Nov: the Marshal path is re-baked from the new body's own Heavy clip (art/boss-borough-marshal-106), not resampled from the old maul clip
+   if(id==='knight')continue; // 1 Nov: the Station Breaker path is baked from the Mixamo Knight's own Heavy clip (art/knight-106/attack-path.mjs), contactScale 1.19025, not a resample of the Maul path
    // DonorMotion samples native clips uniformly, so physical contact must use
    // the same source phase rather than retaining stale active-only samples.
    for(let i=0;i<frames.length;i++){
@@ -82,7 +83,7 @@ test('NPC rocket world collision wins over later player surface and cannot damag
 });
 test('actual registered native heavy consumes new profile and extra idle only once',()=>{
  for(const id of ['warden','knight','veteran']){
-  const row=data.bosses.placements.find(r=>r.profileRef===id),f=fixture({areaId:row.areaId}),g=f.g,e=g.enemies.find(e=>e.placementKey===row.key);g.enemies=[e];e.pos={x:0,z:0};e.home={...e.pos};e.alerted=true;e.facing={x:0,z:1};g.player.pos={x:0,z:2};g.world.lineClear=()=>true;g.world.move=(p,d)=>({x:p.x+d.x,z:p.z+d.z});
+  const row=data.bosses.placements.find(r=>r.profileRef===id),f=fixture({areaId:row.areaId}),g=f.g,e=g.enemies.find(e=>e.placementKey===row.key);g.enemies=[e];e.pos={x:0,z:0};e.home={...e.pos};e.alerted=true;e.facing={x:0,z:1};g.player.pos={x:0,z:id==='knight'?1.3:2};/* the Knight's sword reaches 1.4 range (art/knight-106/attack-path.mjs bake), so the player stands inside it */g.world.lineClear=()=>true;g.world.move=(p,d)=>({x:p.x+d.x,z:p.z+d.z});
   stepGame(g,{},1/60);assert(e.swing);assert.equal(e.swing.def.windupTicks,36);assert.equal(e.swing.def.activeTicks,8);assert.equal(e.swing.def.recoveryTicks,36);assert(Math.abs(e.ready-e.swing.start-(80/60+.4))<1e-10);
   const time=g.time;stepGame(g,{paused:true});assert.equal(g.time,time);assert.equal(g.bossRockets.length,0);
  }
