@@ -914,39 +914,228 @@
     },
     "boss-butcher": {
       "motion": "donor-knife",
-      "scale": 0.75,
+      "scale": 0.85,
       "forwardCorrection": 0,
-      "stride": 1,
+      "stride": 1.0,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "handBone": "fk_socket_hand_r",
+      "upperArmBone": "mixamorig:RightArm",
+      "foreArmBone": "mixamorig:RightForeArm",
+      "torsoBone": "mixamorig:Spine",
       "clips": {
-        "idle": "Armed",
-        "walk": "ArmedWalk",
+        "idle": "Idle",
+        "walk": "Walk",
         "run": "Run",
-        "strafeLeft": "StrafeLeft",
-        "strafeRight": "StrafeRight",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
         "guard": "Guard",
         "dodge": "Roll",
         "hit": "Hit",
         "death": "Death",
-        "deflected": "Deflected",
-        "blockImpact": "BlockImpact",
-        "attack": "Attack",
+        "parry": "Parry",
         "block": "BlockImpact",
-        "slash": "Attack"
+        "deflected": "Deflected",
+        "strafeLeft": "StrafeLeft",
+        "strafeRight": "StrafeRight",
+        "attack": "Attack"
       },
       "url": "bosses/boss-butcher.glb",
       "rig": "boss-butcher",
       "deferred": true,
-      "bytes": 2545444,
-      "sha256": "8a5b3ee901226aa9b23db46fe6b43c6c58546f72ac4a73141d6468fb65f206a8",
+      "bytes": 735832,
+      "sha256": "28f390aed858f9335ec72fa8632c360d7baece4fb94be4e660d3047276d0aff3",
       "provenance": {
-        "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
-        "levelSelection": "L2 hood/cloth+cleaverreplacingScythegeometry",
-        "originalUnprunedSHA256": "32742783a84a89c61445bd27dffaa870599e648823f18a1dead588bbbdd9acc1",
-        "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "08f2ccd4a2dd1e8d8925cb9f2da6e8bd2e0e211411342d3087bac72b23358a94",
-        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
-        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
-      }
+        "source": "Mixamo Warrok (W. Kurniawan) warrok-w-kurniawan-full-phone-mixamorig.glb on the 106 rig",
+        "sourceSHA256": "51314e948c4b5af4b61f58cee2955495aa46cab06719f28954828db162594417",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/borough-butcher-106/build-butcher.mjs: 9 own clips kept, Layer_* gear dropped, 7 roles borrowed from the Pitborn hunter and delta-retargeted, weapons/pitborn-cleaver-phone.glb baked as WeaponDrawn under fk_socket_hand_r, WebP q85, meshopt",
+        "previous": {
+          "url": "bosses/boss-butcher.glb",
+          "rig": "boss-butcher",
+          "scale": 0.75,
+          "stride": 1,
+          "bytes": 2545444,
+          "sha256": "8a5b3ee901226aa9b23db46fe6b43c6c58546f72ac4a73141d6468fb65f206a8"
+        }
+      },
+      "rifleGrip": {
+        "wristBone": "mixamorig:RightHand",
+        "hold": [
+          0.14,
+          -0.14,
+          0.2
+        ],
+        "wristOffset": [
+          0.035,
+          0.035,
+          -0.035
+        ],
+        "handDegrees": [
+          90,
+          90,
+          0
+        ],
+        "bend": [
+          0.25,
+          -1,
+          -0.07
+        ],
+        "kick": 0.05,
+        "fingerDegrees": {
+          "mixamorig:RightHandIndex1": [
+            50,
+            0,
+            0
+          ],
+          "mixamorig:RightHandIndex2": [
+            70,
+            0,
+            0
+          ],
+          "mixamorig:RightHandIndex3": [
+            50,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle1": [
+            60,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle2": [
+            80,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle3": [
+            55,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing1": [
+            65,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing2": [
+            85,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing3": [
+            60,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky1": [
+            70,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky2": [
+            85,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky3": [
+            60,
+            0,
+            0
+          ]
+        },
+        "support": {
+          "upperArm": "mixamorig:LeftArm",
+          "foreArm": "mixamorig:LeftForeArm",
+          "hand": "mixamorig:LeftHand",
+          "fraction": 0.3,
+          "height": 0,
+          "bend": [
+            -0.25,
+            -1,
+            -0.07
+          ],
+          "handDegrees": [
+            90,
+            -90,
+            0
+          ],
+          "reloadDip": [
+            0,
+            -0.15,
+            -0.1
+          ],
+          "fingerDegrees": {
+            "mixamorig:LeftHandIndex1": [
+              50,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandIndex2": [
+              70,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandIndex3": [
+              50,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandMiddle1": [
+              60,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandMiddle2": [
+              80,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandMiddle3": [
+              55,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandRing1": [
+              65,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandRing2": [
+              85,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandRing3": [
+              60,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandPinky1": [
+              70,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandPinky2": [
+              85,
+              0,
+              0
+            ],
+            "mixamorig:LeftHandPinky3": [
+              60,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "knifeGripDegrees": [
+        35,
+        0,
+        0
+      ]
     },
     "boss-warden": {
       "url": "bosses/boss-warden.glb",

@@ -14,11 +14,7 @@ for(const row of content.bossData.placements)test('actual '+row.profileRef+' exa
   const startTarget={pos:{x:0,z:a.range*1.265},combatScale:1.265,bodyScale:1};
   assert(Array.from({length:a.activeTicks},(_,i)=>a.windupTicks+i).some(tick=>bladeContact(attacker,attacker,startTarget,startTarget,a.path,tick-1,tick)),'AI attack-start boundary must itself reach stationary player without step-in or padded capsule');
 
-  if(row.profileRef==='butcher'){
-   const oldAttacker={...attacker,contactScale:1.265*1.3225};let oldHit=false;
-   for(let distance=.5;distance<=3.2;distance+=.025){const target={pos:{x:0,z:distance},combatScale:1.265,bodyScale:1};for(let tick=a.windupTicks;tick<a.windupTicks+a.activeTicks;tick++)if(bladeContact(oldAttacker,oldAttacker,target,target,a.path,tick-1,tick))oldHit=true;}
-   assert.equal(oldHit,false,'original uncalibrated scale1 blade sails above real player capsule');
-  }
+  // 1 Nov: the old 'uncalibrated scale-1 blade sails above the capsule' proof for the Butcher pinned the old cleaver clip; the Warrok path is baked from its own Attack clip (art/borough-butcher-106/attack-path.mjs) and the hit assertions below cover it
   const far={pos:{x:0,z:8},combatScale:1.265};assert.equal(bladeContact(attacker,attacker,far,far,a.path,a.windupTicks,a.windupTicks+1),false);
  }
  // 219 deliberately expands boss acquisition. Preserve physical escape routes,
