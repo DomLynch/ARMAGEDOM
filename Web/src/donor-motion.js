@@ -1,4 +1,5 @@
 import { ratMeleePosePhase } from "./rat-melee-definition.js";
+import { rigBone } from "./rig-bones.js";
 import * as THREE from "three";
 import { GAME_DATA } from "./engine/game-data.js";
 
@@ -7,7 +8,7 @@ const DONOR_MOTION = GAME_DATA.donorMotion;
 // Native hand transform and per-player clip overrides; never mutate the cache.
 // The caller supplies an independently SkeletonUtils-cloned character scene.
 export function equipDonorPlayer(asset, part) {
-  const hand = asset.scene.getObjectByName("hand_r"),
+  const hand = rigBone(asset.scene, "hand"),
     blade = part.scene.getObjectByName("WeaponDrawn");
   if (!hand || !blade) throw Error("Donor knife mount missing");
   const remove = [];
@@ -15,11 +16,21 @@ export function equipDonorPlayer(asset, part) {
     if (/^(SwordSheathed|SwordDrawn|WeaponDrawn|WeaponSheathed)(_\d+)?$/.test(node.name)) remove.push(node);
   });
   for (const node of remove) node.removeFromParent();
-  hand.add(blade.clone(true));
-  const overrides = new Set(part.animations.map((clip) => clip.name));
+  const held = blade.clone(true),
+    grip = asset.scene.userData?.rigGrip;
+  // A body whose hand bone is oriented differently from the hero's tilts the blade in the hand's own frame (row `knifeGripDegrees`, XYZ).
+  if (grip) held.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...grip.map(THREE.MathUtils.degToRad))));
+  hand.add(held);
+  // A body whose row names its own hand bone (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
+  const custom = !!asset.scene.userData?.rigBones?.hand,
+    fits = (clip) =>
+      !custom ||
+      clip.tracks.every((t) => asset.scene.getObjectByName(THREE.PropertyBinding.parseTrackName(t.name).nodeName)),
+    own = part.animations.filter(fits),
+    overrides = new Set(own.map((clip) => clip.name));
   return {
     scene: asset.scene,
-    animations: [...part.animations, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
+    animations: [...own, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
   };
 }
 export function donorSwingPhase(age, timing, source) {
@@ -228,7 +239,7 @@ export class DonorMotion {
       // of the approved visual enlargement. Other locomotion stays unchanged.
       const cycleDistance =
         name === run && entity.running
-          ? move.sprintSpeed * this.actions.get(name).getClip().duration
+          ? move.sprintSpeed * this.actions.get(name).getClip().duration * (this.description.sprintStride ?? 1)
           : rate * stride * this.root.scale.x;
       this.cycle = THREE.MathUtils.euclideanModulo(
         this.cycle + (strafe ? distance : Math.sign(along) * distance) / cycleDistance,

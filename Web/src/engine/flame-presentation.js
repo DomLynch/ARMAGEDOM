@@ -1,4 +1,5 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
+import { rigBone } from "../rig-bones.js";
 import { combatTargetHeight, rangedTargets, selectCombatTarget, chainedSight, withChained } from "../pistol-targeting.js";
 import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { flameTouches } from "./flame-contact.js";
@@ -87,13 +88,13 @@ export function rememberFlameHand(model, mount) {
   model.updateWorldMatrix(true, true);
   heldFlameBindings.set(
     mount,
-    model.getObjectByName("hand_r").matrixWorld.clone().invert().multiply(mount.matrixWorld),
+    rigBone(model, "hand").matrixWorld.clone().invert().multiply(mount.matrixWorld),
   );
 }
 // Keep the model-owned mount affine-exact on the native hurt/idle hand, without IK.
 export function followFlameHand(model, mount) {
   const binding = heldFlameBindings.get(mount),
-    hand = model.getObjectByName("hand_r");
+    hand = rigBone(model, "hand");
   if (!binding || !hand || mount.parent !== model) throw Error("Held flame hand binding unavailable");
   model.updateWorldMatrix(true, true);
   mount.matrix.copy(model.matrixWorld).invert().multiply(hand.matrixWorld).multiply(binding);
@@ -153,7 +154,7 @@ function projectedPitch({ shoulder, muzzle, axis, forward }, target) {
 // Capture before pitching; prospective yaw follows the ordinary body facing.
 export function flameAimBasis(model, mount, g) {
   model.updateWorldMatrix(true, true);
-  const shoulder = model.getObjectByName("upperarm_r")?.getWorldPosition(new T.Vector3()),
+  const shoulder = rigBone(model, "upperArm")?.getWorldPosition(new T.Vector3()),
     m = mount.getObjectByName("Muzzle");
   if (!shoulder || !m) throw Error("Native flame shoulder/muzzle required");
   const root = (model.parent ?? model).getWorldPosition(new T.Vector3()),
@@ -301,7 +302,7 @@ export function restoreFlamePitch(model) {
 }
 export function applyFlamePitch(model, mount, pitch, yaw = 0) {
   if (!Number.isFinite(pitch) || !Number.isFinite(yaw)) throw Error("Finite flame aim required");
-  const upper = model.getObjectByName("upperarm_r");
+  const upper = rigBone(model, "upperArm");
   if (!upper || mount.parent !== model) throw Error("Flame aim mount mismatch");
   if (pitched.has(model)) throw Error("Restore flame pitch before gait/sample");
   pitch = Math.max(PITCH_UP, Math.min(FLAME_DOWN_PITCH, pitch));

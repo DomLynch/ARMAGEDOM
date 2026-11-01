@@ -15,6 +15,7 @@ import {
   Vector3,
 } from "three";
 import { GAME_DATA } from "./engine/game-data.js";
+import { rigBone } from "./rig-bones.js";
 
 // The bake's step budget, where the body is cut, the cap shading, the search and floor-table resolution and the three pieces' fall are
 // appearance.json `finisherOpened`. The counts that follow from the data layout (a vec3, a mat4, a triangle's corners) stay in the code.
@@ -73,7 +74,7 @@ function* openWaistSteps(root, anchor, cornerSupports = false, drawn, allocation
     inverse = anchor.matrixWorld.clone().invert();
   };
   const pelvis = root.getObjectByName("pelvis"),
-    spine = root.getObjectByName("spine_01");
+    spine = rigBone(root, "torso");
   const hip = pelvis.getWorldPosition(new Vector3()).applyMatrix4(inverse);
   const waist = hip.y + (spine.getWorldPosition(new Vector3()).applyMatrix4(inverse).y - hip.y) * LOOK.waistShare;
   const group = new Group();
@@ -517,7 +518,7 @@ export function* prepareOpenedSteps({ model, root, clips, groundY = 0, isBlocked
     !clip ||
     !(clip.duration > 0) ||
     !model.getObjectByName("pelvis") ||
-    !model.getObjectByName("spine_01") ||
+    !rigBone(model, "torso") ||
     !model.getObjectByName("WeaponDrawn") ||
     !model.getObjectByName("Hollow_body_and_worn_trousers") ||
     !model.getObjectByName("Torn_modern_canvas_jacket")

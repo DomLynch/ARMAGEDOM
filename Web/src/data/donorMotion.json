@@ -7,6 +7,8 @@
     "followThroughFraction": 0.56
   },
   "samplePhaseMax": 0.999999,
+  "rigBones": { "hand": "hand_r", "upperArm": "upperarm_r", "foreArm": "lowerarm_r", "torso": "spine_01" },
+  "vestBones": ["pelvis", "spine_01", "spine_02", "spine_03", "clavicle_l", "clavicle_r", "neck_01"],
   "saw": {
     "windup": 0.25,
     "active": 0.58,

@@ -91,6 +91,7 @@ import { HOLLOW_GARMENTS, hollowPaletteFor, applyHollowPalette } from "./hollow-
 import { ActorMotion } from "./motion.js";
 import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
+import { setRigBones } from "./rig-bones.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { shareIdenticalTextures } from "./actor-texture-share.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
@@ -130,6 +131,12 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
   const response = await fetch(manifestURL);
   if (!response.ok) throw Error(`Character manifest HTTP ${response.status}`);
   const manifest = await response.json();
+  // A row's `playerSwap` ({ param, value, model, use, fields }) lets ?param=value dress `model` with the fields of row `use`.
+  const swap = manifest.playerSwap;
+  if (swap && new URLSearchParams(globalThis.location?.search ?? "").get(swap.param) === swap.value && manifest.models[swap.use])
+    for (const field of swap.fields)
+      if (manifest.models[swap.use][field] !== undefined) manifest.models[swap.model][field] = manifest.models[swap.use][field];
+      else delete manifest.models[swap.model][field];
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const models = new Map(),
     pendingModels = new Map();
@@ -375,6 +382,7 @@ export function createActors(
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
+    setRigBones(model, description);
     let animations = source.equipment
       ? equipDonorPlayer({ scene: model, animations: source.gltf.animations }, source.equipment).animations
       : source.gltf.animations;
@@ -967,6 +975,8 @@ export function createActors(
       return { libraries: [...gauntKits.values()].map((kit) => kit.stats()), preparationError: gauntPreparationError };
     },
     ratContact() {
+      // Bite receivers bind the hero's lower-leg faces; a swapped body (own hand bone) has none, so its player takes no rat/dog contact.
+      if (library.manifest.models.vagrant?.handBone) return null;
       const point = new THREE.Vector3(),
         ray = new THREE.Raycaster();
       function preparePlayer(view) {
@@ -1755,7 +1765,8 @@ export function createActors(
               game.time >= entity.dodgeUntil &&
               game.time >= entity.hurtUntil;
         }
-        if (entity === game.player && game.vest) {
+        // The worn-vest overlay is cut from the hero Gambeson mesh; a body without it (the 106-rig Perseus) shows no vest.
+        if (entity === game.player && game.vest && (view.vest || view.model.getObjectByName("Gambeson"))) {
           view.vest ??= createVestView(view.model);
           view.vest.setVisible(game.vest.equipped);
           view.vest.update();
