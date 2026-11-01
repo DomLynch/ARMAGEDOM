@@ -18,6 +18,7 @@ test("the legacy goblin game plays out bit for bit as it did with its numbers in
   for (const part of Object.keys(pre.legacy)) assert.deepEqual(now[part], pre.legacy[part], `legacy ${part}`);
 });
 
+// 1 Nov: the pilot trace fights the east-bridge Bridge Warden; its body is now the Mixamo Vanguard (Heavy clip, strike path re-baked in art/boss-warden-106), so only the pilot part of the fixture was re-recorded; the legacy part is untouched.
 test("a pilot-mode fight on the east-bridge area plays out bit for bit", () => {
   assert.deepEqual(same(tracePilot()), pre.pilot);
 });

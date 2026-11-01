@@ -5964,6 +5964,127 @@
         ]
       },
       "scale_baked": 1
+    },
+    "vanguard-106": {
+      "id": "vanguard-106",
+      "source": "vanguard-106.glb (Armagedom Web/public/assets/bosses/boss-warden.glb) bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the model scale)",
+      "height_m": 1.6309,
+      "neck_len": 0.0329,
+      "torso_len": 0.3837,
+      "shoulder_w": 0.4164,
+      "upper_arm_len": 0.2316,
+      "forearm_len": 0.2408,
+      "thigh_len": 0.4337,
+      "shin_len": 0.4449,
+      "foot_len": 0.2001,
+      "chest_w": 0.4243,
+      "waist_w": 0.3914,
+      "hip_w": 0.3356,
+      "chest_d": 0.331,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0.0016,
+          1.0613,
+          0.0111
+        ],
+        "Spine": [
+          0.0012,
+          1.1562,
+          -0.0028
+        ],
+        "Spine1": [
+          0.0008,
+          1.2669,
+          -0.019
+        ],
+        "Spine2": [
+          0.0003,
+          1.3935,
+          -0.0376
+        ],
+        "Neck": [
+          -0.0003,
+          1.5358,
+          -0.0585
+        ],
+        "Head": [
+          -0.0003,
+          1.5686,
+          -0.0554
+        ],
+        "LeftArm": [
+          0.2085,
+          1.4792,
+          -0.0576
+        ],
+        "LeftForeArm": [
+          0.4401,
+          1.4792,
+          -0.0576
+        ],
+        "LeftHand": [
+          0.6808,
+          1.4792,
+          -0.0576
+        ],
+        "RightArm": [
+          -0.2079,
+          1.4792,
+          -0.0576
+        ],
+        "RightForeArm": [
+          -0.4395,
+          1.4792,
+          -0.0576
+        ],
+        "RightHand": [
+          -0.6803,
+          1.4792,
+          -0.0576
+        ],
+        "LeftUpLeg": [
+          0.0978,
+          1.0086,
+          0.001
+        ],
+        "LeftLeg": [
+          0.0978,
+          0.5751,
+          0.014
+        ],
+        "LeftFoot": [
+          0.0978,
+          0.1322,
+          -0.0277
+        ],
+        "LeftToeBase": [
+          0.1238,
+          0,
+          0.1202
+        ],
+        "RightUpLeg": [
+          -0.0978,
+          1.0086,
+          0.001
+        ],
+        "RightLeg": [
+          -0.0978,
+          0.5751,
+          0.014
+        ],
+        "RightFoot": [
+          -0.0978,
+          0.1322,
+          -0.0277
+        ],
+        "RightToeBase": [
+          -0.1238,
+          0,
+          0.1202
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -6018,8 +6139,8 @@
       "live": true
     },
     "boss-warden": {
-      "rig": "v1-65",
-      "body": "warden-65",
+      "rig": "mixamo-106",
+      "body": "vanguard-106",
       "live": true
     },
     "boss-area8-veteran": {

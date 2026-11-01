@@ -28,17 +28,18 @@ for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){
   // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
   assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
   assert.equal(p.homeLeash,18);
-  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[]),...(id==='nightborn'?['contactScale']:[])]); // 1 Nov: the Stalker is the Parasite body (scale 0.95), its contact scale follows and its strike path is re-baked from its own Attack clip
+  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[]),...(id==='nightborn'?['contactScale']:[]),...(id==='warden'?['contactScale']:[])]); // 1 Nov: the Stalker is the Parasite body (scale 0.95), its contact scale follows and its strike path is re-baked from its own Attack clip
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);
   if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);
   for(const[action,a]of Object.entries(p.attacks)){
-   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(id==='veteran'?['clip']:[]),...(id==='knight'?['clip','range']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy; the Station Breaker is the Mixamo Knight (clip Heavy, sword range 1.4)
+   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(['veteran','warden'].includes(id)?['clip']:[]),...(id==='knight'?['clip','range']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy; the Station Breaker is the Mixamo Knight (clip Heavy, sword range 1.4)
    const frames=bosses.paths[a.path],oldFrames=base.bosses.paths[a.path];
    if(id==='nightborn'){assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);continue;} // re-baked from the Parasite Attack clip
    assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);
    if(id==='veteran')continue; // 1 Nov: the Marshal path is re-baked from the new body's own Heavy clip (art/boss-borough-marshal-106), not resampled from the old maul clip
    if(id==='knight')continue; // 1 Nov: the Station Breaker path is baked from the Mixamo Knight's own Heavy clip (art/knight-106/attack-path.mjs), contactScale 1.19025, not a resample of the Maul path
+   if(id==='warden')continue; // 1 Nov: the Warden's contactScale is now manifest scale 0.93 x 1.3225 (public-area-bosses pins it); the path is re-baked from the new body's own Heavy clip (art/boss-warden-106/attack-path.mjs), not resampled from the old maul clip
    // DonorMotion samples native clips uniformly, so physical contact must use
    // the same source phase rather than retaining stale active-only samples.
    for(let i=0;i<frames.length;i++){
