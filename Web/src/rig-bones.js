@@ -9,6 +9,7 @@ export function setRigBones(model, description) {
   const names = {};
   for (const key in FIELDS) if (description?.[FIELDS[key]]) names[key] = description[FIELDS[key]];
   model.userData.rigBones = names;
+  if (description?.knifeGripDegrees) model.userData.rigGrip = description.knifeGripDegrees;
 }
 // three strips ':' etc. from node names on load, so a "mixamorig:RightHand" row resolves as "mixamorigRightHand".
 // three's PropertyBinding.sanitizeNodeName, kept here so this file stays out of the renderer-owner list.

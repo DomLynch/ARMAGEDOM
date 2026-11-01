@@ -16,7 +16,11 @@ export function equipDonorPlayer(asset, part) {
     if (/^(SwordSheathed|SwordDrawn|WeaponDrawn|WeaponSheathed)(_\d+)?$/.test(node.name)) remove.push(node);
   });
   for (const node of remove) node.removeFromParent();
-  hand.add(blade.clone(true));
+  const held = blade.clone(true),
+    grip = asset.scene.userData?.rigGrip;
+  // A body whose hand bone is oriented differently from the hero's tilts the blade in the hand's own frame (row `knifeGripDegrees`, XYZ).
+  if (grip) held.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...grip.map(THREE.MathUtils.degToRad))));
+  hand.add(held);
   // A body whose row names its own hand bone (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
   const custom = !!asset.scene.userData?.rigBones?.hand,
     fits = (clip) =>
@@ -235,7 +239,7 @@ export class DonorMotion {
       // of the approved visual enlargement. Other locomotion stays unchanged.
       const cycleDistance =
         name === run && entity.running
-          ? move.sprintSpeed * this.actions.get(name).getClip().duration
+          ? move.sprintSpeed * this.actions.get(name).getClip().duration * (this.description.sprintStride ?? 1)
           : rate * stride * this.root.scale.x;
       this.cycle = THREE.MathUtils.euclideanModulo(
         this.cycle + (strafe ? distance : Math.sign(along) * distance) / cycleDistance,
