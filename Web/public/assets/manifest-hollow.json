@@ -888,6 +888,7 @@
       "upperArmBone": "mixamorig:RightArm",
       "foreArmBone": "mixamorig:RightForeArm",
       "torsoBone": "mixamorig:Spine",
+      "knifeGripDegrees": [35, 0, 0],
       "measure": {
         "source": "glb bind pose (art/surgeon-106/build-boss.mjs output)",
         "heightMetres": 2.1641,

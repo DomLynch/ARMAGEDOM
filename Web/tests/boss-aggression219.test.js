@@ -28,7 +28,7 @@ for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){
   // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
   assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
   assert.equal(p.homeLeash,18);
-  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[]),...(id==='nightborn'?['contactScale']:[]),...(id==='warden'?['contactScale']:[]),...(id==='butcher'?['contactScale']:[])]); // 1 Nov: the Stalker is the Parasite body (scale 0.95), its contact scale follows and its strike path is re-baked from its own Attack clip
+  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[]),...(id==='nightborn'?['contactScale']:[]),...(id==='warden'?['contactScale']:[]),...(id==='butcher'?['contactScale']:[]),...(id==='surgeon'?['contactScale']:[])]); // 1 Nov: the Stalker is the Parasite body (scale 0.95), its contact scale follows and its strike path is re-baked from its own Attack clip
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);
   if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);
