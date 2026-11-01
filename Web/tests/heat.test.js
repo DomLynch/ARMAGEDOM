@@ -259,7 +259,7 @@ test("a fade builds no new texture: only a change of count does, and the newest 
   withStubPage((canvases) => {
     const added = [],
       scene = { add: (s) => added.push(s), remove() {} },
-      view = createHeatTallyView(scene),
+      view = createHeatTallyView(scene, "world"),
       at = new Vector3(1, 2, 3);
     view.update({ count: 7, lastAlpha: 1 }, at);
     const built = canvases();
@@ -278,6 +278,37 @@ test("a fade builds no new texture: only a change of count does, and the newest 
     view.update(null, at);
     view.dispose();
   });
+});
+
+test("hud placement: a top-right overlay from the data row, hidden at zero heat, the newest mark fades by CSS opacity alone", () => {
+  assert.equal(HEAT.look.placement, "hud");
+  const real = globalThis.document,
+    made = [],
+    el = (tag) => {
+      const e = { tag, style: {}, children: [], hidden: false, width: 0, height: 0, setAttribute() {}, remove() {} };
+      e.appendChild = (c) => e.children.push(c);
+      e.replaceChildren = () => (e.children = []);
+      e.getContext = () => new Proxy({ canvas: e }, { get: (t, k) => (k in t ? t[k] : () => {}), set: () => true });
+      return e;
+    };
+  globalThis.document = { createElement: (t) => { const e = el(t); made.push(e); return e; }, getElementById: () => el("hud"), body: el("body") };
+  try {
+    const view = createHeatTallyView({}),
+      root = made[0];
+    assert.equal(root.hidden, true, "no heat, nothing shown");
+    view.update({ count: 7, lastAlpha: 1 });
+    assert.equal(root.hidden, false);
+    assert.equal(root.children.length, 2, "settled marks and newest mark");
+    assert.equal(root.style.width, `${2 * HEAT.hud.widthPxPerGroup}px`);
+    assert.ok(root.style.top.includes(`${HEAT.hud.topOffsetPx}px`) && root.style.right.includes("--safe-r"));
+    view.update({ count: 7, lastAlpha: 0.5 });
+    assert.equal(root.children[1].style.opacity, "0.5");
+    assert.equal(made.length, 3, "a fade builds no canvas");
+    view.update(null);
+    assert.equal(root.hidden, true, "zero heat hides it");
+  } finally {
+    globalThis.document = real;
+  }
 });
 
 test("the off-switch answer is worked out once per page and tiers are walked without sorting", () => {
