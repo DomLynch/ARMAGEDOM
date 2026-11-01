@@ -35,7 +35,7 @@ import {
   followFlameHand,
   rememberFlameHand,
   flameTargetAim,
-  flameGripProfile,
+  flameGripFor,
   applyFlamePitch,
   restoreFlamePitch,
   flameAimPose,
@@ -1615,10 +1615,7 @@ export function createActors(
           if (pose && !view.flameMount) {
             const source = library.models.get(world.flameData?.modelRef);
             if (source) {
-              const record = Object.values(library.manifest.files ?? {}).find(
-                (r) => r.file === library.manifest.models.vagrant.url,
-              );
-              view.flameGrip = flameGripProfile(view.model, record?.sha256);
+              view.flameGrip = flameGripFor(view.model, library.manifest);
               view.flameMount = attachFlame(view.model, source.gltf);
             }
           }

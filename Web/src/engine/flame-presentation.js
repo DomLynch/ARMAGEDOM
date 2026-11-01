@@ -48,6 +48,12 @@ export function flameGripProfile(model, heroSHA) {
   validated.set(model, profile);
   return profile;
 }
+// The finger profile exists only for the donor hero; a body that names its own hand bone (the 106-rig Perseus) holds the flamethrower without it.
+export function flameGripFor(model, manifest) {
+  if (manifest.models.vagrant.handBone) return undefined;
+  const record = Object.values(manifest.files ?? {}).find((r) => r.file === manifest.models.vagrant.url);
+  return flameGripProfile(model, record?.sha256);
+}
 const heldFlameBindings = new WeakMap();
 export function attachFlame(model, source, { bindHand = false } = {}) {
   if (!source?.scene?.getObjectByName("Grip") || !source.scene.getObjectByName("Muzzle"))
