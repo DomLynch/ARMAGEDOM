@@ -1,6 +1,6 @@
 """Build opsN-upload from ops(N-1)-upload. Replaces the per-release mkNNN.py.
 
-Usage: mk.py N [--base DIR] [--releases FILE]
+Usage: mk.py N [--base DIR] [--releases FILE] [--parent P]  (P defaults to N-1; use it when N-1 was never staged)
 
 Constants (parent source and release sha, candidate source, fingerprint and release sha) come from the
 releases.json rows for N and N-1; nothing is edited per release. The candidate row must already carry
@@ -12,9 +12,11 @@ ap = argparse.ArgumentParser()
 ap.add_argument('n', type=int)
 ap.add_argument('--base', default='/mnt/HC_Volume_107195252')
 ap.add_argument('--releases', default=str(pathlib.Path(__file__).with_name('releases.json')))
+ap.add_argument('--parent', type=int)
 a = ap.parse_args()
 
-N, P, PP, PPP = a.n, a.n - 1, a.n - 2, a.n - 3
+N = a.n
+P = a.parent or N - 1
 rows = json.load(open(a.releases))
 cand, par = rows[str(N)], rows[str(P)]
 for r in (cand, par):
@@ -27,8 +29,14 @@ shutil.copytree(SRC, DST)
 
 pre = cand['version'][:-len(str(N))]
 v = lambda k: pre + str(k)
-# Order matters: shift the candidate (P -> N) before the parent (PP -> P).
-VERSION_SHIFT = [(v(P), v(N)), (v(PP), v(P))]
+# The source ops set names its own candidate and parent (they differ from P and P-1 when a release was never staged).
+# Order matters: shift the candidate (-> N) before the parent (-> P).
+src_plan = json.loads((SRC / 'deployment-plan.json').read_bytes())
+S, SP = src_plan['candidate']['version'], src_plan['parent']['version']
+assert S == v(P), ('source ops candidate is not the parent', S, v(P))
+VERSION_SHIFT = [(S, v(N)), (SP, v(P))]
+PP = int(SP[len(pre):])
+UNSTAGED = {int(k) for k in rows.get('_unstaged', [])}
 
 
 def edit(name, pairs):
@@ -37,7 +45,7 @@ def edit(name, pairs):
     t = p.read_bytes().decode()
     for old, new in pairs:
         if old not in t:
-            assert old == v(PP), (name, old)
+            assert old == SP, (name, old)
             continue
         t = t.replace(old, new)
     p.write_bytes(t.encode())
@@ -57,7 +65,7 @@ def patch_promote(path, floor, last):
     t = path.read_bytes().decode()
     lst = re.compile(r"for n in \[(?:'\d+', )*'\d+'\]:")
     assert len(lst.findall(t)) == 1, 'promote-root.py list literal not found exactly once'
-    t = lst.sub('for n in %r:' % [str(k) for k in range(floor, last + 1)], t)
+    t = lst.sub('for n in %r:' % [str(k) for k in range(floor, last + 1) if k not in UNSTAGED], t)
     old = " m=json.loads((root/'release.json').read_text())"
     assert t.count(old) == 1
     guard = " assert (root/'release.json').exists(), 'Missing preview build %s: restore it before flipping' % root\n"
@@ -71,7 +79,7 @@ def patch_served(path, rows, floor, last):
     lst = re.compile(r"for version,release_sha in \[(?:\('\d+','[0-9a-f]{64}'\),?)+\]:")
     assert len(lst.findall(t)) == 1, 'verify-served.py prior list not found exactly once'
     old = dict(re.findall(r"\('(\d+)','([0-9a-f]{64})'\)", lst.search(t).group(0)))
-    pairs = [(str(k), rows[str(k)]['releaseSHA']) for k in range(last, floor - 1, -1)]
+    pairs = [(str(k), rows[str(k)]['releaseSHA']) for k in range(last, floor - 1, -1) if k not in UNSTAGED]
     for k, sha in pairs:
         assert old.get(k, sha) == sha, ('releases.json disagrees with the old list', k)
     t = lst.sub('for version,release_sha in [' + ','.join("('%s','%s')" % p for p in pairs) + ']:', t)

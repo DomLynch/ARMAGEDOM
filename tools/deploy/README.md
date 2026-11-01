@@ -27,3 +27,6 @@ Never delete or move without Dom's per-folder word: `/opt/armagedom-preview-stag
 
 ## Flip checks verify what still exists (2026-11-01)
 `mk.py` no longer carries a hard-coded list of every historical preview. `promote-root.py` verifies the previews from the rollback floor (`_floor` in `releases.json`, 323) to the parent and aborts naming any missing build; `verify-served.py` compares only those builds' release shas (from `releases.json`); `verify-routing.py` asserts the domlynch.com legacy alias answers 301 without following it. Older builds are archived and unreachable by rollback.
+
+## A release that was never staged (2026-11-01)
+338 was built but replaced by 339 before staging, so `ops338-upload` never existed. `releases.json` lists it under `_unstaged`; `mk.py` skips it in the promote/served lists and derives the version shifts from the source ops set's own `deployment-plan.json`, so the parent chain can skip a number. Stage with `install.sh <tgz> N <live parent>` (e.g. `install.sh three-20261028-339.tgz 339 337`, `... 340 339`); the generated 340 ops set is byte-identical to the one patched by hand for the live flip.

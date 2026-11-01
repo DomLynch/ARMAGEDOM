@@ -1,6 +1,6 @@
 #!/bin/bash
 # VPS side: verify an uploaded release tarball and stage it as an immutable PREVIEW. Never flips root.
-# Usage: install.sh <tarball path> <N>        (tarball uploaded to /mnt/HC_Volume_107195252/incoming/)
+# Usage: install.sh <tarball path> <N> [parent N, only when N-1 was never staged]        (tarball uploaded to /mnt/HC_Volume_107195252/incoming/)
 # Needs mk.py beside it. The flip (resume-publish.sh) stays a separate, deliberate step.
 set -euo pipefail
 TGZ=${1:?tarball}
@@ -45,7 +45,7 @@ echo "SOURCE_ON_ORIGIN $SHA"
 rm -rf "$T"
 
 # 4. ops set for this release from the previous one, constants from the tarball's releases.json row
-python3 "$HERE/mk.py" "$N" --base "$R" --releases "$X/releases.json"
+python3 "$HERE/mk.py" "$N" --base "$R" --releases "$X/releases.json" ${3:+--parent "$3"}
 
 # 5. stage as preview only (same sequence as the old installNNN.sh)
 V=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")

@@ -586,5 +586,32 @@
   "source": "e2f0530d9200d049173ec4446234b04412572a99",
   "version": "three-20261028-336"
  },
- "_floor": 323
+ "337": {
+  "fingerprint": "a740e0d7bc3453c6342c315943e876a48fab3bc7802863282b250a1164d9a4e9",
+  "releaseSHA": "291fce6fffece9046790e35da7032b08e0d966b23d0d33a2daecb19d303be0e6",
+  "source": "a1cd857c6a61604169a2dab287cc6ca28d39e320",
+  "version": "three-20261028-337"
+ },
+ "338": {
+  "fingerprint": "5372a074dad15186e73d3178b04783aaae7226096fd90d31b0ae74fa73883615",
+  "releaseSHA": "94ad65db8356481c2a1fd967a7a0c90d91daf70caad360de5820a74be6fcdaaf",
+  "source": "303b0fc693cab7be29eb4081d30f691923ae7f4f",
+  "version": "three-20261028-338"
+ },
+ "339": {
+  "fingerprint": "9d7eb3c6788d3d19864b97357896e001fba5729b7371bde3b259f7ff99ce46be",
+  "releaseSHA": "664925d4477cd6ba2f24bd7deacaa8a9a4be985b29b56a4a05a8cf541fffe2d4",
+  "source": "55e99e350a9d12851edc0c10e0aae5aeca65df1c",
+  "version": "three-20261028-339"
+ },
+ "340": {
+  "fingerprint": "776f8e6923c1e644ddd0c854cd8a987831e6256cfdc26ae56bf55230fb5cc67d",
+  "releaseSHA": "78111d2552a8f376577b0df87246100905120a3499ef496e05aa5c8285204026",
+  "source": "dfbbe6f341889716bddd1e1c5b17559de800028f",
+  "version": "three-20261028-340"
+ },
+ "_floor": 323,
+ "_unstaged": [
+  "338"
+ ]
 }
