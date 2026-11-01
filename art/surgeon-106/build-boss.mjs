@@ -61,8 +61,10 @@ for (const name of BORROW) {
   }
 }
 if (!root.listNodes().some((n) => n.getName() === "fk_socket_hand_r")) throw Error("no fk_socket_hand_r");
-// The Surgeon holds a runtime-built bone saw (engine/bone-saw-view.js): it takes the place of the WeaponDrawn grip node, so bake an empty one under the hand socket, tilted (the quaternion is the per-weapon hand offset: the saw blade points 20 degrees inside the thrust line at the Riposte active pose, so its line crosses the player centre, tests/donor-motion.test.js).
-root.listNodes().find((n) => n.getName() === "fk_socket_hand_r").addChild(doc.createNode("WeaponDrawn").setRotation([0.2243, 0, -0.4158, 0.8814]));
+// Mixamo exports metallicFactor 1 with no metal map: with no env map that renders dark brown, so the body is a plain dielectric.
+for (const mat of doc.getRoot().listMaterials()) if (mat.getMetallicFactor() === 1) mat.setMetallicFactor(0).setRoughnessFactor(0.7);
+// The Surgeon holds a runtime-built bone saw (engine/bone-saw-view.js): it takes the place of the WeaponDrawn grip node, so bake an empty one under the hand socket, tilted (the quaternion is the per-weapon hand offset: the saw blade points 15 degrees inside and 28 degrees below the thrust line at the Riposte active pose, so its line crosses the player centre, tests/donor-motion.test.js).
+root.listNodes().find((n) => n.getName() === "fk_socket_hand_r").addChild(doc.createNode("WeaponDrawn").setRotation([0.3392, 0, -0.5725, 0.7465]));
 await doc.transform(prune({ keepLeaves: true }), dedup(), textureCompress({ encoder: sharp, targetFormat: "webp", quality: 85 }), meshopt({ encoder: MeshoptEncoder, level: "medium" }));
 await io.write(outPath, doc);
 console.log("clips", have.join(","), "nodes", root.listNodes().length);

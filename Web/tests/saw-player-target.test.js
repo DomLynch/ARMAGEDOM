@@ -21,8 +21,8 @@ const PINNED = process.env.SAW_PLAYER_PROBE_PRINT
   ? null
   : {
       // 1 Nov: the Surgeon's body is the Mixamo Whiteclown (art/surgeon-106); its idle saw hangs at the hand (right side, +side rows), so the
-      // hand-height trace touches a player standing point blank beside the hand. Still no ground column on the player: rows 3-6 stay 0.
-      rows: ["11111000000", "00111111000", ...Array(5).fill("0".repeat(GAPS.length))],
+      // hand-height trace touches a player standing point blank beside the hand. The blade is also tipped 28 degrees down and 15 inside (WeaponDrawn offset) so a thrust crosses the player's chest and head from any bearing; still no ground column on the player.
+      rows: ["01000000000", "11111100000", "11111110000", "00110000000", "00000110000", "00000000000", "00000000000"],
       control: true,
     };
 
