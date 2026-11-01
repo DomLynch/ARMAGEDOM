@@ -1,7 +1,6 @@
 import { sanitizeBoneName } from "./rig-bones.js";
 
-const CORNERS = 3; // tuning-ok: a triangle has three corners
-const INFLUENCES = 4; // tuning-ok: a skinned vertex has four bone influences
+const CORNERS = ["a", "b", "c"].length; // the corners of a triangle
 
 // Bite receivers for a swapped player body (a manifest row with `bodyContact`), built from that body's own skinned meshes and bones.
 // The row names the bones: `parts` maps a body part to bone groups (one group per side), `receivers` lists the parts each creature
@@ -25,7 +24,7 @@ function heavyVertices(mesh, bones, weightMin) {
     found = new Set();
   for (let i = 0; i < skin.count; i++) {
     let sum = 0;
-    for (let j = 0; j < INFLUENCES; j++) if (held.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
+    for (let j = 0; j < skin.itemSize; j++) if (held.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
     if (sum >= weightMin) found.add(i);
   }
   return found;
