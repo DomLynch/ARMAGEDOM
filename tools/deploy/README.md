@@ -16,6 +16,7 @@ Constants are data, not code: `releases.json` (version, source sha, fingerprint,
 ## Files
 - `releases.json`, `baselines.txt`: data rows. The frozen baselines `deploy226-b224` .. `deploy238-b237` have no recorded sha and are copied once from the VPS into `C:\arma-work\baselines-frozen` (read by `prep-baselines.sh`).
 - `cut-local.sh`, `prep-baselines.sh`, `gate.sh`, `mkmanifest.py`, `mktarball.py`: laptop side.
+- `source_manifest.py <repo> <full sha> <version> <out.json>`: computes the source fingerprint (every tracked blob at the sha as [{path,bytes,sha256}] sorted by path; sha256 of the compact key-sorted JSON). Replaces the lost Mac script; anyone can recompute it from git. Run it before `cut-local.sh` and pass the fingerprint on.
 - `install.sh`, `mk.py`: VPS side (copy to the VPS from a reviewed commit; the VPS copies are the running ones, git is the record).
 - `gencut.py`, `cut336.sh`, `gate336.sh`, `install336.sh`, `mk336.py`, `mkmanifest336.py`: the retired VPS-build generation, kept as record.
 
