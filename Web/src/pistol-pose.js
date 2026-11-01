@@ -1,5 +1,5 @@
 import * as T from "three";
-import { rigBone } from "./rig-bones.js";
+import { rigBone, sanitizeBoneName } from "./rig-bones.js";
 const activeDigitOverlay = new WeakMap();
 export const PISTOL_ARM_EXTENSION = 0.92;
 // Remove only our temporary finger locals before the next native gait/equip.
@@ -32,10 +32,13 @@ function pointBone(bone, child, target) {
 export function applyPistolAim(model, mount, { recoil = 0, gripProfile, armExtension = PISTOL_ARM_EXTENSION } = {}) {
   if (!Number.isFinite(armExtension) || armExtension < 0.35 || armExtension > 0.98)
     throw RangeError("Invalid arm extension");
+  // A body row may carry `pistolGrip` (wristBone, handDegrees, offset, fingerDegrees); without it the hero numbers below apply unchanged.
   const upper = rigBone(model, "upperArm"),
     fore = rigBone(model, "foreArm"),
-    hand = rigBone(model, "hand");
-  if (!upper || !fore || !hand || mount.parent !== model) throw Error("Pistol rig/mount mismatch");
+    socket = rigBone(model, "hand"),
+    pose = model.userData.pistolGrip,
+    hand = (pose?.wristBone && model.getObjectByName(sanitizeBoneName(pose.wristBone))) || socket;
+  if (!upper || !fore || !hand || !socket || mount.parent !== model) throw Error("Pistol rig/mount mismatch");
   model.updateWorldMatrix(true, true);
   const basis = model.getWorldQuaternion(new T.Quaternion()),
     scale = model.getWorldScale(new T.Vector3()).x;
@@ -56,11 +59,14 @@ export function applyPistolAim(model, mount, { recoil = 0, gripProfile, armExten
   pointBone(upper, fore, joint);
   pointBone(fore, hand, target);
   // Hand local Y follows the barrel; local Z points up. Existing finger curl retained.
-  const desired = basis.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(Math.PI / 2, 0, 0)));
+  const handEuler = pose?.handDegrees ? new T.Euler(...pose.handDegrees.map(T.MathUtils.degToRad)) : new T.Euler(Math.PI / 2, 0, 0),
+    desired = basis.clone().multiply(new T.Quaternion().setFromEuler(handEuler));
   hand.quaternion.copy(hand.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(desired));
   hand.updateWorldMatrix(true, true);
   // Original pistol finger pose on existing bones; refreshed after each gait sample.
-  for (const finger of ["middle", "ring", "pinky", "index"])
+  for (const [name, degrees] of Object.entries(pose?.fingerDegrees ?? {}))
+    model.getObjectByName(sanitizeBoneName(name))?.quaternion.setFromEuler(new T.Euler(...degrees.map(T.MathUtils.degToRad)));
+  for (const finger of pose?.fingerDegrees ? [] : ["middle", "ring", "pinky", "index"])
     for (let part = 1; part <= 3; part++) {
       const bone = model.getObjectByName(`${finger}_0${part}_r`);
       if (!bone) continue;
@@ -70,9 +76,9 @@ export function applyPistolAim(model, mount, { recoil = 0, gripProfile, armExten
   const gunQ = basis
     .clone()
     .multiply(new T.Quaternion().setFromEuler(new T.Euler(-Math.max(0, Math.min(1, recoil)) * 0.22, 0, 0)));
-  const grip = hand
+  const grip = socket
     .getWorldPosition(new T.Vector3())
-    .add(new T.Vector3(0, -0.045, 0.13).multiplyScalar(scale).applyQuaternion(basis));
+    .add(new T.Vector3(...(pose?.offset ?? [0, -0.045, 0.13])).multiplyScalar(scale).applyQuaternion(basis));
   mount.position.copy(model.worldToLocal(grip));
   mount.quaternion.copy(model.getWorldQuaternion(new T.Quaternion()).invert().multiply(gunQ));
   if (gripProfile) {
