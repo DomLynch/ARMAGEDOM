@@ -1174,6 +1174,7 @@
       "sha256": "dd367172b6fd92d093c777fdfd649fd5bffcf32da470cb16df505baa641cab18",
       "provenance": {
         "source": "Mixamo V2 Vanguard by T. Choonyung on the 106-bone Mixamo rig (vanguard-by-t-choonyung-full-phone-mixamorig.glb)",
+        "sourceSHA256": "b4ad79158c455a1eef1b19fc9628c466b5ad64fb05cc188927ba20b0d95522ab",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/boss-warden-106/build-boss.mjs: 9 own clips kept, Layer_* and Stress_* dropped, 7 clips borrowed from hunter-pitborn-106 and delta-retargeted, WebP q85, meshopt. Unarmed (no maul baked).",
         "previous": {
