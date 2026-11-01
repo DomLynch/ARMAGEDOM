@@ -864,13 +864,13 @@
         "id": "boss-butcher",
         "material": "flesh",
         "bodyBones": [
-          "spine_02",
-          "spine_01",
-          "spine_03"
+          "mixamorigSpine1",
+          "mixamorigSpine",
+          "mixamorigSpine2"
         ],
         "headBones": [
-          "Head",
-          "neck_01"
+          "mixamorigHead",
+          "mixamorigNeck"
         ],
         "radius": 0.16
       },
