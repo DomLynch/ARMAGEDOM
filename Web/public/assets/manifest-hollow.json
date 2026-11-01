@@ -1521,7 +1521,7 @@
       "sha256": "999562a3b728481fb5ee45db56aee0cae403209463023b39158291c7570a7368",
       "provenance": {
         "source": "Mixamo Survivor (A. Lusth) full-phone-mixamorig.glb on the 106-bone rig",
-        "source999562a3b728481fb5ee45db56aee0cae403209463023b39158291c7570a7368256": "3a124843b69a9d825cea2fc66ea1615e1b35037eda3ff45e154cfb8aa63a313a",
+        "sourceSHA256": "3a124843b69a9d825cea2fc66ea1615e1b35037eda3ff45e154cfb8aa63a313a",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/boss-borough-marshal-106/build-marshal.mjs: 9 own clips kept, Layer_* gear and Stress_* clips dropped, 7 roles borrowed from the pitborn hunter, the old Marshal maul baked under fk_socket_hand_r as WeaponDrawn",
         "previous": {
