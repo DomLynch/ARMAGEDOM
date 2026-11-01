@@ -21,3 +21,6 @@ Constants are data, not code: `releases.json` (version, source sha, fingerprint,
 - `gencut.py`, `cut336.sh`, `gate336.sh`, `install336.sh`, `mk336.py`, `mkmanifest336.py`: the retired VPS-build generation, kept as record.
 
 No secrets belong in this folder; read them from the environment.
+
+## Freeze list (VPS)
+Never delete or move without Dom's per-folder word: `/opt/armagedom-preview-staging` (the `-ops`, `-private` and `-root-ops` dirs of the LIVE, ROLLBACK and FLOOR builds hold the rollback evidence: nginx before/after copies, private release.json, routing receipts), `/var/www/playarmagedom.com`, the nginx `playarmagedom-three-*.conf` snippets, `/opt/armagedom-realtime`. A cleanup archive copy is not a substitute: restore before a flip.
