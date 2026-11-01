@@ -6327,6 +6327,127 @@
         ]
       },
       "scale_baked": 1
+    },
+    "whiteclown-106": {
+      "id": "whiteclown-106",
+      "source": "whiteclown-106.glb (Armagedom Web/public/assets/appearances) bind pose via mixamo-106.json, x1 (unscaled: the actor root carries the model scale)",
+      "height_m": 2.1641,
+      "neck_len": 0.1437,
+      "torso_len": 0.5173,
+      "shoulder_w": 0.4544,
+      "upper_arm_len": 0.3362,
+      "forearm_len": 0.3029,
+      "thigh_len": 0.3817,
+      "shin_len": 0.5363,
+      "foot_len": 0.202,
+      "chest_w": 0.463,
+      "waist_w": 0.4271,
+      "hip_w": 0.4129,
+      "chest_d": 0.3612,
+      "proportions_source": "chest_w 1.019 x shoulder_w, waist_w 0.94 x shoulder_w, hip_w 1.716 x hip joint gap, chest_d 0.78 x chest_w: ratios of OpenTrident mh-gen-v2-0002; limb radii left to the role table (k_len x length)",
+      "joints": {
+        "Hips": [
+          0,
+          1.1448,
+          -0.0097
+        ],
+        "Spine": [
+          0,
+          1.2301,
+          -0.0078
+        ],
+        "Spine1": [
+          0,
+          1.327,
+          -0.0062
+        ],
+        "Spine2": [
+          0,
+          1.4857,
+          -0.0036
+        ],
+        "Neck": [
+          0,
+          1.7474,
+          -0.0052
+        ],
+        "Head": [
+          0,
+          1.8911,
+          -0.0039
+        ],
+        "LeftArm": [
+          0.2272,
+          1.7222,
+          -0.0628
+        ],
+        "LeftForeArm": [
+          0.5634,
+          1.7222,
+          -0.0628
+        ],
+        "LeftHand": [
+          0.8663,
+          1.7222,
+          -0.0575
+        ],
+        "RightArm": [
+          -0.2272,
+          1.7222,
+          -0.0628
+        ],
+        "RightForeArm": [
+          -0.5634,
+          1.7222,
+          -0.0628
+        ],
+        "RightHand": [
+          -0.8663,
+          1.7222,
+          -0.0575
+        ],
+        "LeftUpLeg": [
+          0.1203,
+          1.0218,
+          -0.002
+        ],
+        "LeftLeg": [
+          0.1203,
+          0.6408,
+          0.0208
+        ],
+        "LeftFoot": [
+          0.1203,
+          0.1071,
+          -0.0318
+        ],
+        "LeftToeBase": [
+          0.1203,
+          0,
+          0.1395
+        ],
+        "RightUpLeg": [
+          -0.1203,
+          1.0218,
+          -0.002
+        ],
+        "RightLeg": [
+          -0.1203,
+          0.6408,
+          0.0208
+        ],
+        "RightFoot": [
+          -0.1203,
+          0.1071,
+          -0.0318
+        ],
+        "RightToeBase": [
+          -0.1203,
+          0,
+          0.1395
+        ]
+      },
+      "scale_baked": 1
     }
   },
   "models": {
@@ -6366,8 +6487,8 @@
       "live": true
     },
     "boss-surgeon": {
-      "rig": "v1-65",
-      "body": "scavenger-65",
+      "rig": "mixamo-106",
+      "body": "whiteclown-106",
       "live": true
     },
     "boss-westminster-witch": {"rig":"mixamo-106","body":"medea-106","live":true},

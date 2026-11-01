@@ -876,40 +876,55 @@
       "sha256": "da3358f6c420bc570fb8e852c1d2adbc6f36076ff64ef31c8453151f5d2b9355"
     },
     "boss-surgeon": {
+      "url": "bosses/boss-surgeon.glb",
+      "rig": "boss-surgeon",
       "motion": "donor-knife",
-      "scale": 1,
+      "scale": 0.865,
       "forwardCorrection": 0,
-      "stride": 1,
+      "stride": 0.93,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "handBone": "fk_socket_hand_r",
+      "upperArmBone": "mixamorig:RightArm",
+      "foreArmBone": "mixamorig:RightForeArm",
+      "torsoBone": "mixamorig:Spine",
+      "measure": {
+        "source": "glb bind pose (art/surgeon-106/build-boss.mjs output)",
+        "heightMetres": 2.1641,
+        "hipsMetres": 1.145,
+        "note": "scale 0.865 puts the mesh top at the old Surgeon's 1.87 m; stride is hips height over the donor hero's, foot slide not yet measured"
+      },
       "clips": {
-        "idle": "Armed",
-        "walk": "ArmedWalk",
+        "idle": "Idle",
+        "walk": "Walk",
         "run": "Run",
-        "strafeLeft": "StrafeLeft",
-        "strafeRight": "StrafeRight",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
         "guard": "Guard",
         "dodge": "Roll",
         "hit": "Hit",
         "death": "Death",
-        "deflected": "Deflected",
-        "blockImpact": "BlockImpact",
-        "attack": "Attack",
+        "parry": "Parry",
         "block": "BlockImpact",
-        "slash": "Attack",
-        "stab": "Riposte"
+        "deflected": "Deflected",
+        "strafeLeft": "StrafeLeft",
+        "strafeRight": "StrafeRight"
       },
-      "url": "bosses/boss-surgeon.glb",
-      "rig": "boss-surgeon",
       "deferred": true,
-      "bytes": 1951248,
-      "sha256": "78091f12e5b87002720fadd9c03afae472c9add4dfbc51f9ab99eda841f09ddd",
+      "bytes": 577264,
+      "sha256": "41b0d43d1d9c5075d4982d389336fed7adff5cd6da5429f5147fa091a18d18b9",
       "provenance": {
-        "sourceFrankendomHEAD": "2cd38f7cfbe30c7a132e21aac35fed4833fb2546",
-        "levelSelection": "L2 browncloth/leather mask",
-        "originalUnprunedSHA256": "dd5e955f0fe1cfe045e9b7c2b2b5c9bf97f6ba0d5ff8c194e3345f0d195d1079",
-        "lineageSHA256": "a95081c98d801b21b89d9efec88d44bcadb2c0dcccd41ba1d37c976bcab6d507",
-        "contactSHA256": "dfd786d6844a6095494713cbf89eb0173f2a5061ff55a6302c09b6a31509f24e",
-        "finalArtHandoffSHA256": "3afce212837e50ba29bc3ff1ece510724f6e371e60719b75b65b78fbfb3ecfb0",
-        "repairs": "Strict format V2: unused Quiet clip omitted; Butcher exact duplicate influences coalesced; one Warden normal repaired. See art/bosses140/THREE-BOSS-PORTABLE-HANDOFF-V2.json."
+        "source": "Mixamo Whiteclown (N. Hallin) full-phone-mixamorig body on the 106 rig",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/surgeon-106/build-boss.mjs: 9 own clips kept, Layer_* gear nodes dropped, Return/Riposte/Parry/BlockImpact/Deflected/StrafeLeft/StrafeRight borrowed from hunter-pitborn-106 (delta-retargeted), WebP q85, meshopt",
+        "previous": {
+          "url": "bosses/boss-surgeon.glb",
+          "rig": "boss-surgeon (65-bone)",
+          "bytes": 1951248,
+          "sha256": "78091f12e5b87002720fadd9c03afae472c9add4dfbc51f9ab99eda841f09ddd"
+        }
       }
     },
     "boss-butcher": {
