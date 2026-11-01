@@ -178,7 +178,7 @@ async function loadAsset(url) {
 for (const [name, description] of Object.entries(manifest.models))
   models.set(name, {
     description,
-    gltf: name === "vagrant-cleaver" ? models.get("vagrant").gltf : await loadAsset(description.url),
+    gltf: await loadAsset(description.url),
     equipment: description.equipment ? await loadAsset(description.equipment.url) : null,
   });
 const sources = new Set([...models.values()].flatMap((m) => [m.gltf, m.equipment].filter(Boolean)));

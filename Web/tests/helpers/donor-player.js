@@ -4,4 +4,9 @@
 import fs from "node:fs";
 export const donorPlayerRow = () =>
   JSON.parse(fs.readFileSync(new URL("../fixtures/donor-player-row.json", import.meta.url), "utf8"));
-export const withDonorPlayer = (manifest) => ((manifest.models.vagrant = donorPlayerRow()), manifest);
+// The earned cleaver is dressed on whichever body the player has: a donor-body test pairs it with the donor cleaver row too.
+export const withDonorPlayer = (manifest) => (
+  (manifest.models.vagrant = donorPlayerRow()),
+  (manifest.models["vagrant-cleaver"] = manifest.models["donor-warrior-cleaver"]),
+  manifest
+);

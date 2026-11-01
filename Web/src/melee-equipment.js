@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { createBoneSaw } from "./engine/bone-saw-view.js";
 import { MELEE_VARIANTS, CLEAVER_MOVES } from "./engine/melee-equipment-data.js";
 export { MELEE_VARIANTS, CLEAVER_MOVES } from "./engine/melee-equipment-data.js";
@@ -41,7 +42,9 @@ export function cloneMeleeWeapon(source, variantId) {
   )
     throw Error("Melee equipment source/contact mismatch");
   const root = weapon.clone(true),
+    grip = source.description?.knifeGripDegrees, // the body's hand bone is oriented differently from the hero's: tilt as equipDonorPlayer does
     materials = [];
+  if (grip) root.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...grip.map(THREE.MathUtils.degToRad))));
   let meshes = 0;
   try {
     root.traverse((node) => {

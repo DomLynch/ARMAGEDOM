@@ -965,6 +965,128 @@
       ]
     },
     "vagrant-cleaver": {
+      "url": "appearances/perseus-106.glb",
+      "bytes": 1189952,
+      "sha256": "b9f787acc731e4657d409c277d6546166d795d9d5d58f18df983ff73e295c7a9",
+      "rig": "hero",
+      "motion": "donor-knife",
+      "scale": 0.92,
+      "stride": 0.855,
+      "sprintStride": 0.76,
+      "knifeGripDegrees": [
+        35,
+        0,
+        0
+      ],
+      "forwardCorrection": 0,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "handBone": "fk_socket_hand_r",
+      "upperArmBone": "mixamorig:RightArm",
+      "foreArmBone": "mixamorig:RightForeArm",
+      "torsoBone": "mixamorig:Spine",
+      "bodyContact": {
+        "weightMin": 0.5,
+        "goalSamples": 48,
+        "footPart": "foot",
+        "parts": {
+          "foot": [
+            [
+              "mixamorig:LeftFoot",
+              "mixamorig:LeftToeBase"
+            ],
+            [
+              "mixamorig:RightFoot",
+              "mixamorig:RightToeBase"
+            ]
+          ],
+          "calf": [
+            [
+              "mixamorig:LeftLeg",
+              "calf_twist_01_l",
+              "calf_twist_02_l"
+            ],
+            [
+              "mixamorig:RightLeg",
+              "calf_twist_01_r",
+              "calf_twist_02_r"
+            ]
+          ],
+          "thigh": [
+            [
+              "mixamorig:LeftUpLeg",
+              "thigh_twist_01_l",
+              "thigh_twist_02_l"
+            ],
+            [
+              "mixamorig:RightUpLeg",
+              "thigh_twist_01_r",
+              "thigh_twist_02_r"
+            ]
+          ],
+          "torso": [
+            [
+              "mixamorig:Hips",
+              "mixamorig:Spine",
+              "mixamorig:Spine1",
+              "mixamorig:Spine2"
+            ]
+          ]
+        },
+        "receivers": {
+          "foot": [
+            "foot",
+            "calf"
+          ],
+          "dog": [
+            "foot",
+            "calf",
+            "thigh"
+          ],
+          "salamander": [
+            "calf"
+          ],
+          "wolf": [
+            "torso"
+          ]
+        }
+      },
+      "clips": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "run": "Run",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
+        "guard": "Guard",
+        "dodge": "Roll",
+        "hit": "Hit",
+        "death": "Death",
+        "parry": "Parry",
+        "block": "BlockImpact",
+        "deflected": "Deflected"
+      },
+      "equipment": {
+        "url": "weapons/pitborn-cleaver-phone.glb",
+        "bytes": 384288,
+        "sha256": "507b9b4fe26a7f90d0f477390d0d9247279355a7584e3ca57a00b66178f1a07a",
+        "textureCapSource": {"file": "weapons/pitborn-cleaver.glb", "bytes": 410920, "sha256": "6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d"},
+        "mount": "hand_r",
+        "node": "WeaponDrawn",
+        "overrides": [
+          "Heavy",
+          "Death_QuietOne"
+        ]
+      },
+      "measure": {
+        "source": "bind pose of the GLB (hips rest height from the Hips node, 0.9637 m); height measured against the donor hero on screen, stride is the hips height over the donor hero 0.992",
+        "hipsMetres": 0.9637,
+        "note": "scale 0.92 puts the player about as tall as the donor hero on screen (screen height ratio 1.09 at scale 1, bone heights 1.08); stride 0.855 was tuned against foot slide in the game (0.971 is the plain hips ratio 0.9637 over 0.992 and slid)"
+      },
+      "deferred": true
+    },
+    "donor-warrior-cleaver": {
       "url": "donor/warrior-phone.glb",
       "rig": "hero",
       "motion": "donor-knife",

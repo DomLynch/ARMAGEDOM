@@ -5620,6 +5620,11 @@
       "live": true
     },
     "vagrant-cleaver": {
+      "rig": "mixamo-106",
+      "body": "perseus-106",
+      "live": true
+    },
+    "donor-warrior-cleaver": {
       "rig": "v1-65",
       "body": "scavenger-65",
       "live": true
