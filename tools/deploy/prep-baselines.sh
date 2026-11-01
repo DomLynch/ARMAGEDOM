@@ -26,7 +26,7 @@ fetch_one() {
   mkdir -p "$W/baselines/$name.tmp" && git -C "$t" archive "$sha" Web | tar -x -C "$W/baselines/$name.tmp" && mv "$W/baselines/$name.tmp" "$W/baselines/$name"
   rm -rf "$t"
 }
-export -f fetch_one; export W URL
+export -f fetch_one; export W URL; export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.version GIT_CONFIG_VALUE_0=HTTP/1.1
 # 5 in parallel; the cache under $W/baselines persists, so later releases only fetch what is new.
 grep -v '^$' "$HERE/baselines.txt" | xargs -P 5 -L 1 bash -c 'fetch_one "$0" "$1"'
 for d in "$W"/baselines/deploy*; do

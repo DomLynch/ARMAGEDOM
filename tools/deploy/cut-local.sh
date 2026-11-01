@@ -23,14 +23,17 @@ mkdir -p "$D" "$W/out"
 cd "$D"
 
 # Fresh checkout by sha, as the VPS cut did: parent Web tree is this release's rollback baseline.
-git init -q repo && git -C repo remote add origin "$URL"
+# HTTP/1.1: GitHub's HTTP/2 streams get cancelled mid-pack on this network. A persistent cache repo keeps later fetches incremental.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.version GIT_CONFIG_VALUE_0=HTTP/1.1
+CACHE=$W/git-cache
+[ -d "$CACHE/.git" ] || { git init -q "$CACHE"; git -C "$CACHE" remote add origin "$URL"; }
 for s in "$PSHA" "$SHA"; do
-  for try in 1 2 3; do git -C repo fetch -q --depth=1 origin "$s" && break; [ "$try" = 3 ] && exit 1; sleep 5; done
+  for try in 1 2 3 4 5; do git -C "$CACHE" fetch -q --depth=1 origin "$s" && break; [ "$try" = 5 ] && { echo "FETCH_FAILED $s" >&2; exit 1; }; sleep 5; done
 done
+repo=$CACHE
 mkdir -p "$W/baselines/deploy$N-b$P"
-git -C repo archive "$PSHA" Web | tar -x -C "$W/baselines/deploy$N-b$P"
-mkdir src && git -C repo archive "$SHA" | tar -x -C src
-rm -rf repo
+git -C "$CACHE" archive "$PSHA" Web | tar -x -C "$W/baselines/deploy$N-b$P"
+mkdir src && git -C "$CACHE" archive "$SHA" | tar -x -C src
 cd src/Web
 npm ci --no-audit --no-fund > ../../npmci.log 2>&1
 cd ..
