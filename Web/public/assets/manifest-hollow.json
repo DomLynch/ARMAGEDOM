@@ -1567,7 +1567,7 @@
       "measure": {
         "source": "bind pose of the GLB (hips rest height from the Hips node, 0.9637 m); height measured against the donor hero on screen, stride is the hips height over the donor hero 0.992",
         "hipsMetres": 0.9637,
-        "note": "scale 0.92 puts the player about as tall as the donor hero on screen (screen height ratio 1.09 at scale 1, bone heights 1.08); stride 0.971 is hips 0.9637 over 0.992"
+        "note": "scale 0.92 puts the player about as tall as the donor hero on screen (screen height ratio 1.09 at scale 1, bone heights 1.08); stride 0.855 was tuned against foot slide in the game (0.971 is the plain hips ratio 0.9637 over 0.992 and slid)"
       },
       "clips": {
         "idle": "Idle",

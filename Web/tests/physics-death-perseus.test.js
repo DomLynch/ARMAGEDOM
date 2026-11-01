@@ -57,7 +57,7 @@ test("the Perseus player row names a live 106-rig ragdoll row; the hero player r
   assert.equal(rigOf(id).body, RIGS.bodies[id]);
   assert.equal(rigOf(swap.model).body, RIGS.bodies["scavenger-65"], "the hero row still ragdolls on its own body");
   assert.equal(RIGS.bodies[id].scale_baked, 1);
-  assert.equal(row.scale, 1, "an unscaled row on an unscaled actor");
+  assert.ok(row.scale > 0 && row.scale <= 1, "the actor root carries the row scale; the x1 ragdoll body rides it (physics-death-impl copies view.model.scale)");
   const live = Object.keys(RIGS.models).filter((name) => RIGS.models[name].live && !RIGS.models[name].chain);
   assert.ok(
     live.indexOf(id) >= 2,
