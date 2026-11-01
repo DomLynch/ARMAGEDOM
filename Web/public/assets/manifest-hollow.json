@@ -1647,34 +1647,124 @@
     },
     "boss-westminster-witch": {
       "motion": "donor-knife",
-      "scale": 1,
+      "scale": 1.1,
       "forwardCorrection": 0,
-      "stride": 1,
+      "stride": 1.06,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "handBone": "fk_socket_hand_r",
+      "upperArmBone": "mixamorig:RightArm",
+      "foreArmBone": "mixamorig:RightForeArm",
+      "torsoBone": "mixamorig:Spine",
+      "pistolGrip": {
+        "wristBone": "mixamorig:RightHand",
+        "handDegrees": [
+          90,
+          90,
+          0
+        ],
+        "offset": [
+          0.035,
+          0.035,
+          -0.035
+        ],
+        "fingerDegrees": {
+          "mixamorig:RightHandIndex1": [
+            50,
+            0,
+            0
+          ],
+          "mixamorig:RightHandIndex2": [
+            70,
+            0,
+            0
+          ],
+          "mixamorig:RightHandIndex3": [
+            50,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle1": [
+            60,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle2": [
+            80,
+            0,
+            0
+          ],
+          "mixamorig:RightHandMiddle3": [
+            55,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing1": [
+            65,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing2": [
+            85,
+            0,
+            0
+          ],
+          "mixamorig:RightHandRing3": [
+            60,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky1": [
+            70,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky2": [
+            85,
+            0,
+            0
+          ],
+          "mixamorig:RightHandPinky3": [
+            60,
+            0,
+            0
+          ]
+        }
+      },
       "clips": {
-        "idle": "Armed",
-        "walk": "ArmedWalk",
+        "idle": "Idle",
+        "walk": "Walk",
         "run": "Run",
-        "strafeLeft": "StrafeLeft",
-        "strafeRight": "StrafeRight",
+        "slash": "Attack",
+        "return": "Return",
+        "stab": "Riposte",
+        "heavy": "Heavy",
         "guard": "Guard",
         "dodge": "Roll",
         "hit": "Hit",
         "death": "Death",
-        "deflected": "Deflected",
-        "blockImpact": "BlockImpact",
-        "attack": "Attack",
+        "parry": "Parry",
         "block": "BlockImpact",
-        "slash": "Attack"
+        "deflected": "Deflected",
+        "strafeLeft": "StrafeLeft",
+        "strafeRight": "StrafeRight",
+        "attack": "Attack"
       },
       "url": "bosses/boss-westminster-witch.glb",
       "rig": "boss-westminster-witch",
       "deferred": true,
-      "bytes": 1967588,
-      "sha256": "1d825f146bd4c67ed6443b5792c897a92a0cb6434619e6f629411b89aec9cb27",
+      "bytes": 752876,
+      "sha256": "13f33816ff48d70b0ed45cca1b0c27763083c195b74a801f34cb97da1663a6a7",
       "provenance": {
-        "portableIntake": "four-boss-portable-20261018",
-        "carrier": "boss-surgeon",
-        "qualification": "Own inverse binds and paired native contact preserved; actual game-camera review required"
+        "source": "Mixamo V2 Medea (M. Arrebola) on the 106 rig, medea-by-m-arrebola-full-phone-mixamorig.glb",
+        "sourceSHA256": "cd4dce749a7c50c1d0f9ce074f390c2025e1f231fa8d434d2efd03dc9482bd72",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/medea-106/build-boss.mjs; see art/medea-106/PROVENANCE.md",
+        "previous": {
+          "url": "bosses/boss-westminster-witch.glb",
+          "bytes": 1967588,
+          "sha256": "1d825f146bd4c67ed6443b5792c897a92a0cb6434619e6f629411b89aec9cb27"
+        }
       }
     },
     "boss-south-nightborn": {
@@ -4615,10 +4705,10 @@
     },
     "boss-westminster-witch": {
       "file": "bosses/boss-westminster-witch.glb",
-      "bytes": 1967588,
-      "sha256": "1d825f146bd4c67ed6443b5792c897a92a0cb6434619e6f629411b89aec9cb27",
+      "bytes": 752876,
+      "sha256": "13f33816ff48d70b0ed45cca1b0c27763083c195b74a801f34cb97da1663a6a7",
       "errors": 0,
-      "warnings": 45723
+      "warnings": 0
     },
     "boss-south-nightborn": {
       "file": "bosses/boss-south-nightborn.glb",

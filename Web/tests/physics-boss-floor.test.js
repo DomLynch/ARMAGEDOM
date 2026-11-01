@@ -11,7 +11,7 @@ import { bossSettle } from "./helpers/boss-floor-trace.js";
 import FLOOR from "../src/data/physicsFloor.json" with { type: "json" };
 
 const
-  BOSSES = ["boss-warden", "boss-area8-veteran", "boss-area7-knight", "boss-butcher"],
+  BOSSES = ["boss-warden", "boss-area8-veteran", "boss-area7-knight", "boss-butcher", "boss-westminster-witch"],
   SEEN_SINK_M = 0.03, // 3 cm of world space: a boot sole or a plate edge may touch the ground, a hand's width of armour in it is the bug
   // 1 Nov: the Mixamo Survivor (Borough Marshal) bind-pose boots sit 4.5 cm (world) below its root, about 1.3% of its 3.5 m game height; the seat keeps it there
   sink = (model) => (model === "boss-area8-veteran" ? 0.05 : SEEN_SINK_M),
