@@ -917,6 +917,7 @@
       "sha256": "080b37db5c63f33d309fa3c0bfbcfc074317c77f779ee3d67a00cbf23b992d9f",
       "provenance": {
         "source": "Mixamo Whiteclown (N. Hallin) full-phone-mixamorig body on the 106 rig",
+        "sourceSHA256": "43de2157b256db41ae7588d932d7ca458cf42a57b1d7b44af3bb5036c9900c9d",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/surgeon-106/build-boss.mjs: 9 own clips kept, Layer_* gear nodes dropped, Return/Riposte/Parry/BlockImpact/Deflected/StrafeLeft/StrafeRight borrowed from hunter-pitborn-106 (delta-retargeted), WebP q85, meshopt",
         "previous": {
