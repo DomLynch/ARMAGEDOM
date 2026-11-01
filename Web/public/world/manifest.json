@@ -205,8 +205,7 @@
       "entry": {
         "x": 0.075,
         "y": 0.432
-      },
-      "requiresDefeat": "boss-witch-v1"
+      }
     },
     {
       "from": "westminster",
@@ -220,8 +219,7 @@
       "entry": {
         "x": 0.206,
         "y": 0.876
-      },
-      "requiresDefeat": "boss-witch-v1"
+      }
     },
     {
       "from": "westminster",
@@ -234,8 +232,7 @@
       "entry": {
         "x": 0.192,
         "y": 0.052
-      },
-      "requiresDefeat": "boss-witch-v1"
+      }
     },
     {
       "from": "east",

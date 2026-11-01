@@ -29,7 +29,7 @@ test('hub exits east, south and area7 are open whatever the visit, boss reward o
  g.world.bossEquipmentData={};g.runSaveInvalid=true;for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
  g.world.bossEquipmentData=data.bossEquipmentData;g.runSaveInvalid=false;
  for(const id of ['south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
- g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'central-hub').allowed,false,'the Westminster gate stays closed until the Matron is down');
+ g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'central-hub'),null,'the Westminster exits are ungated (Dom, 31 Oct)');
 });
 
 test('registry rejects forged visit predicates and a manifest gate the areas data does not have',()=>{
