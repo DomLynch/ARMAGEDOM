@@ -131,14 +131,6 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
   const response = await fetch(manifestURL);
   if (!response.ok) throw Error(`Character manifest HTTP ${response.status}`);
   const manifest = await response.json();
-  // A row's `playerSwap` ({ param, value, offValue, model, use, fields }) dresses `model` with the fields of row `use`: only on ?param=value,
-  // or, when the row has an `offValue`, always except on ?param=offValue.
-  const swap = manifest.playerSwap,
-    asked = new URLSearchParams(globalThis.location?.search ?? "").get(swap?.param ?? "");
-  if (swap && (swap.offValue === undefined ? asked === swap.value : asked !== swap.offValue) && manifest.models[swap.use])
-    for (const field of swap.fields)
-      if (manifest.models[swap.use][field] !== undefined) manifest.models[swap.model][field] = manifest.models[swap.use][field];
-      else delete manifest.models[swap.model][field];
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const models = new Map(),
     pendingModels = new Map();

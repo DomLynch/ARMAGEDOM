@@ -9,21 +9,35 @@
   ],
   "models": {
     "vagrant": {
-      "url": "donor/warrior-phone.glb",
+      "url": "appearances/perseus-106.glb",
+      "bytes": 1189952,
+      "sha256": "b9f787acc731e4657d409c277d6546166d795d9d5d58f18df983ff73e295c7a9",
       "rig": "hero",
       "motion": "donor-knife",
-      "scale": 1,
+      "scale": 0.92,
+      "stride": 0.855,
+      "sprintStride": 0.76,
+      "knifeGripDegrees": [
+        35,
+        0,
+        0
+      ],
       "forwardCorrection": 0,
-      "stride": 1,
+      "upperBone": "mixamorig:Spine",
+      "headBone": "mixamorig:Head",
+      "handBone": "fk_socket_hand_r",
+      "upperArmBone": "mixamorig:RightArm",
+      "foreArmBone": "mixamorig:RightForeArm",
+      "torsoBone": "mixamorig:Spine",
+      "ragdollRow": "perseus-106",
       "clips": {
-        "idle": "Armed",
-        "walk": "ArmedWalk",
+        "idle": "Idle",
+        "walk": "Walk",
         "run": "Run",
         "slash": "Attack",
         "return": "Return",
         "stab": "Riposte",
         "heavy": "Heavy",
-        "special": "Skill_Pommel",
         "guard": "Guard",
         "dodge": "Roll",
         "hit": "Hit",
@@ -40,6 +54,18 @@
           "Heavy",
           "Death_QuietOne"
         ]
+      },
+      "measure": {
+        "source": "bind pose of the GLB (hips rest height from the Hips node, 0.9637 m); height measured against the donor hero on screen, stride is the hips height over the donor hero 0.992",
+        "hipsMetres": 0.9637,
+        "note": "scale 0.92 puts the player about as tall as the donor hero on screen (screen height ratio 1.09 at scale 1, bone heights 1.08); stride 0.855 was tuned against foot slide in the game (0.971 is the plain hips ratio 0.9637 over 0.992 and slid)"
+      },
+      "provenance": {
+        "source": "OpenTrident models/custom/ch42-nonpbr-full-phone-mixamorig.glb (Mixamo ch42, labelled Perseus, rig 106, 4,679,784 bytes, sha256 fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605)",
+        "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
+        "licence": "Mixamo, cleared by Dom 2026-10-23",
+        "assembly": "art/perseus-106/build-perseus.mjs: nine own clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped; Return, Riposte, Parry, BlockImpact, Deflected, StrafeLeft, StrafeRight taken from hunters/hunter-pitborn-106.glb (same 106 skeleton names) and delta-retargeted to his rest pose (rest rotations differ up to 16.6 degrees at the feet), Hips translation scaled by the hips height ratio 1.0078; textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
+        "note": "the player body since 1 Nov 2026 (Dom: one game, no flags); donor/warrior-phone.glb stays on disk for other players (remote-survivor)"
       }
     },
     "remote-survivor": {
@@ -1547,54 +1573,6 @@
       },
       "bytes": 915092,
       "sha256": "ac6ca36481d9ada6cf5c8f61389ae0ba58f2422b5cc176ca59043e5e5231dbe3"
-    },
-    "perseus-106": {
-      "url": "appearances/perseus-106.glb",
-      "rig": "perseus-106",
-      "motion": "donor-knife",
-      "scale": 0.92,
-      "stride": 0.855,
-      "sprintStride": 0.76,
-      "knifeGripDegrees": [35, 0, 0],
-      "forwardCorrection": 0,
-      "upperBone": "mixamorig:Spine",
-      "headBone": "mixamorig:Head",
-      "handBone": "fk_socket_hand_r",
-      "upperArmBone": "mixamorig:RightArm",
-      "foreArmBone": "mixamorig:RightForeArm",
-      "torsoBone": "mixamorig:Spine",
-    "ragdollRow": "perseus-106",
-      "measure": {
-        "source": "bind pose of the GLB (hips rest height from the Hips node, 0.9637 m); height measured against the donor hero on screen, stride is the hips height over the donor hero 0.992",
-        "hipsMetres": 0.9637,
-        "note": "scale 0.92 puts the player about as tall as the donor hero on screen (screen height ratio 1.09 at scale 1, bone heights 1.08); stride 0.855 was tuned against foot slide in the game (0.971 is the plain hips ratio 0.9637 over 0.992 and slid)"
-      },
-      "clips": {
-        "idle": "Idle",
-        "walk": "Walk",
-        "run": "Run",
-        "slash": "Attack",
-        "return": "Return",
-        "stab": "Riposte",
-        "heavy": "Heavy",
-        "guard": "Guard",
-        "dodge": "Roll",
-        "hit": "Hit",
-        "death": "Death",
-        "parry": "Parry",
-        "block": "BlockImpact",
-        "deflected": "Deflected"
-      },
-      "deferred": true,
-      "provenance": {
-        "source": "OpenTrident models/custom/ch42-nonpbr-full-phone-mixamorig.glb (Mixamo ch42, labelled Perseus, rig 106, 4,679,784 bytes, sha256 fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605)",
-        "sourceSHA256": "fb9a593dc4c83fd8c84a1745ffc718f660f58e98f07d9030034084d32f487605",
-        "licence": "Mixamo, cleared by Dom 2026-10-23",
-        "assembly": "art/perseus-106/build-perseus.mjs: nine own clips kept (Idle, Walk, Run, Attack, Guard, Roll, Hit, Death, Heavy), three Stress_* clips and the Layer_* gear nodes dropped; Return, Riposte, Parry, BlockImpact, Deflected, StrafeLeft, StrafeRight taken from hunters/hunter-pitborn-106.glb (same 106 skeleton names) and delta-retargeted to his rest pose (rest rotations differ up to 16.6 degrees at the feet), Hips translation scaled by the hips height ratio 1.0078; textures WebP q85, meshopt medium; skeleton, bind pose and clips untouched",
-        "note": "playerSwap dresses the player 'vagrant' row with this row by default (1 Nov 2026, Dom); ?player=hero keeps the old donor warrior; the hand, arm and torso bones are named here and read through rig-bones.js; vest and finisher mesh names and stride are still hero-only; the ragdoll row is named by ragdollRow (physicsRigs.json)"
-      },
-      "bytes": 1189952,
-      "sha256": "b9f787acc731e4657d409c277d6546166d795d9d5d58f18df983ff73e295c7a9"
     },
     "giant-salamander": {
       "url": "giant-salamander/giant-salamander.glb",
@@ -3988,14 +3966,6 @@
       "bytes": 488812,
       "sha256": "c8e398ae8c021bbd992fa09a541fa7edbb08000f829b7e253d92d84c5d2513fe"
     }
-  },
-  "playerSwap": {
-    "param": "player",
-    "value": "perseus",
-    "offValue": "hero",
-    "model": "vagrant",
-    "use": "perseus-106",
-    "fields": ["url", "scale", "stride", "sprintStride", "knifeGripDegrees", "forwardCorrection", "clips", "upperBone", "headBone", "handBone", "upperArmBone", "foreArmBone", "torsoBone", "ragdollRow", "bytes", "sha256"]
   },
   "pistol": {
     "url": "pistol/pistol.glb",

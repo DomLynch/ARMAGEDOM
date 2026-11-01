@@ -12,18 +12,12 @@ import FLOOR from "../src/data/physicsFloor.json" with { type: "json" };
 
 const read = (p) => readFileSync(new URL("../public/assets/" + p, import.meta.url)),
   manifest = JSON.parse(read("manifest-hollow.json")),
-  swap = manifest.playerSwap,
+  swap = { model: "vagrant", use: "vagrant", fields: ["ragdollRow"] },
   RIGS = GAME_DATA.physicsRigs,
   DT = 1 / GAME_DATA.physicsDeath.stepHz,
   sanitize = (name) => THREE.PropertyBinding.sanitizeNodeName(name),
-  // the player row the way actors.js dresses it for ?player=perseus
-  swapped = () => {
-    const row = structuredClone(manifest.models[swap.model]);
-    for (const field of swap.fields)
-      if (manifest.models[swap.use][field] !== undefined) row[field] = manifest.models[swap.use][field];
-      else delete row[field];
-    return row;
-  };
+  // the player row: the Perseus body since 1 Nov 2026
+  swapped = () => structuredClone(manifest.models[swap.model]);
 const body = async () => loadGeometry(read(manifest.models[swap.use].url));
 const dying = async (description) => {
   const gltf = await body(),
@@ -52,7 +46,7 @@ test("the Perseus player row names a live 106-rig ragdoll row; the hero player r
     id = row.ragdollRow;
   assert.ok(swap.fields.includes("ragdollRow"));
   assert.equal(swapped().ragdollRow, id);
-  assert.equal(manifest.models[swap.model].ragdollRow, undefined, "flag off: the player row is untouched");
+  assert.equal(manifest.models["remote-survivor"].ragdollRow, undefined, "other players keep the hero ragdoll");
   assert.deepEqual(RIGS.models[id], { rig: "mixamo-106", body: id, live: true });
   assert.equal(rigOf(id).body, RIGS.bodies[id]);
   assert.equal(rigOf(swap.model).body, RIGS.bodies["scavenger-65"], "the hero row still ragdolls on its own body");
@@ -108,7 +102,7 @@ test("the dressed player ragdolls on the Perseus body, falls to the floor and is
   assert.ok(view.root.position.y >= 0 && view.root.position.y < 0.3, `lift ${view.root.position.y.toFixed(3)} m`);
   releasePhysicsDeath(view);
 
-  const hero = await dying(manifest.models[swap.model]);
+  const hero = await dying({ ...swapped(), ragdollRow: undefined });
   assert.equal(
     physicsDeathStep(hero.view, entity(), hero.lib, DT, true),
     false,
