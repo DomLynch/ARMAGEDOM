@@ -1757,6 +1757,7 @@
       "sha256": "13f33816ff48d70b0ed45cca1b0c27763083c195b74a801f34cb97da1663a6a7",
       "provenance": {
         "source": "Mixamo V2 Medea (M. Arrebola) on the 106 rig, medea-by-m-arrebola-full-phone-mixamorig.glb",
+        "sourceSHA256": "cd4dce749a7c50c1d0f9ce074f390c2025e1f231fa8d434d2efd03dc9482bd72",
         "licence": "Mixamo, cleared by Dom 2026-10-23",
         "assembly": "art/medea-106/build-boss.mjs; see art/medea-106/PROVENANCE.md",
         "previous": {
