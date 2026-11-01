@@ -17,13 +17,18 @@ for d in "$FROZEN"/deploy*; do
   n=$(basename "$d")
   [ -d "$W/baselines/$n/Web" ] || cp -a "$d" "$W/baselines/$n"
 done
-while read -r name sha; do
-  [ -n "$name" ] || continue
-  [ -d "$W/baselines/$name/Web" ] && continue
-  for try in 1 2 3; do git -C "$W/baseline-git" fetch -q --depth=1 origin "$sha" && break; [ "$try" = 3 ] && exit 1; sleep 5; done
-  mkdir -p "$W/baselines/$name"
-  git -C "$W/baseline-git" archive "$sha" Web | tar -x -C "$W/baselines/$name"
-done < "$HERE/baselines.txt"
+fetch_one() {
+  name=$1; sha=$2
+  [ -d "$W/baselines/$name/Web" ] && return 0
+  t=$(mktemp -d)
+  git init -q "$t" && git -C "$t" remote add origin "$URL"
+  for try in 1 2 3 4; do git -C "$t" fetch -q --depth=1 origin "$sha" && break; [ "$try" = 4 ] && { echo "FETCH_FAILED $name" >&2; rm -rf "$t"; return 1; }; sleep 5; done
+  mkdir -p "$W/baselines/$name.tmp" && git -C "$t" archive "$sha" Web | tar -x -C "$W/baselines/$name.tmp" && mv "$W/baselines/$name.tmp" "$W/baselines/$name"
+  rm -rf "$t"
+}
+export -f fetch_one; export W URL
+# 5 in parallel; the cache under $W/baselines persists, so later releases only fetch what is new.
+grep -v '^$' "$HERE/baselines.txt" | xargs -P 5 -L 1 bash -c 'fetch_one "$0" "$1"'
 for d in "$W"/baselines/deploy*; do
   [ -d "$d/Web" ] && ln -sfn "$NM" "$d/Web/node_modules"
 done
