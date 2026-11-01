@@ -1,6 +1,7 @@
+import { withDonorPlayer } from "./helpers/donor-player.js";
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {loadGeometry} from '../../art/donor/probe.mjs';import {createActors} from '../src/actors.js';import {disposeActorSources} from '../src/actor-resources.js';import {createGame,stepGame,attack} from '../src/combat.js';
-const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+const publicRoot=new URL('../public/',import.meta.url),manifest=withDonorPlayer(JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot))));
 test('existing actor Mid contact hits actual rigid drone frame, misses far body, and owns lifecycle',async t=>{
  const prior=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});
  const description=manifest.models.vagrant,gltf=await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment=await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot)));

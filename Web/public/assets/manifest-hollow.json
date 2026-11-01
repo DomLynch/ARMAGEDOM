@@ -29,7 +29,6 @@
       "upperArmBone": "mixamorig:RightArm",
       "foreArmBone": "mixamorig:RightForeArm",
       "torsoBone": "mixamorig:Spine",
-      "ragdollRow": "perseus-106",
       "clips": {
         "idle": "Idle",
         "walk": "Walk",

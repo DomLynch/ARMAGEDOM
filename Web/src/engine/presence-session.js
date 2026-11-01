@@ -8,7 +8,8 @@ import { createSurvivorKit } from "./remote-survivors.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./physics-death.js";
 import { GAME_DATA } from "./game-data.js";
 
-const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the player's skeleton
+const REMOTE_MODEL = "remote-survivor"; // the reduced mesh (about 12k triangles, 6 draw calls); it shares the donor warrior's 65-bone skeleton
+const REMOTE_CLIPS = "vagrant-cleaver"; // the donor warrior row, whose clips play on that skeleton (the player row is the 106-bone Perseus body)
 const STATS_EVERY = 100; // state messages (about 10 s)
 const STATS_FRAMES = GAME_DATA.diagnostics.statsFramesPerLine; // frames between ?stats=1 renderer lines (data/diagnostics.json)
 export const percentile = (values, p) => {
@@ -46,10 +47,10 @@ export function createPresenceSession(
     }
     if (!kit && library && !kitLoading && remote.size > 0) {
       kitLoading = true; // one attempt per library: a failure leaves the capsule in place
-      Promise.resolve(library.ensureModels?.([REMOTE_MODEL]))
+      Promise.resolve(library.ensureModels?.([REMOTE_MODEL, REMOTE_CLIPS]))
         .then(() => {
           const source = library.models.get(REMOTE_MODEL),
-            player = library.models.get("vagrant");
+            player = library.models.get(REMOTE_CLIPS);
           if (disposed || library !== kitLibrary || !source || !player) return;
           kit = createSurvivorKit({
             source,

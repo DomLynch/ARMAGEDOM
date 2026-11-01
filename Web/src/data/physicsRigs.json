@@ -5615,8 +5615,8 @@
       "live": true
     },
     "vagrant": {
-      "rig": "v1-65",
-      "body": "scavenger-65",
+      "rig": "mixamo-106",
+      "body": "perseus-106",
       "live": true
     },
     "vagrant-cleaver": {
@@ -6043,11 +6043,6 @@
       "rig": "mixamo-106",
       "body": "mh-npc-reyes",
       "live": false
-    },
-    "perseus-106": {
-      "rig": "mixamo-106",
-      "body": "perseus-106",
-      "live": true
     }
   },
   "impulseReferenceKg": 65

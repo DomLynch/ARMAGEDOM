@@ -17,7 +17,7 @@ test("the player row is the Perseus body on the hero rig id, with no flag or swa
   assert.equal(manifest.models["perseus-106"], undefined);
   assert.equal(row.url, "appearances/perseus-106.glb");
   assert.equal(row.rig, "hero");
-  assert.ok(row.equipment && row.ragdollRow);
+  assert.ok(row.equipment);
   for (const field of ["clips", "handBone", "upperArmBone", "foreArmBone", "torsoBone", "upperBone", "headBone"])
     assert.ok(row[field] !== undefined, field);
 });

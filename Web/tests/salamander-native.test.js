@@ -1,3 +1,4 @@
+import {donorPlayerRow} from "./helpers/donor-player.js"; // foot-bindings.json was measured on the donor warrior body, not the Perseus player row
 import{salamanderFixture}from'./helpers/salamander-fixture.js';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import{createHash}from'node:crypto';
 import{createGame}from'../src/combat.js';import{createAreaRegistry}from'../src/area-registry.js';import{createGeometry}from'../src/world-geometry.js';import{validateAreaMetadata,validateAreaGeometry}from'../src/engine/area-content.js';import{createCreatureCatalogue,creatureCatalogue}from'../src/engine/creature-catalogue.js';import{creatureDefinitions}from'../src/engine/creature-definitions.js';import{nativeAttackCompletion}from'../src/animal-role-bindings.js';import{SALAMANDER_BITE}from'../src/salamander-native.js';
@@ -14,7 +15,7 @@ test('six active residents replace filler, preserve Witch and exact shelter path
  assert.equal(layout.tutorialPath.length,6);validateAreaGeometry(registry,'westminster',layout,data.residents,data.expedition,data.bossData,data.populationData,data.flameData,data.safehouseData);
 });
 test('own enlarged-muzzle goal has exact topology without changing global foot receiver',()=>{
- const bindings=JSON.parse(fs.readFileSync(new URL('../src/rat-data/foot-bindings.json',import.meta.url))),contact=manifest.models['giant-salamander'].contact;assert.equal(bindings.playerSha256,createHash('sha256').update(fs.readFileSync(new URL('../public/assets/'+manifest.models.vagrant.url,import.meta.url))).digest('hex'));assert.deepEqual(contact.canines,[{mesh:'world-raw',vertex:2387},{mesh:'world-raw',vertex:14420},{mesh:'world-raw',vertex:5727}]);
+ const bindings=JSON.parse(fs.readFileSync(new URL('../src/rat-data/foot-bindings.json',import.meta.url))),contact=manifest.models['giant-salamander'].contact;assert.equal(bindings.playerSha256,createHash('sha256').update(fs.readFileSync(new URL('../public/assets/'+donorPlayerRow().url,import.meta.url))).digest('hex'));assert.deepEqual(contact.canines,[{mesh:'world-raw',vertex:2387},{mesh:'world-raw',vertex:14420},{mesh:'world-raw',vertex:5727}]);
  for(const row of contact.calfFaces){const original=bindings.bindings.find(b=>b.runtimeName===row.runtimeName)?.faceBindings.find(f=>f.face===row.face);assert(original,'measured scaled mouth meets an existing shin face');assert.deepEqual(row,{runtimeName:'Skin',face:2891,vertices:[1245,1224,1789]});}
  assert.equal(SALAMANDER_BITE.windupTicks+SALAMANDER_BITE.activeTicks+SALAMANDER_BITE.recoveryTicks,56);assert.equal(SALAMANDER_BITE.damage,4);
 });

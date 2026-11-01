@@ -129,8 +129,7 @@ export function physicsDeathStep(view, entity, library, dt, enabled = flag ?? ph
   try {
     if (!s) {
       const model = modelOf(view, entity, library),
-        // A body dressed over the model's own (the ?player=perseus player) names its ragdoll row; the bind pose still comes from the model's own GLB.
-        rig = model && rigOf(view.description?.ragdollRow ?? model);
+        rig = model && rigOf(model);
       if (!rig) {
         baked.add(view); // no live row for this model: the clip, and no ragdoll is ever taken from the pool
         return false;

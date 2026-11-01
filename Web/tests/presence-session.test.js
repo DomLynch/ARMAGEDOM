@@ -309,7 +309,7 @@ test("the reduced survivor mesh is requested once, when the first remote player 
   t.session.update();
   await flush();
   t.session.update();
-  assert.deepEqual(requested, [["remote-survivor"]], "one request, not one per frame");
+  assert.deepEqual(requested, [["remote-survivor", "vagrant-cleaver"]], "one request, not one per frame");
   const figure = t.session.view.group.children.find((c) => c.name === "Player 9");
   assert.equal(figure.children[0].children.length, 2, "the capsule while the mesh is missing");
 });
@@ -337,7 +337,7 @@ test("a mesh that finishes loading after dispose() builds no kit", async () => {
   const library = {
     models: new Map([
       ["remote-survivor", {}],
-      ["vagrant", { get gltf() { built++; return { animations: [] }; } }], // only read when a kit is being built
+      ["vagrant-cleaver", { get gltf() { built++; return { animations: [] }; } }], // only read when a kit is being built
     ]),
     ensureModels: () => new Promise((resolve) => (release = resolve)),
   };

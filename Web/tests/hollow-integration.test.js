@@ -1,3 +1,4 @@
+import {donorPlayerRow,withDonorPlayer} from './helpers/donor-player.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,21 +18,22 @@ import {createHollowEncounter} from '../src/hollow-encounter.js';
 const sceneHeadCount=actors=>actors.views.get(0).root.parent.children.filter(o=>o.name==='Prepared detached Hollow head').length;
 const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appearance.id),skin=FACE_SKINS.find(s=>s.id===recipe.skinPreset);assert.deepEqual(view.model.getObjectByName('Photo').material.color.toArray(),skin.photo,'ordinary update preserves authored complexion');};
 const publicRoot=new URL('../public/',import.meta.url);
-const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));/* the player row is Perseus since 1 Nov 2026; the donor fixture below keeps the donor warrior mechanics under test */
+const donorManifest=withDonorPlayer(structuredClone(manifest));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
  for(const id of ['boss-butcher','boss-surgeon','boss-warden','hollow-scavenger','original-dog','original-rat','original-roach','vagrant'])assert(manifest.models[id],id);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
- const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','').replace('-phone','');/* the 256 px phone knife copy; the source manifest names the original */assert.deepEqual(player,donor.models.vagrant);
+ assert.equal(manifest.models.vagrant.url,'appearances/perseus-106.glb');const player=donorPlayerRow();player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','').replace('-phone','');/* the 256 px phone knife copy; the source manifest names the original */assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
  assert.equal(manifest.models['hollow-scavenger'].contactRig,'hero');assert.equal(manifest.count,3);
 });
 test('three Hollow bodies and native knives use independent clones/mixers at selected006 scale',async(t)=>{
  const priorDocument=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;});
- const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
+ const models=new Map();for(const[name,description]of Object.entries(donorManifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
  const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
  const pistolAsset=await loadGeometry(fs.readFileSync(new URL('assets/pistol/pistol.glb',publicRoot)));
- const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))))},{visualScale:1.3225});actors.update(game,0);
+ const actors=createActors(new THREE.Scene(),world,{models,manifest:donorManifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))))},{visualScale:1.3225});actors.update(game,0);
  const playerView=actors.views.get(0);assert.equal(playerView.pistolSlide.supported,true);
  game.player.weapon='pistol';actors.update(game,0,0);const hand=playerView.model.getObjectByName('hand_r'),restHand=hand.getWorldPosition(new THREE.Vector3()),restGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);const recoilHand=hand.getWorldPosition(new THREE.Vector3()),recoilGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());assert.ok(recoilHand.distanceTo(restHand)>.1,'whole arm conveys actual shot recoil');assert.ok(Math.abs(recoilHand.distanceTo(recoilGun)-restHand.distanceTo(restGun))<1e-6,'gun remains gripped while arm recoils');
  const slideMaterial=playerView.pistolSlide.slide.children[0].material;assert.ok(playerView.materials.some(m=>m.material===slideMaterial),'slide borrows the actor private material');

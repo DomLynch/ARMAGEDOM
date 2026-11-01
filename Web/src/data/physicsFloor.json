@@ -2102,7 +2102,7 @@
         [[0, 1, 0.049, 0.159, 0.18]]
       ]
     },
-    "perseus-106": {
+    "vagrant": {
       "bones": ["calf_twist_01_l","calf_twist_01_r","calf_twist_02_l","calf_twist_02_r","lowerarm_twist_01_l","lowerarm_twist_01_r","lowerarm_twist_02_l","lowerarm_twist_02_r","mixamorigHead","mixamorigHips","mixamorigLeftArm","mixamorigLeftFoot","mixamorigLeftForeArm","mixamorigLeftHand","mixamorigLeftHandIndex1","mixamorigLeftHandIndex2","mixamorigLeftHandIndex3","mixamorigLeftHandMiddle1","mixamorigLeftHandMiddle2","mixamorigLeftHandMiddle3","mixamorigLeftHandPinky1","mixamorigLeftHandPinky2","mixamorigLeftHandPinky3","mixamorigLeftHandRing1","mixamorigLeftHandRing2","mixamorigLeftHandRing3","mixamorigLeftHandThumb1","mixamorigLeftHandThumb2","mixamorigLeftHandThumb3","mixamorigLeftLeg","mixamorigLeftShoulder","mixamorigLeftToeBase","mixamorigNeck","mixamorigRightArm","mixamorigRightFoot","mixamorigRightForeArm","mixamorigRightHand","mixamorigRightHandIndex1","mixamorigRightHandIndex2","mixamorigRightHandIndex3","mixamorigRightHandMiddle1","mixamorigRightHandMiddle2","mixamorigRightHandMiddle3","mixamorigRightHandPinky1","mixamorigRightHandPinky2","mixamorigRightHandPinky3","mixamorigRightHandRing1","mixamorigRightHandRing2","mixamorigRightHandRing3","mixamorigRightHandThumb1","mixamorigRightHandThumb2","mixamorigRightHandThumb3","mixamorigRightLeg","mixamorigRightShoulder","mixamorigRightToeBase","mixamorigSpine","mixamorigSpine1","mixamorigSpine2","thigh_twist_02_l","thigh_twist_02_r","upperarm_twist_01_l","upperarm_twist_01_r","upperarm_twist_02_l","upperarm_twist_02_r"],
       "vertices": [
         [[57, 0.451, -0.033, 0.199, -0.02], [8, 0.314, -0.033, -0.015, -0.039], [32, 0.235, -0.033, 0.04, -0.024]],
