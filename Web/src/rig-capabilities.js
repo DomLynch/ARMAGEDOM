@@ -30,6 +30,7 @@
 // appearanceKit: which coat library dresses a rig with an appearance id in actors.js (rat, roach); a rig with none gets the dog coats.
 // coatName: the name of the coat material animal-appearance.js recolours on this rig's foundation model (rat, dog).
 // biteMove: which bite the rig throws (wolf, salamander, roach); a rig with none throws the dog bite.
+// contactPart: the part of a swapped player body (manifest `bodyContact.parts`) this rig reaches for with its bites (body-contact.js).
 // breathEmitter: while its boss weapon is active the rig is the source of the fire-breath glow (effects.js getEmission).
 //
 // hoverTarget: the rig flies; shots and flame aim at its animated hover height (drone-mechanics.js droneHoverHeight).
@@ -42,6 +43,7 @@
 // hitClip / deathClip: the clip names; hitTicks / deathTicks: how long the reaction holds, in 60 Hz ticks.
 //
 // Numbers (a row may also carry measured values, read with `rigNumber(rig, name)`):
+// contactDepth: how far a bite on a swapped player body aims inwards, 0 at the surface nearest the rig to 1 at the limb axis (actors.js).
 // feralScale: the actor scale at which the rig is the larger feral variant (feral coat library, scaled bite clip, the player's dog
 //   bite receiver); actors.js.
 // materialDim: a multiplier applied to the colour of every material the rig's model clones (actors.js).

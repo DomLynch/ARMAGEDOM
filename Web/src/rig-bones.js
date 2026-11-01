@@ -13,8 +13,8 @@ export function setRigBones(model, description) {
 }
 // three strips ':' etc. from node names on load, so a "mixamorig:RightHand" row resolves as "mixamorigRightHand".
 // three's PropertyBinding.sanitizeNodeName, kept here so this file stays out of the renderer-owner list.
-const sanitize = (name) => name.replace(/\s/g, "_").replace(/[[\].:/]/g, "");
+export const sanitizeBoneName = (name) => name.replace(/\s/g, "_").replace(/[[\].:/]/g, "");
 export function rigBone(model, key) {
-  return model.getObjectByName(sanitize(rigBoneName(model, key)));
+  return model.getObjectByName(sanitizeBoneName(rigBoneName(model, key)));
 }
 export const rigBoneName = (model, key) => model.userData?.rigBones?.[key] ?? DEFAULTS[key];

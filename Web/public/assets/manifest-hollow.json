@@ -29,6 +29,72 @@
       "upperArmBone": "mixamorig:RightArm",
       "foreArmBone": "mixamorig:RightForeArm",
       "torsoBone": "mixamorig:Spine",
+      "bodyContact": {
+        "weightMin": 0.5,
+        "goalSamples": 48,
+        "footPart": "foot",
+        "parts": {
+          "foot": [
+            [
+              "mixamorig:LeftFoot",
+              "mixamorig:LeftToeBase"
+            ],
+            [
+              "mixamorig:RightFoot",
+              "mixamorig:RightToeBase"
+            ]
+          ],
+          "calf": [
+            [
+              "mixamorig:LeftLeg",
+              "calf_twist_01_l",
+              "calf_twist_02_l"
+            ],
+            [
+              "mixamorig:RightLeg",
+              "calf_twist_01_r",
+              "calf_twist_02_r"
+            ]
+          ],
+          "thigh": [
+            [
+              "mixamorig:LeftUpLeg",
+              "thigh_twist_01_l",
+              "thigh_twist_02_l"
+            ],
+            [
+              "mixamorig:RightUpLeg",
+              "thigh_twist_01_r",
+              "thigh_twist_02_r"
+            ]
+          ],
+          "torso": [
+            [
+              "mixamorig:Hips",
+              "mixamorig:Spine",
+              "mixamorig:Spine1",
+              "mixamorig:Spine2"
+            ]
+          ]
+        },
+        "receivers": {
+          "foot": [
+            "foot",
+            "calf"
+          ],
+          "dog": [
+            "foot",
+            "calf",
+            "thigh"
+          ],
+          "salamander": [
+            "calf"
+          ],
+          "wolf": [
+            "torso"
+          ]
+        }
+      },
       "clips": {
         "idle": "Idle",
         "walk": "Walk",

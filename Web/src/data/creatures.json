@@ -349,6 +349,7 @@
   "mobSize": { "factors": [0.85, 0.9, 1, 1.1, 1.15], "min": 0.85, "max": 1.15 },
   "rigCapabilities": {
     "original-rat": {
+      "contactPart": "calf",
       "lowStrike": true,
       "animal": true,
       "species": "rat",
@@ -364,6 +365,7 @@
       "deathTicks": 54
     },
     "original-dog": {
+      "contactPart": "thigh",
       "lowStrike": true,
       "animal": true,
       "species": "dog",
@@ -381,6 +383,7 @@
       "deathTicks": 60
     },
     "original-roach": {
+      "contactPart": "foot",
       "lowStrike": true,
       "animal": true,
       "species": "roach",
@@ -399,6 +402,7 @@
       "deathTicks": 48
     },
     "giant-salamander": {
+      "contactPart": "calf",
       "lowStrike": true,
       "animal": true,
       "nativeSkeleton": true,
@@ -421,6 +425,8 @@
       "deathTicks": 74
     },
     "original-wolf": {
+      "contactPart": "torso",
+      "contactDepth": 1,
       "lowStrike": true,
       "animal": true,
       "nativeSkeleton": true,
@@ -446,6 +452,7 @@
       "hoverTarget": true
     },
     "original-crow": {
+      "contactPart": "calf",
       "lowStrike": true,
       "animal": true,
       "species": "crow",
@@ -464,6 +471,7 @@
       "offParam": "nocrow"
     },
     "giant-eel": {
+      "contactPart": "calf",
       "lowStrike": true,
       "animal": true,
       "nativeSkeleton": true,
@@ -483,6 +491,8 @@
       "offParam": "noeel"
     },
     "original-elephant": {
+      "contactPart": "torso",
+      "contactDepth": 1,
       "lowStrike": true,
       "animal": true,
       "nativeSkeleton": true,
@@ -505,6 +515,7 @@
       "offParam": "noelephant"
     },
     "original-spider": {
+      "contactPart": "foot",
       "lowStrike": true,
       "animal": true,
       "species": "spider",
@@ -524,6 +535,7 @@
       "deathTicks": 48
     },
     "giant-centipede": {
+      "contactPart": "foot",
       "lowStrike": true,
       "animal": true,
       "species": "centipede",
