@@ -39,7 +39,7 @@ bash tools/deploy/cut-local.sh N <full sha> <fingerprint> > cutN.log 2>&1; tail 
 It: fetches by sha, `npm ci`, runs the rollback-saves gate against ALL baselines, builds, verifies assets, runs the packaging tests, compares area-presence rows with the parent (`AREA_IDENTICAL` means **no presence restart**; `AREA_DIFFERS` means the realtime/presence service needs a restart and the layout gate rerun against the live `/opt/armagedom-realtime/current`), then packages. Success shows four `*_EXIT=0` lines, `PKG=<64 hex>` and a `TGZ` line.
 - It refuses if `$ARMA_WORK/deployN` exists: delete that folder (yours) and rerun.
 - Output: `$ARMA_WORK/out/three-20261028-N.tgz` and `.tgz.sha256`. Copy to `C:\arma-work\out` for safekeeping. **PKG** is the comparison value, the tarball sha differs between builds by design (build time).
-- Baselines are cached under `$ARMA_WORK/baselines` and are never modified; a rerun only fetches what is new.
+- Baselines are cached under `$ARMA_WORK/baselines` and are never modified; a rerun only fetches what is new. Copying the 112 baselines into `deployN/roots` is slow under Git Bash (about 30 minutes on release 341); budget for it until the copy is replaced by a faster one.
 - Resume: if it dies in the baseline fetch, rerun the same command (finished baselines are skipped). If it dies later, delete `deployN` and rerun.
 
 ### 3. Send the Auditor the PKG
@@ -114,4 +114,7 @@ Per-release publication receipts (what was staged and flipped, shas, read-backs)
 - Do not use `pkill -f` with a pattern that matches your own command line.
 - Run the build attached, not detached with `&` (it breaks git fetches); git over HTTP/1.1 (the scripts set it).
 - Windows Python needs bytes I/O to keep LF line endings in generated files; `.gitattributes` forces `eol=lf`.
+- **Git for Windows has `core.autocrlf=true` system-wide, and `git archive` honours it:** an extracted tree comes out CRLF and the manifest check fails ("Manifest hash/size mismatch: world/westminster/layout.json", 10701 bytes against 10072 in the blob). Every `git archive` in the release scripts runs as `git -c core.autocrlf=false archive`. Found on release 341 (attempt 1 failed the rollback gate, build and asset check for this and the next reason).
+- **`tests/rollback-saves.test.js` splits `ROLLBACK_BASELINE_ROOTS` on `:`**, so a `C:\...` root breaks on the drive letter (`Web\C\Web\tests\helpers\...` ERR_MODULE_NOT_FOUND). `gate.sh` passes the roots as paths relative to `src/Web`, with no drive letter.
+- A retry wrapper must never delete a failed attempt's logs or folder; read `rb.log`, `build.log`, `assets.err` before rerunning.
 - The Auditor's rebuild path must also run on Windows with the same Node 22.23.2 and the same `releases.json` parent row.
