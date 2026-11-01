@@ -19,7 +19,12 @@ const GAPS = [0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35, 1.5, 1.7, 2];
 // Printed by the code before the ground column existed (3c6cc6b^); set SAW_PLAYER_PROBE_PRINT=1 to re-print.
 const PINNED = process.env.SAW_PLAYER_PROBE_PRINT
   ? null
-  : { rows: Array(7).fill("0".repeat(GAPS.length)), control: true };
+  : {
+      // 1 Nov: the Surgeon's body is the Mixamo Whiteclown (art/surgeon-106); its idle saw hangs at the hand (right side, +side rows), so the
+      // hand-height trace touches a player standing point blank beside the hand. Still no ground column on the player: rows 3-6 stay 0.
+      rows: ["11111000000", "00111111000", ...Array(5).fill("0".repeat(GAPS.length))],
+      control: true,
+    };
 
 test("Surgeon saw contact against the player equals the pre-column hand-height trace", async (t) => {
   const previous = globalThis.document;
