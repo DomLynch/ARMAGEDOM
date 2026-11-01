@@ -1763,7 +1763,8 @@ export function createActors(
               game.time >= entity.dodgeUntil &&
               game.time >= entity.hurtUntil;
         }
-        if (entity === game.player && game.vest) {
+        // The worn-vest overlay is cut from the hero Gambeson mesh; a body without it (the 106-rig Perseus) shows no vest.
+        if (entity === game.player && game.vest && (view.vest || view.model.getObjectByName("Gambeson"))) {
           view.vest ??= createVestView(view.model);
           view.vest.setVisible(game.vest.equipped);
           view.vest.update();
