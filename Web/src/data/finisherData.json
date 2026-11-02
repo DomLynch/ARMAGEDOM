@@ -889,6 +889,62 @@
         "radius": 0.16
       },
       {
+        "id": "boss-westminster-witch",
+        "material": "flesh",
+        "bodyBones": [
+          "mixamorigSpine2",
+          "mixamorigSpine1",
+          "mixamorigSpine"
+        ],
+        "headBones": [
+          "mixamorigHead",
+          "mixamorigNeck"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-south-nightborn",
+        "material": "flesh",
+        "bodyBones": [
+          "mixamorigSpine2",
+          "mixamorigSpine1",
+          "mixamorigSpine"
+        ],
+        "headBones": [
+          "mixamorigHead",
+          "mixamorigNeck"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-area7-knight",
+        "material": "flesh",
+        "bodyBones": [
+          "mixamorigSpine2",
+          "mixamorigSpine1",
+          "mixamorigSpine"
+        ],
+        "headBones": [
+          "mixamorigHead",
+          "mixamorigNeck"
+        ],
+        "radius": 0.16
+      },
+      {
+        "id": "boss-area8-veteran",
+        "material": "flesh",
+        "bodyBones": [
+          "mixamorigSpine2",
+          "mixamorigSpine1",
+          "mixamorigSpine"
+        ],
+        "headBones": [
+          "mixamorigHead",
+          "mixamorigNeck"
+        ],
+        "radius": 0.16
+      },
+      {
         "id": "original-rat",
         "material": "flesh",
         "bodyBones": [
