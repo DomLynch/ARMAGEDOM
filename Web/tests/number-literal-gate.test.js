@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { countNumberLiterals, isNumberExempt, numberLiteralProblems, tuningMarkProblems } from "../../scripts/as-data-gate.mjs";
 import { NUMBER_SHRINK_TOLERANCE } from "../../scripts/number-literal-gate.mjs";
@@ -95,7 +97,7 @@ test("only pure model geometry files are exempt, listed with a reason in keep-in
 });
 
 test("the ratchet fails an increase, a missing lowering and a new file, and passes an exact match", () => {
-  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? "/tmp"), "numgate-"));
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? os.tmpdir()), "numgate-"));
   try {
     const write = (name, src) => {
       const p = path.join(dir, name);
@@ -123,7 +125,7 @@ test("the ratchet fails an increase, a missing lowering and a new file, and pass
 });
 
 test("the real tree matches the seeded baseline file by file", () => {
-  const root = new URL("../src/", import.meta.url).pathname;
+  const root = fileURLToPath(new URL("../src/", import.meta.url));
   const walk = (d) =>
     fs
       .readdirSync(d, { withFileTypes: true })
@@ -138,7 +140,7 @@ test("the real tree matches the seeded baseline file by file", () => {
 });
 
 test("tuning-ok marks only go down and each carries a reason", () => {
-  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? "/tmp"), "tuning-marks-"));
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? os.tmpdir()), "tuning-marks-"));
   const file = path.join(dir, "a.js");
   const write = (text) => fs.writeFileSync(file, text);
   const strict = { shrinkTolerance: false };
@@ -155,7 +157,7 @@ test("tuning-ok marks only go down and each carries a reason", () => {
 });
 
 test("the real tree holds exactly the recorded number of tuning-ok marks", () => {
-  const root = new URL("../src/", import.meta.url).pathname;
+  const root = fileURLToPath(new URL("../src/", import.meta.url));
   const walk = (d) =>
     fs
       .readdirSync(d, { withFileTypes: true })

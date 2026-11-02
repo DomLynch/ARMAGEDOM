@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 // Drift between data/webText.json and the code that reads it: an id with no caller is dead text, and a webText() call that names an id
 // the file does not hold would throw the first time that line renders. Every call is read from Web/src; the id may be a string literal,
 // a ternary of literals, or (rarely) a template with a computed tail, which must be listed in DYNAMIC_PREFIXES with its reason.
-const SRC = new URL("../src/", import.meta.url).pathname;
+const SRC = fileURLToPath(new URL("../src/", import.meta.url));
 const IDS = Object.keys(JSON.parse(fs.readFileSync(new URL("../src/data/webText.json", import.meta.url))).texts);
 
 // A call whose id is built at run time lists the id prefix it can produce; every id under the prefix counts as used.
@@ -136,7 +138,7 @@ test("the drift check goes red for a dead id, a call to a missing id and an id i
 });
 
 test("the call reader sees literals, ternaries and template prefixes, and skips comments", () => {
-  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? "/tmp"), "webtext-drift-"));
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? os.tmpdir()), "webtext-drift-"));
   try {
     const file = path.join(dir, "a.js");
     fs.writeFileSync(

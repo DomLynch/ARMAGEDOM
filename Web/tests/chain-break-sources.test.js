@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import { readdirSync, readFileSync } from "node:fs";
 import { make } from "./helpers/marked-fixture.js";
 import { stepChainBreak, chainBreakState } from "../src/engine/chain-break.js";
@@ -37,7 +38,7 @@ test("every damage source in chainedTargets is emitted by the game, so the regis
       if (f.isDirectory()) walk(dir + "/" + f.name);
       else if (f.name.endsWith(".js")) files.push(dir + "/" + f.name);
     });
-  walk(new URL("../src", import.meta.url).pathname);
+  walk(fileURLToPath(new URL("../src", import.meta.url)));
   const code = files.filter((f) => !f.endsWith("chain-break.js")).map((f) => readFileSync(f, "utf8")).join("\n");
   for (const type of [...T.rays, ...T.rays3d, ...T.melee, ...T.blasts, ...T.cones])
     assert(code.includes(`"${type}"`), `no code emits ${type}`);

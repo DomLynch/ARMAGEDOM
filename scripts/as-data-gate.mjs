@@ -6,6 +6,9 @@ import { readFileSync } from "node:fs";
 import { basename, dirname, relative, resolve } from "node:path";
 import { KEEP_IN_CODE, KEEP_IN_CODE_FILE } from "./number-literal-gate.mjs";
 
+// Keys are posix paths so the baselines match on Windows, where relative() returns backslashes.
+const posixRelative = (root, path) => relative(root, path).split("\\").join("/");
+
 export { countNumberLiterals, numberLiteralProblems, isNumberExempt, tuningMarkProblems } from "./number-literal-gate.mjs";
 
 export const AS_DATA_OWNER = "rig-capabilities.js";
@@ -25,11 +28,11 @@ export const countConstantTables = (text) => tableNames(text).length;
 export function keepInCodeProblems(paths, baseline = {}, sourceRoot = "") {
   const problems = [],
     keep = baseline.keepInCode ?? {},
-    keys = new Set(paths.map((path) => (sourceRoot ? relative(sourceRoot, path) : path)));
+    keys = new Set(paths.map((path) => (sourceRoot ? posixRelative(sourceRoot, path) : path)));
   for (const file of Object.keys(keep))
     if (!keys.has(file)) problems.push(`${file}: keepInCode names a file that is not in Web/src.`);
   for (const path of paths) {
-    const key = sourceRoot ? relative(sourceRoot, path) : path;
+    const key = sourceRoot ? posixRelative(sourceRoot, path) : path;
     if (!keep[key]) continue;
     const present = new Set(tableNames(readFileSync(path, "utf8"))),
       seen = new Set();
@@ -51,7 +54,7 @@ export function dataDebt(paths, baseline = {}, sourceRoot = "") {
   let tables = 0,
     kept = 0;
   for (const path of paths) {
-    const key = sourceRoot ? relative(sourceRoot, path) : path,
+    const key = sourceRoot ? posixRelative(sourceRoot, path) : path,
       found = countConstantTables(readFileSync(path, "utf8")),
       keptHere = Math.min(found, baseline.keepInCode?.[key]?.length ?? 0);
     if (!found) continue;
@@ -65,7 +68,7 @@ export function dataDebt(paths, baseline = {}, sourceRoot = "") {
 export function constantTableProblems(paths, baseline = {}, sourceRoot = "") {
   const problems = keepInCodeProblems(paths, baseline, sourceRoot);
   for (const path of paths) {
-    const key = sourceRoot ? relative(sourceRoot, path) : path;
+    const key = sourceRoot ? posixRelative(sourceRoot, path) : path;
     const allowed = baseline.constantTables?.[key] ?? 0;
     const found = countConstantTables(readFileSync(path, "utf8"));
     if (found > allowed)
@@ -90,7 +93,7 @@ export function dataImportProblems(paths, sourceRoot = "", baseline = {}) {
     problems = [],
     offenders = new Set();
   for (const path of paths) {
-    const key = (sourceRoot ? relative(sourceRoot, path) : path).split("\\").join("/");
+    const key = (sourceRoot ? posixRelative(sourceRoot, path) : path).split("\\").join("/");
     if (key === GAME_DATA_LOADER) continue;
     const bad = [...readFileSync(path, "utf8").matchAll(JSON_IMPORT)].filter((match) => {
       const target = relative(sourceRoot || ".", resolve(dirname(path), match[1])).split("\\").join("/");
@@ -122,7 +125,7 @@ export function asDataProblems(paths, rigNames, baseline = {}, sourceRoot = "") 
   const problems = [];
   for (const path of paths) {
     if (basename(path) === AS_DATA_OWNER) continue;
-    const key = sourceRoot ? relative(sourceRoot, path) : path;
+    const key = sourceRoot ? posixRelative(sourceRoot, path) : path;
     const allowed = baseline.rigLiterals?.[key] ?? 0;
     const found = countRigLiterals(readFileSync(path, "utf8"), rigNames);
     if (found > allowed)

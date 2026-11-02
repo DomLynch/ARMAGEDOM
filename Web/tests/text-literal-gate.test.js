@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { countTextLiterals, textLiteralProblems, TEXT_SHRINK_TOLERANCE } from "../../scripts/text-literal-gate.mjs";
 
@@ -47,7 +49,7 @@ test("a text-ok mark exempts its line and needs a reason", () => {
 });
 
 test("the ratchet fails an increase and a new file; strict mode also fails a missing lowering", () => {
-  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? "/tmp"), "textgate-"));
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(process.env.TMPDIR ?? os.tmpdir()), "textgate-"));
   try {
     const write = (name, src) => {
       const p = path.join(dir, name);
@@ -74,7 +76,7 @@ test("the ratchet fails an increase and a new file; strict mode also fails a mis
 });
 
 test("the text burn-down is finished: the table is empty, the gate strict and the text-ok marks ratcheted", () => {
-  const root = new URL("../src/", import.meta.url).pathname;
+  const root = fileURLToPath(new URL("../src/", import.meta.url));
   const walk = (d) =>
     fs
       .readdirSync(d, { withFileTypes: true })
