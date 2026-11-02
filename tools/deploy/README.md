@@ -5,7 +5,7 @@
 Constants are data, not code: `releases.json` (version, source sha, fingerprint, releaseSHA per release) and `baselines.txt` (rollback baseline name to source sha). Nothing is edited per release.
 
 ## The five commands
-1. Laptop, WSL2 Ubuntu-24.04 with Node 22.x: `bash tools/deploy/cut-local.sh N <full sha> <fingerprint>`
+1. Laptop (Windows, Git Bash, portable Node 22.23.2 in C:/arma-work/node22; WSL is retired): `bash tools/deploy/cut-local.sh N <full sha> <fingerprint>`
    (fresh checkout by sha, `npm ci`, rollback-saves gate against ALL frozen baselines, build, assets, packaging tests, area-presence compare, `package_preview.py`, then `three-<date>-N.tgz` and `.tgz.sha256` in `$ARMA_WORK/out`).
 2. Upload: `scp three-<date>-N.tgz* root@49.12.7.18:/mnt/HC_Volume_107195252/incoming/`
 3. VPS: `bash install.sh /mnt/HC_Volume_107195252/incoming/three-<date>-N.tgz N`
