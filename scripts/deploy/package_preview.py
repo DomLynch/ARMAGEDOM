@@ -55,7 +55,7 @@ def package(runtime, manifest, output):
                 raise ValueError('Existing release manifest differs from approved manifest')
             shutil.copyfile(release, temp / 'release.json')
         else:
-            (temp / 'release.json').write_text(json.dumps(data, indent=2) + '\n')
+            (temp / 'release.json').write_bytes((json.dumps(data, indent=2) + '\n').encode())  # bytes: text mode writes CRLF on Windows
         # Exclusive creation also rejects concurrent publishers; move files only
         # into this newly reserved local directory. No webroot mutation here.
         output.mkdir()
