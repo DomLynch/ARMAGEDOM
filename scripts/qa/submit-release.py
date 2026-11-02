@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Submit one bounded job and recover its owned result immediately, including EXIT1."""
-import argparse, datetime, hashlib, shutil, json, pathlib, re, shlex, subprocess, sys, tempfile
-RUNNER='/Users/domininclynch/Desktop/Business/Vibe Coding Management/scripts/vps-run.py'
-SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=8','-i','/Users/domininclynch/.ssh/binance_futures_tool','root@49.12.7.18']
+import os, argparse, datetime, hashlib, shutil, json, pathlib, re, shlex, subprocess, sys, tempfile
+RUNNER=os.environ.get('VPS_RUN_PY') or str(pathlib.Path.home()/'Desktop/Business/Vibe Coding Management/scripts/vps-run.py')
+SSH=['ssh','-o','BatchMode=yes','-o','ConnectTimeout=8','-i',os.environ.get('SSH_KEY') or str(pathlib.Path.home()/'.ssh/binance_futures_tool'),'root@49.12.7.18']
 def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def validate_driver_preflight(stage,command):
     """Recheck the frozen static receipt before any VPS launcher or upload."""

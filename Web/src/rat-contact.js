@@ -1,5 +1,16 @@
 import * as T from "three";
 
+// Geometry and solver constants, not tuning: a triangle has 3 vertices, a skinned vertex has at most 4 bone influences, the receiver
+// groups faces into chunks of 64 for bounds culling, and the swept-tooth cubic is solved by bisection.
+const TRIANGLE = 3; // tuning-ok: vertices per triangle
+const INFLUENCES = 4; // tuning-ok: bone influences per skinned vertex
+const WEIGHT_TOLERANCE = 1e-5; // tuning-ok: how far skin weights may sit from summing to 1
+const CHUNK_FACES = 64; // tuning-ok: faces per bounds chunk
+const BISECTION_STEPS = 48; // tuning-ok: halvings of a root bracket, far below float precision
+const TWO = 2; // tuning-ok: quadratic formula and bisection midpoint
+const THREE = 3; // tuning-ok: derivative of the cubic's t^3 term
+const FOUR = 4; // tuning-ok: discriminant factor of the quadratic formula
+
 // Native pose snapshots only: this receiver never samples/advances animation.
 // Chunk bone bounds cull first; skin only vertices needed by an active query.
 export function createRatBiteReceiver(model, bindings) {
@@ -14,14 +25,14 @@ export function createRatBiteReceiver(model, bindings) {
       w = g.attributes.skinWeight,
       vertices = new Map();
     for (const face of binding.faceBindings)
-      for (let k = 0; k < 3; k++) {
+      for (let k = 0; k < TRIANGLE; k++) {
         const i = face.vertices[k];
-        if (g.index.getX(face.face * 3 + k) !== i) throw Error("Lower-leg topology mismatch");
+        if (g.index.getX(face.face * TRIANGLE + k) !== i) throw Error("Lower-leg topology mismatch");
         if (vertices.has(i)) continue;
         const source = new T.Vector3().fromBufferAttribute(p, i).applyMatrix4(mesh.bindMatrix),
           terms = [];
         let sum = 0;
-        for (let j = 0; j < 4; j++) {
+        for (let j = 0; j < INFLUENCES; j++) {
           const weight = w.getComponent(i, j);
           if (!weight) continue;
           const bone = ix.getComponent(i, j);
@@ -29,11 +40,11 @@ export function createRatBiteReceiver(model, bindings) {
           sum += weight;
           terms.push({ bone, weight, point: source.clone().applyMatrix4(mesh.skeleton.boneInverses[bone]) });
         }
-        if (Math.abs(sum - 1) > 1e-5) throw Error("Receiver weights not normalized");
+        if (Math.abs(sum - 1) > WEIGHT_TOLERANCE) throw Error("Receiver weights not normalized");
         vertices.set(i, terms);
       }
-    for (let n = 0; n < binding.faceBindings.length; n += 64) {
-      const faces = binding.faceBindings.slice(n, n + 64),
+    for (let n = 0; n < binding.faceBindings.length; n += CHUNK_FACES) {
+      const faces = binding.faceBindings.slice(n, n + CHUNK_FACES),
         bounds = new Map();
       for (const f of faces)
         for (const i of f.vertices)
@@ -132,15 +143,15 @@ function roots(c) {
   if (scale > 0) c = c.map((v) => v / scale);
   const value = (t) => ((c[3] * t + c[2]) * t + c[1]) * t + c[0],
     cuts = [0, 1],
-    a = 3 * c[3],
-    b = 2 * c[2],
+    a = THREE * c[3],
+    b = TWO * c[2],
     d = c[1];
   if (Math.abs(a) < EPS) {
     if (Math.abs(b) > EPS) cuts.push(-d / b);
   } else {
-    const q = b * b - 4 * a * d;
+    const q = b * b - FOUR * a * d;
     if (q >= 0) {
-      cuts.push((-b - Math.sqrt(q)) / (2 * a), (-b + Math.sqrt(q)) / (2 * a));
+      cuts.push((-b - Math.sqrt(q)) / (TWO * a), (-b + Math.sqrt(q)) / (TWO * a));
     }
   }
   const sorted = cuts.filter((t) => t >= 0 && t <= 1).sort((a, b) => a - b),
@@ -149,12 +160,12 @@ function roots(c) {
     let l = sorted[i - 1],
       r = sorted[i];
     if (value(l) * value(r) >= 0) continue;
-    for (let n = 0; n < 48; n++) {
-      const m = (l + r) / 2;
+    for (let n = 0; n < BISECTION_STEPS; n++) {
+      const m = (l + r) / TWO;
       if (value(l) * value(m) <= 0) r = m;
       else l = m;
     }
-    found.push((l + r) / 2);
+    found.push((l + r) / TWO);
   }
   return found.sort((a, b) => a - b);
 }
@@ -192,10 +203,11 @@ export function sweptToothTriangle(from, to, before, after) {
 export function ratLowBlade(path, age, displayRootMatrix) {
   if (!Number.isFinite(age) || age < 0 || path.hz !== 60 || path.frames.length !== 55)
     throw Error("Invalid low-strike age/path");
-  const frame = Math.min(54, age * 60),
+  const last = path.frames.length - 1,
+    frame = Math.min(last, age * 60),
     i = Math.floor(frame),
     a = path.frames[i],
-    b = path.frames[Math.min(i + 1, 54)],
+    b = path.frames[Math.min(i + 1, last)],
     t = frame - i;
   return ["from", "to"].map((key) =>
     new T.Vector3(...mix(a[key], b[key], t)).applyMatrix4(displayRootMatrix).toArray(),

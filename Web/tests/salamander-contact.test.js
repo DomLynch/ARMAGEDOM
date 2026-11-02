@@ -1,3 +1,4 @@
+import { withDonorPlayer } from "./helpers/donor-player.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +11,7 @@ import {stepGame} from '../src/combat.js';
 import {salamanderFixture} from './helpers/salamander-fixture.js';
 import {safehouseProtected} from '../src/engine/safehouse.js';
 import {SALAMANDER_BREATH} from '../src/salamander-native.js';
-const base=new URL('../public/assets/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',base)));
+const base=new URL('../public/assets/',import.meta.url),manifest=withDonorPlayer(JSON.parse(fs.readFileSync(new URL('manifest-hollow.json',base))));
 test('Salamander own mouth breath: actual rig, ordinary movement, crowding, exclusions and unchanged Witch',async t=>{
  const oldDocument=globalThis.document;globalThis.document={createElement:()=>({getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};
  t.after(()=>{if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;});

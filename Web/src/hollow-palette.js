@@ -2,10 +2,9 @@ import { AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
 import { allocateClothing } from "./clothing-allocator.js";
 import { CLOTHING_PALETTE_VERSION, TOP_COLOURS, TROUSER_COLOURS, PAIRINGS, outfitFor } from "./clothing-palettes.js";
 
-export const HOLLOW_GARMENTS = Object.freeze({
-  jacket: "Torn charcoal canvas jacket",
-  trousers: "Worn tobacco trousers",
-});
+import { GAME_DATA } from "./engine/game-data.js";
+// The two garment material names live in Web/src/data/appearance.json `hollowGarments` (read through game-data.js).
+export const HOLLOW_GARMENTS = GAME_DATA.appearance.hollowGarments;
 const library = Object.freeze({
   version: CLOTHING_PALETTE_VERSION,
   tops: TOP_COLOURS,

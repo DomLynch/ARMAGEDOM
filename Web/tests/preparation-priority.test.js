@@ -1,4 +1,5 @@
 import {indexOfToken} from './helpers/source-slice.js';
+import {GAME_DATA} from '../src/engine/game-data.js';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
 import {relieveGeometryBudget,protectedAreas} from '../src/engine/parked-view-budget.js';
 function run({urgent=false,delayEast=false,traveling=false,initialArea='east'}={}){
@@ -9,7 +10,7 @@ function run({urgent=false,delayEast=false,traveling=false,initialArea='east'}={
  const actors={bindPreparedArea(){},*prepareAreaSteps(area){starts.push(area);try{for(let i=0;i<(area==='south'?20:2);i++){counts[area]++;if(urgent&&area==='south'&&counts.south===3)state.urgent='east';yield 'actor-part';}}finally{closed[area]++;}},areaViewStats:()=>({parked:[],ownedFinisherGeometryBytes:0,finisherGeometryBudgetBytes:1}),discardArea:area=>discards.push(area)};state.actors=actors;
  const gl={SYNC_GPU_COMMANDS_COMPLETE:1,ALREADY_SIGNALED:2,CONDITION_SATISFIED:3,fenceSync:()=>({}),flush(){},clientWaitSync:()=>2,deleteSync(){}};
  const world={isAreaReady:area=>ready.includes(area),areaId:'westminster',manifest:{links:[{from:'westminster',to:'south',condition:{xMin:1,yMin:0}},{from:'westminster',to:'east',condition:{xMin:10,yMin:0}}]},geometry:{point:p=>({x:p.x,y:p.z}),ground:p=>({x:p.x,z:p.y})},leaseArea(area){leases.push(area);return()=>released.push(area);},prepareArea:async area=>({areaId:area,scene:{areaId:area,add(){}},camera:{}}),markAreaReady:area=>ready.push(area)};
- const context=vm.createContext({setTimeout:fn=>queueMicrotask(fn),testState:state,performance:{now:()=>clock++},requestIdleCallback:f=>queueMicrotask(()=>f({timeRemaining:()=>50})),console,prepareParkedResidents:()=>({}),relieveGeometryBudget,protectedAreas,initializeAreaResidents(){},applyAreaLighting(){},warmFramebuffer(){}});
+ const context=vm.createContext({TRAVEL:GAME_DATA.areaRuntime.travel,setTimeout:fn=>queueMicrotask(fn),testState:state,performance:{now:()=>clock++},requestIdleCallback:f=>queueMicrotask(()=>f({timeRemaining:()=>50})),console,prepareParkedResidents:()=>({}),relieveGeometryBudget,protectedAreas,initializeAreaResidents(){},applyAreaLighting(){},warmFramebuffer(){}});
  context.s={traveling,game,actors,world,scene:{children:[]},loaded:true,contextLost:false,renderer:{compileAsync:stage=>{graphicsCalls++;if(delayEast&&stage.areaId==='east'){compileEntered();return compile;}return Promise.resolve();},getContext:()=>gl}};
  vm.runInContext(source.slice(start,end)+'\nareaPreparation=testState;globalThis.pending=pumpDestinations(testState);',context);
  return{context,state,counts,starts,closed,leases,released,ready,discards,compileStarted,finishCompile,pending:context.pending,graphicsCalls:()=>graphicsCalls};
@@ -32,7 +33,7 @@ test('Retry while entry compile is pending never marks a replacement session rea
 
 test('announced urgent entry yields through timers instead of waiting for idle callbacks; non-entry turn scheduling retains cancellation bounds',async()=>{
  const source=readFileSync(process.env.PREPARATION_SOURCE??new URL('../src/engine/areas.js',import.meta.url),'utf8'),start=indexOfToken(source,'function preparationTurn('),end=indexOfToken(source,'function exitDistance(',start),game={},state={game,cancelled:false,urgent:'east'};let idleCalls=0,timerCalls=0;
- const s={game,traveling:true,contextLost:false},context=vm.createContext({s,performance,setTimeout:fn=>{timerCalls++;queueMicrotask(fn);},requestIdleCallback:fn=>{idleCalls++;queueMicrotask(()=>fn({timeRemaining:()=>10}));}});vm.runInContext(source.slice(start,end)+'globalThis.turn=preparationTurn;',context);
+ const s={game,traveling:true,contextLost:false},context=vm.createContext({TRAVEL:GAME_DATA.areaRuntime.travel,s,performance,setTimeout:fn=>{timerCalls++;queueMicrotask(fn);},requestIdleCallback:fn=>{idleCalls++;queueMicrotask(()=>fn({timeRemaining:()=>10}));}});vm.runInContext(source.slice(start,end)+'globalThis.turn=preparationTurn;',context);
  assert.equal(await context.turn(state),12);assert.equal(timerCalls,1);assert.equal(idleCalls,0);
  s.traveling=false;assert.equal(await context.turn(state),12);assert.equal(idleCalls,1);assert.equal(timerCalls,1);
  s.traveling=true;state.urgent=null;assert.equal(await context.turn(state),4);assert.equal(idleCalls,2);

@@ -14,15 +14,16 @@ test('actual existing anchors have full capsule-clear approach rings and stable 
  for(const anchor of[data.contract.giver,data.contract.case]){const g=createGeometry(layout(anchor.areaId));assert(g.clear(anchor.position,.4));assert.equal(gate(g,anchor.areaId,anchor.position),null);for(let i=0;i<16;i++){const p={x:anchor.position.x+1.3*Math.cos(i*Math.PI/8),z:anchor.position.z+1.3*Math.sin(i*Math.PI/8)};assert(g.clear(p,.4));assert(g.lineClear(p,anchor.position));assert.equal(gate(g,anchor.areaId,p),null);}}
  const broken=structuredClone(data);broken.contract.guard.placementKey='missing-guard';assert.throws(()=>validateAreaGeometry(registry,'east',layout('east'),c.residents,broken),/Unknown expedition guard/);
 });
-test('atlas uses all actual nine areas and twenty-eight directed links; each pin route starts at an existing exit',()=>{
- assert.equal(registry.ids.length,9);assert.equal(registry.ids.reduce((n,id)=>n+registry.links(id).length,0),28);
+test('atlas uses all actual nine areas and twenty-four directed links; each pin route starts at an existing exit',()=>{
+ assert.equal(registry.ids.length,9);assert.equal(registry.ids.reduce((n,id)=>n+registry.links(id).length,0),24);
  for(const from of registry.ids)for(const to of registry.ids){const first=registry.nextExit(from,to);if(from===to){assert.equal(first,null);continue;}assert(registry.links(from).includes(first));let at=from;const seen=new Set([at]);while(at!==to){at=registry.nextExit(at,to).to;assert(!seen.has(at));seen.add(at);}assert(seen.size<=9);}
- assert.equal(registry.nextExit('south','east').to,'east');assert.throws(()=>registry.nextExit('unknown','east'));assert.throws(()=>registry.nextExit('east','unknown'));
+ assert.equal(registry.nextExit('south','east').to,'central-hub');assert.throws(()=>registry.nextExit('unknown','east'));assert.throws(()=>registry.nextExit('east','unknown'));
 });
 
 
 test('Journal offers Claim only at the real eligible stash, and carrying a case elsewhere names the return step without mutation',()=>{
- const data=validateExpeditionData(raw().expedition,registry),g={time:1,finished:false,player:{hp:100,pos:{...data.contract.giver.position},hurtUntil:0,dodgeUntil:0},world:{areaId:'east',lineClear:()=>true},expedition:{status:'recovered'}};const before=JSON.stringify(g);let view=journalPresentation(g,data,true);assert.equal(view.showAction,false);assert.match(view.next,/return to the Westminster stash/);assert.equal(JSON.stringify(g),before);
+ const on=raw().expedition;delete on.contract.enabled; // shipped data has the contract off; this row covers the contract mechanics themselves
+ const data=validateExpeditionData(on,registry),g={time:1,finished:false,player:{hp:100,pos:{...data.contract.giver.position},hurtUntil:0,dodgeUntil:0},world:{areaId:'east',lineClear:()=>true},expedition:{status:'recovered'}};const before=JSON.stringify(g);let view=journalPresentation(g,data,true);assert.equal(view.showAction,false);assert.match(view.next,/return to the Westminster stash/);assert.equal(JSON.stringify(g),before);
  g.world.areaId=data.contract.giver.areaId;view=journalPresentation(g,data,true);assert.equal(view.showAction,true);assert.equal(view.eligible,true);assert.match(view.next,/claim your reward/);
  for(const change of[()=>g.player.pos.x+=2,()=>g.player.hp=0,()=>g.player.swing={},()=>g.runSaveInvalid=true]){const old=structuredClone({player:g.player,runSaveInvalid:g.runSaveInvalid});change();assert.equal(journalPresentation(g,data,true).showAction,false);g.player=old.player;g.runSaveInvalid=old.runSaveInvalid;}
  assert.equal(journalPresentation(g,data,false).showAction,false);g.world.lineClear=()=>false;assert.equal(journalPresentation(g,data,true).showAction,false);

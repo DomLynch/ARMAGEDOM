@@ -1,43 +1,54 @@
 // Portable Art prototype. Web supplies a verified POSED render-world surface hit.
 // This adds a shallow surface wound, never a hole or cut in the source mesh.
+const RINGS = 3; // tuning-ok: the wound disc is three concentric rings (the profile lists three radii, reliefs and colours)
+const BANDS = RINGS - 1;
+const XYZ = 3; // tuning-ok: a point or colour packed as three floats
+const TAU = 2 * Math.PI; // tuning-ok: a full turn
+const double = (v) => v * 2; // tuning-ok: a radius to a diameter
+const half = (v) => v / 2; // tuning-ok: a full size to a half extent
 export function createLocalWound({ THREE: T, parent, profile }) {
   if (!T || !parent?.isObject3D || !profile?.styles) throw new TypeError("Wound dependencies missing");
-  const positions = [0, 0, 0.008],
+  const shape = profile.mesh,
+    positions = [0, 0, shape.centerRelief],
     colors = [],
     indices = [],
-    segments = 16;
-  const ringColors = [0x24040a, 0x5c0c1b, 0x8a2930, 0x421016];
+    segments = shape.segments;
+  const ringColors = shape.ringColors;
   const color = new T.Color();
   const rgb = (hex) => {
     color.setHex(hex);
     colors.push(color.r, color.g, color.b);
   };
   rgb(ringColors[0]);
-  for (let ring = 0; ring < 3; ring++)
+  for (let ring = 0; ring < RINGS; ring++)
     for (let i = 0; i < segments; i++) {
-      const theta = (2 * Math.PI * i) / segments,
-        r = [0.32, 0.7, 1][ring] * (1 + 0.07 * Math.sin(i * 2.3) + 0.035 * Math.cos(i * 4.7));
-      positions.push(Math.cos(theta) * r, Math.sin(theta) * r, [0.025, 0.009, 0.003][ring]);
+      const theta = (TAU * i) / segments,
+        r =
+          shape.ringRadius[ring] *
+          (1 +
+            shape.wobbleA * Math.sin(i * shape.wobbleAFrequency) +
+            shape.wobbleB * Math.cos(i * shape.wobbleBFrequency));
+      positions.push(Math.cos(theta) * r, Math.sin(theta) * r, shape.ringRelief[ring]);
       rgb(ringColors[ring + 1]);
     }
-  const back = positions.length / 3;
-  positions.push(0, 0, -0.008);
+  const back = positions.length / XYZ;
+  positions.push(0, 0, -shape.backRelief);
   rgb(ringColors[0]);
   for (let i = 0; i < segments; i++) {
     const next = (i + 1) % segments;
     indices.push(0, 1 + i, 1 + next);
-    for (let ring = 0; ring < 2; ring++) {
+    for (let ring = 0; ring < BANDS; ring++) {
       const a = 1 + ring * segments + i,
         b = 1 + ring * segments + next,
         c = a + segments,
         d = b + segments;
       indices.push(a, c, b, b, c, d);
     }
-    indices.push(back, 1 + 2 * segments + next, 1 + 2 * segments + i);
+    indices.push(back, 1 + BANDS * segments + next, 1 + BANDS * segments + i);
   }
   const geometry = new T.BufferGeometry();
-  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new T.Float32BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new T.Float32BufferAttribute(positions, XYZ));
+  geometry.setAttribute("color", new T.Float32BufferAttribute(colors, XYZ));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   const material = new T.MeshStandardMaterial({
@@ -49,7 +60,7 @@ export function createLocalWound({ THREE: T, parent, profile }) {
     side: T.FrontSide,
   });
   const mesh = new T.Mesh(geometry, material);
-  mesh.name = "Actor-owned localized surface wound";
+  mesh.name = "Actor-owned localized surface wound"; // text-ok: scene-graph object name
   mesh.visible = false;
   mesh.frustumCulled = false;
   mesh.matrixAutoUpdate = false;
@@ -79,7 +90,7 @@ export function createLocalWound({ THREE: T, parent, profile }) {
       !finite(anchor.normal) ||
       !finite(anchor.tangent) ||
       !Number.isFinite(anchor.surfaceRadius) ||
-      anchor.surfaceRadius <= 0.015
+      anchor.surfaceRadius <= shape.minSurfaceRadius
     )
       return false;
     normal.copy(anchor.normal);
@@ -90,15 +101,16 @@ export function createLocalWound({ THREE: T, parent, profile }) {
     tangent.normalize();
     vertical.crossVectors(normal, tangent).normalize();
     // Validate the resolved surface, not an invented human bone or body-centre.
-    const surfaceDiameter = anchor.surfaceRadius * 2,
+    const surfaceDiameter = double(anchor.surfaceRadius),
       limit = surfaceDiameter * profile.maxZoneFraction;
     const width = Math.min(style.width, limit),
       height = Math.min(style.height, limit);
-    if (!(width > 0.005 && height > 0.005 && Number.isFinite(width) && Number.isFinite(height))) return false;
+    if (!(width > shape.minSize && height > shape.minSize && Number.isFinite(width) && Number.isFinite(height)))
+      return false;
     basis.makeBasis(tangent, vertical, normal);
     q.setFromRotationMatrix(basis);
     position.copy(anchor.position).addScaledVector(normal, profile.surfaceOffset);
-    scale.set(width / 2, height / 2, style.reliefScale ?? 1);
+    scale.set(half(width), half(height), style.reliefScale ?? 1);
     world.compose(position, q, scale);
     parent.updateWorldMatrix(true, false);
     if (Math.abs(parent.matrixWorld.determinant()) < 1e-10) return false;
@@ -134,7 +146,7 @@ export function createLocalWound({ THREE: T, parent, profile }) {
         attribute.setXYZ(i, color.r, color.g, color.b);
       }
       attribute.needsUpdate = true;
-      material.color.setHex(row.tint ?? 0xffffff);
+      material.color.setHex(row.tint ?? 0xffffff); // tuning-ok: white is the identity tint
       return true;
     },
     update(anchor) {

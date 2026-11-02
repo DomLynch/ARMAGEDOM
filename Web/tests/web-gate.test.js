@@ -25,7 +25,8 @@ async function fixture(
   await mkdir(join(dir, "scripts"), { recursive: true });
   await writeFile(join(dir, "scripts/web-density-baseline.json"), "{}");
   await writeFile(join(dir, "scripts/as-data-baseline.json"), "{}");
-  await writeFile(join(dir, "Web/src/rig-capabilities.json"), "{}");
+  await mkdir(join(dir, "Web/src/data"), { recursive: true });
+  await writeFile(join(dir, "Web/src/data/creatures.json"), '{"rigCapabilities":{}}');
   await writeFile(join(dir, "Web/package.json"), '{"type":"module"}');
   await writeFile(join(dir, "Web/src/value.js"), source);
   await writeFile(
@@ -44,7 +45,7 @@ test("Web gate rejects invalid syntax and failing assertions", async (t) => {
   const { verifyWeb } = await import("../../scripts/verify_web.mjs");
   const syntax = await fixture(t, "export const value = ;");
   assert.throws(() => verifyWeb(syntax, { quiet: true }), /syntax failed/);
-  const assertion = await fixture(t, "export const value = 2;");
+  const assertion = await fixture(t, "export const value = 1;", "assert.equal(value, 2);");
   assert.throws(() => verifyWeb(assertion, { quiet: true }), /tests failed/);
 });
 

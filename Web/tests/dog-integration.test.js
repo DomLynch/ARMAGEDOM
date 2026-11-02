@@ -1,15 +1,16 @@
+import { withDonorPlayer } from "./helpers/donor-player.js";
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {ratLowBlade} from '../src/rat-contact.js';import bladePath from '../src/rat-data/blade-path.json' with {type:'json'};
 import {loadGeometry} from '../../art/donor/probe.mjs';import {createActors} from '../src/actors.js';import {disposeActorSources} from '../src/actor-resources.js';
 import {travelTo} from '../src/travel.js';
 import {createGame,stepGame,attack,receiveHit} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';import {pistolCue} from '../src/pistol-targeting.js';
-const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+const publicRoot=new URL('../public/',import.meta.url),manifest=withDonorPlayer(JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot))));
 const encounter=createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1});
 function world(){return {areaId:'east',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};}
 const options={pilot:'donor-knife',encounter,rat:true,dog:true,pistol:true,supplies:true,finishers:true,areaResidents:true,openingGroup:false};
 
 test('one dog replaces South8 with approved stats and preserves rat and West identities',()=>{
- const g=createGame({...world(),areaId:'south'},options),dog=g.enemies.find(e=>e.rig==='original-dog');assert.equal(g.enemies.length,9);assert.equal(dog.placementKey,'south-roamer-8');assert.equal(dog.hp,30);assert.equal(dog.radius,1.54);assert.equal(dog.moveSpeed,2.6);assert.equal(dog.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-dog').length,1);assert.equal(createGame(world(),options).enemies.find(e=>e.placementKey==='east-roamer-7').rig,'original-rat');assert.equal(createGame({...world(),areaId:'westminster'},options).enemies.length,6);
+ const g=createGame({...world(),areaId:'south'},options),dog=g.enemies.find(e=>e.rig==='original-dog');assert.equal(g.enemies.length,12);assert.equal(dog.placementKey,'south-roamer-8');assert.equal(dog.hp,30);assert.equal(dog.radius,1.54);assert.equal(dog.moveSpeed,2.6);assert.equal(dog.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-dog').length,1);assert.equal(createGame(world(),options).enemies.find(e=>e.placementKey==='east-roamer-7').rig,'original-rat');assert.equal(createGame({...world(),areaId:'westminster'},options).enemies.length,8);
  g.enemies=[dog];dog.home=null;dog.pos={x:0,z:4};g.player.pos={x:0,z:0};Object.assign(g.pistol,{collected:true,equipped:true,magazine:6});g.pistolUserFacing={x:0,z:1};assert.equal(pistolCue(g).height,.70);stepGame(g,{actions:['fire'],aim:{x:0,z:1}});assert.equal(dog.hp,5);for(let i=0;i<90;i++)stepGame(g);stepGame(g,{actions:['fire'],aim:{x:0,z:1}});assert.equal(dog.hp,0);assert.equal(dog.response.clip,'dog_death');assert.equal(dog.response.ticks,60);assert.equal(dog.finisher.recipeId,'bullet-native-collapse');assert.deepEqual(g.supplies.issued,[]);
 });
 test('dog calf target and whole-body direction remain committed through the native bite',()=>{

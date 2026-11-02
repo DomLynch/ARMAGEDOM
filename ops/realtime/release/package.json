@@ -1,0 +1,9 @@
+{
+  "name": "armagedom-realtime",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "pg": "8.13.1",
+    "three": "0.182.0"
+  }
+}

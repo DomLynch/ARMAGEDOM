@@ -1,0 +1,34 @@
+// donorMotion.json validator: the presentation numbers for donor-motion.js (swing-phase curve, bone-saw poses, locomotion clock).
+import { closed, freeze } from "./content-schema.js";
+
+import { finite } from "./shared-checks.js";
+const fail = () => {
+  throw TypeError("Invalid donor motion data");
+};
+export function validateDonorMotionData(value) {
+  const d = structuredClone(value);
+  closed(d, ["schema_version", "swing", "samplePhaseMax", "rigBones", "vestBones", "saw", "locomotion"]);
+  closed(d.swing, ["windupKeyFraction", "windupSourceFraction", "followThrough", "followThroughFraction"]);
+  closed(d.rigBones, ["hand", "upperArm", "foreArm", "torso"]);
+  closed(d.saw, ["windup", "active", "recovery"]);
+  closed(d.locomotion, ["moveSpeed", "runSpeed", "walkRate", "runRate", "strafeRate", "sprintSpeed"]);
+  if (
+    !finite(d.swing.windupKeyFraction, 0.1, 1) ||
+    !finite(d.swing.windupSourceFraction, 0, 1) ||
+    !finite(d.swing.followThrough, 0.01, 0.5) ||
+    !finite(d.swing.followThroughFraction, 0, 1) ||
+    !finite(d.samplePhaseMax, 0.9, 1) ||
+    !Object.values(d.rigBones).every((s) => typeof s === "string" && s.length > 0 && s.length < 64) ||
+    !Array.isArray(d.vestBones) ||
+    !d.vestBones.every((s) => typeof s === "string" && s.length > 0 && s.length < 64) ||
+    !Object.values(d.saw).every((n) => finite(n, 0, 1)) ||
+    !finite(d.locomotion.moveSpeed, 0.001, 1) ||
+    !finite(d.locomotion.runSpeed, 1, 20) ||
+    !finite(d.locomotion.walkRate, 0.1, 20) ||
+    !finite(d.locomotion.runRate, 0.1, 20) ||
+    !finite(d.locomotion.strafeRate, 0.1, 20) ||
+    !finite(d.locomotion.sprintSpeed, 1, 20)
+  )
+    fail();
+  return freeze(d);
+}

@@ -1,26 +1,73 @@
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
+import { bossExitGate } from "./area-bosses.js";
+import { GAME_DATA } from "./game-data.js";
+import { QUALITY } from "./quality-tier.js";
+import { createDeathPresentation } from "./death-presentation.js";
+import { createShareClip } from "./share-clip.js";
+import { createShareCard } from "./share-card.js";
+import { grantBossGolden } from "./golden-weapons.js";
+import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
 import * as THREE from "three";
 import { presentationAudioEvents } from "../donor-audio.js";
 import { stepGame, resetMobileControls } from "../combat.js";
-import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint } from "../pistol-targeting.js";
+import { selectedRangedProfile, rangedPointerPoint, flamePointerPoint, withChained } from "../pistol-targeting.js";
+import { createFirstTimeHints } from "../first-time-hints.js";
+import { armPostBossRaid } from "./post-boss-raid.js";
+import { heatFromEvents } from "./heat.js";
+import { stepApocalypseRun } from "./apocalypse-run.js";
+import { createAirdropView } from "./airdrop-view.js";
+import { createCorpseRunView } from "./corpse-run-view.js";
+import { createPickupFlash } from "./pickup-flash.js";
+import { createHaptics } from "./haptics.js";
+import { createBossTaunts, tauntsEnabled } from "./boss-taunts.js";
+import { burnLevel, createSoundHooks, soundHooksEnabled } from "./sound-hooks.js";
+import { burnEnabled } from "./burn-presentation.js";
+const STAND_IN = GAME_DATA.chainedPitborn.chainedTargets.aimTargetId;
 export function createBrowserLoop(s) {
+  const hints = createFirstTimeHints(),
+    pickupFlash = createPickupFlash(),
+    haptics = createHaptics({ listen: s.listen }),
+    taunts = tauntsEnabled() ? createBossTaunts() : null, // data/bossTaunts.json; ?taunts=0 turns them off
+    soundHooks = soundHooksEnabled() ? createSoundHooks() : null, // data/soundHooks.json; ?sound=0 turns the hooks off
+    burning = !!soundHooks && burnEnabled(); // the crackle follows ?burn=0 too
   let last = 0,
     accumulator = 0,
-    submitted = null;
+    submitted = null,
+    airdropView = null,
+    corpseView = null;
+  const deathCam = createDeathPresentation(),
+    // Viral death cam (shareClip.json, ?noshare=1 off): a small rolling frame ring, and the SHARE card on the death screen.
+    shareClip = createShareClip(),
+    shareCard = createShareCard({ share: shareClip });
+  let seenGame = null,
+    seenArea = null;
+  // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
+  if (globalThis.document && s.listen)
+    s.listen(globalThis.document, "visibilitychange", () => {
+      if (globalThis.document.hidden) {
+        deathCam.reset();
+        haptics.cancel();
+        shareClip.gap();
+      }
+    });
   function toDomain(v) {
     return {
       x: v.x * s.world.cameraRight.x - v.y * s.world.cameraForward.x,
       z: v.x * s.world.cameraRight.z - v.y * s.world.cameraForward.z,
     };
   }
+  // The actors' views plus the shackled Pitborn's own posed body, which is a prop and not an actor (chain-break.js stand-in).
+  const bodyViews = () => ({
+    get: (id) => (id === STAND_IN ? s.chainedPitbornParts?.() : s.actors.views.get(id)),
+  });
   function combatVisibleIds() {
-    return s.game.enemies
+    return withChained(s.game, s.game.enemies)
       .filter((e) => {
         const v = s.world.toRender(e.pos, 1).project(s.world.camera);
         return (
           (Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z >= -1 && v.z <= 1) ||
-          (s.game.touchTarget?.id === e.id && s.actors?.views && touchTargetVisible(s.game, s.actors.views, s.camera))
+          (s.game.touchTarget?.id === e.id && s.actors?.views && touchTargetVisible(s.game, bodyViews(), s.camera))
         );
       })
       .map((e) => e.id);
@@ -43,7 +90,7 @@ export function createBrowserLoop(s) {
               : null,
       };
     if ((raw.mobile || s.game.player.weapon === "railgun") && raw.worldTap) {
-      const selected = pickTouchTarget(s.game, s.actors.views, s.camera, s.canvas, raw.worldTap);
+      const selected = pickTouchTarget(s.game, bodyViews(), s.camera, s.canvas, raw.worldTap);
       if (selected) {
         value.touchTargetSelection = selected;
         if (!value.combatVisibleIds.includes(selected.id)) value.combatVisibleIds.push(selected.id);
@@ -51,16 +98,16 @@ export function createBrowserLoop(s) {
     }
     if (raw.mouse) {
       const bounds = s.canvas.getBoundingClientRect(),
-        x = ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1,
-        y = 1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2,
+        x = ((raw.mouse.x - bounds.left) / bounds.width) * 2 - 1, // tuning-ok: pixels to NDC
+        y = 1 - ((raw.mouse.y - bounds.top) / bounds.height) * 2, // tuning-ok: pixels to NDC
         point = s.game.flame?.equipped
-          ? flamePointerPoint(s.world, s.actors.views, s.game.enemies, x, y, {
+          ? flamePointerPoint(s.world, bodyViews(), withChained(s.game, s.game.enemies), x, y, {
               assist: s.game.mobileAssistEnabled !== false,
               time: s.game.time,
               visibleIds: value.combatVisibleIds,
             })
           : selectedRangedProfile(s.game)
-            ? rangedPointerPoint(s.game, s.actors.views, x, y, { visibleIds: value.combatVisibleIds })
+            ? rangedPointerPoint(s.game, bodyViews(), x, y, { visibleIds: value.combatVisibleIds })
             : s.world.screenToGround(x, y);
       if (point) {
         value.aimPoint = { x: point.x, z: point.z };
@@ -77,14 +124,26 @@ export function createBrowserLoop(s) {
     return value;
   }
   function frame(ms, providedElapsed) {
-    const elapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0),
-      dt = Math.min(0.1, elapsed);
+    const realElapsed = providedElapsed ?? (last ? Math.max(0, (ms - last) / 1000) : 0);
     last = ms;
+    if (providedElapsed === undefined) QUALITY.frame(ms); // real frames only: a QA step supplies its own elapsed time
     if (!s.world || !s.game || s.contextLost) return;
-    const audioEvents = [];
+    // Real reset hooks: travel, player death, a new game object or area id (area change / run reset).
+    if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
+    shareCard.sync(s.game.finished && s.game.player.hp <= 0);
+    if (s.game !== seenGame || s.world.areaId !== seenArea) shareClip.reset();
+    if (s.game !== seenGame) taunts?.reset();
+    seenGame = s.game;
+    seenArea = s.world.areaId;
+    const audioEvents = [],
+      // Boss / marked-hunter death slow-mo: scale the frame's seconds ONCE, here, so simulation, ragdoll and effects share one clock.
+      cam = s.traveling || s.paused ? deathCam.tick(0) : deathCam.tick(realElapsed),
+      elapsed = realElapsed * cam.timeScale,
+      dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
     // Travel holds this frame and simulation. Re-rendering the unchanged rigs
     // consumes the idle budget needed to finish the destination's preparation.
     if (s.traveling) {
+      s.audio?.setBurning?.(0);
       s.hud.update(s.game);
       s.updateExpedition?.();
       return;
@@ -95,6 +154,10 @@ export function createBrowserLoop(s) {
       while (accumulator >= 1 / 60) {
         const weaponBefore = s.game.player.weapon,
           flameBefore = !!s.game.flame?.equipped;
+        // Pickups that landed between steps; stepGame is about to reset g.events, so flash and tone them now.
+        pickupFlash.observe(s.game.events);
+        audioEvents.push(...pickupFlash.latest);
+        haptics.observe(s.game.events, s.game);
         const value = intent();
         s.diagnostics?.beforeStep(value);
         stepGame(s.game, value, 1 / 60, {
@@ -118,6 +181,7 @@ export function createBrowserLoop(s) {
           flameSource: s.flameSource,
           bossFlameSource: s.bossFlameSource,
           flameAimEligible: s.flameAimEligible,
+          pointOnScreen: s.pointOnScreen,
         });
         s.diagnostics?.afterStep();
         if (weaponBefore !== s.game.player.weapon || flameBefore !== !!s.game.flame?.equipped) {
@@ -127,11 +191,26 @@ export function createBrowserLoop(s) {
         }
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
+        s.world.worldPickups?.collect(s.game, s.world.camera);
+        leaveKillDrops(s.game); // coins where enemies fell this step (off until killDrops.enabled)
+        stepKillDrops(s.game);
+        grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
+        armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
+        heatFromEvents(s.game); // a defeated boss also raises heat (heat.json valuables)
+        stepApocalypseRun(s.game); // the opt-in run: stage clock, raids and end conditions (apocalypseRun.json)
         s.persistRun(s.game);
+        // Read-only: derives world events from the step's legacy events. Nothing reads the journal yet.
+        s.worldJournal?.ingest(s.game, s.game.events);
         s.effects.events(s.game);
         s.actors?.events(s.game);
+        deathCam.observe(s.game.events);
+        shareClip.observe(s.game.events, s.game);
         audioEvents.push(...s.game.events);
+        taunts?.observe(s.game, s.game.events);
+        pickupFlash.observe(s.game.events);
+        haptics.observe(s.game.events, s.game);
         s.emit(s.game.events);
+        hints.observe(s.game);
         accumulator -= 1 / 60;
         if (s.areas.checkExit()) break;
         if (s.game.finished) {
@@ -143,10 +222,28 @@ export function createBrowserLoop(s) {
         }
       }
     }
-    s.world.update(s.game.player.pos, s.paused ? 0 : dt, innerWidth, innerHeight);
+    s.world.update(
+      s.game.player.pos,
+      s.paused ? 0 : Math.min(GAME_DATA.browserSession.maxStepSeconds, realElapsed), // camera follow runs on real time
+      innerWidth,
+      innerHeight,
+      false,
+      cam.active ? cam : null,
+    );
+    s.world.exitRings?.sync((to) => bossExitGate(s.game, to)?.allowed !== false);
+    s.world.worldPickups?.sync(s.game);
+    s.world.killDrops?.sync(s.game);
     s.atmosphere?.update(dt, { paused: s.paused || s.traveling });
     s.updateSupplies();
     s.updateVestBag();
+    s.updateHeatTally();
+    // Built when the first plane is called, so the tutorial and the hub never pay for it.
+    if (s.game.airdrop?.startAt !== undefined || s.game.run?.hold)
+      airdropView ??= createAirdropView(s.scene, (point, height) => s.world.toRender(point, height));
+    airdropView?.update(s.game);
+    if (s.game.corpseBag) corpseView ??= createCorpseRunView(s.scene, (point, height) => s.world.toRender(point, height));
+    corpseView?.update(s.game);
+    s.presence?.update();
     s.actors?.update(s.game, s.paused || s.traveling ? 0 : dt, s.effects?.pistolRecoil(s.game) ?? 0, {
       presentationDt: s.paused || s.traveling ? 0 : elapsed,
       combatVisibleIds: combatVisibleIds(),
@@ -158,18 +255,33 @@ export function createBrowserLoop(s) {
       viewportWidth: s.canvas.clientWidth,
     });
     const severs = s.effects?.takeSeverEvents?.() ?? [];
-    if (audioEvents.length || severs.length) s.audio.play(presentationAudioEvents(audioEvents, severs));
-    s.rim.position.copy(s.world.toRender(s.game.player.pos, 2.4)).add(new THREE.Vector3(0, 0, 0.8));
-    s.hud.update(s.game);
+    if (audioEvents.length || severs.length) {
+      const heard = presentationAudioEvents(audioEvents, severs);
+      s.audio.play(heard);
+      const cues = soundHooks?.plan(heard, { player: s.game.player, time: s.game.time }) ?? [];
+      if (cues.length) s.audio.playHooks?.(cues);
+    }
+    s.audio?.setBurning?.(burning && !s.paused ? burnLevel(s.game) : 0, GAME_DATA.soundHooks.burn);
+    const { rimHeight, rimBehind } = GAME_DATA.browserSession.sceneLights;
+    s.rim.position.copy(s.world.toRender(s.game.player.pos, rimHeight)).add(new THREE.Vector3(0, 0, rimBehind));
+    const routeActive = !!s.world?.exitHint?.(s.game.player.pos),
+      hint = s.paused || s.traveling ? "" : hints.current(s.game, routeActive);
+    s.hud.update(s.game, hint, hints.overMessage);
     s.updateExpedition?.();
+    s.shop?.update(s);
+    s.updateRunHud?.(); // after the HUD: the run's results card stands in front of the death card
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
     else s.renderer.render(s.scene, s.camera);
+    if (!s.paused) shareClip.capture(s.canvas, realElapsed, s.world.areaId); // right after the render: the drawing buffer is valid only in this task
   }
   return {
+    deathCam,
+    shareClip,
     frame,
     intent,
     combatVisibleIds,
     reset() {
+      deathCam.reset();
       last = 0;
       accumulator = 0;
       submitted = null;

@@ -1,0 +1,177 @@
+// Look of the other players (W2): the existing survivor rig and model, one of six outfit variants picked from the player id.
+// Presentation only. Geometry and the skeleton's source data are shared with the local player (no new download); each variant
+// owns one set of tinted garment materials shared by every remote player wearing it, so the cost per player is a skinned clone,
+// a mixer and a ring. A cool ground ring marks a figure as a friendly player, apart from hunters (warm tint) and scavengers (grey).
+import * as THREE from "three";
+import { clone } from "three/addons/utils/SkeletonUtils.js";
+import { equipDonorPlayer } from "../donor-motion.js";
+import { setRigBones } from "../rig-bones.js";
+import { GAME_DATA } from "./game-data.js";
+
+// garment: multiplies the tunic and wraps; accent: the heraldry cloth and the ground ring. Skin, face and steel stay untouched.
+// The rows live in Web/src/data/visual.json `survivorVariants` (read through game-data.js).
+export const SURVIVOR_VARIANTS = GAME_DATA.visual.survivorVariants;
+const GARMENTS = new Set(["Gambeson", "Wrap"]),
+  ACCENTS = new Set(["Heraldry"]);
+
+// FNV-1a over the id's text: every client maps the same id to the same variant.
+export function survivorVariantIndex(id, count = SURVIVOR_VARIANTS.length) {
+  let h = 0x811c9dc5; // tuning-ok: FNV-1a offset basis (a hash constant, not tuning)
+  for (const ch of String(id)) {
+    h ^= ch.codePointAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0; // tuning-ok: FNV-1a prime (a hash constant, not tuning)
+  }
+  return h % count;
+}
+
+const now = () => (globalThis.performance?.now ? globalThis.performance.now() : Date.now()) / 1000;
+
+// `animations`: the clips to play. Omit it to use the source's own; pass the player model's clips when the source is the reduced
+// remote mesh, which ships no clips and shares the player's skeleton.
+export function createSurvivorKit({
+  source,
+  animations: clipSource = null,
+  characterScale = GAME_DATA.areaRuntime.view.defaultCharacterScale,
+}) {
+  if (!source?.gltf?.scene || !source.equipment || !source.description?.clips) throw Error("Survivor source not ready");
+  const { description } = source,
+    clips = description.clips,
+    scale = characterScale * (description.scale ?? 1);
+  const look = GAME_DATA.remoteSurvivors; // data/remoteSurvivors.json
+  const ringGeometry = new THREE.RingGeometry(look.ringInner, look.ringOuter, look.ringSegments);
+  ringGeometry.rotateX(-Math.PI / 2); // tuning-ok: lays the ring flat on the ground (a quarter turn)
+  const variantParts = new Map(), // variant index -> { materials: Map(original -> tinted), ring }
+    owned = [],
+    figures = new Set();
+  let animations = null,
+    disposed = false;
+
+  function partsFor(index) {
+    let parts = variantParts.get(index);
+    if (parts) return parts;
+    const variant = SURVIVOR_VARIANTS[index],
+      garment = new THREE.Color(...variant.garment),
+      accent = new THREE.Color(...variant.accent),
+      materials = new Map();
+    source.gltf.scene.traverse((o) => {
+      if (!o.isMesh) return;
+      for (const original of [].concat(o.material)) {
+        if (materials.has(original)) continue;
+        const own = original.clone();
+        if (GARMENTS.has(original.name)) own.color?.multiply(garment);
+        else if (ACCENTS.has(original.name)) own.color?.copy(accent);
+        materials.set(original, own);
+        owned.push(own);
+      }
+    });
+    const ring = new THREE.MeshBasicMaterial({
+      color: accent,
+      transparent: true,
+      opacity: look.ringOpacity,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    owned.push(ring);
+    parts = { materials, ring };
+    variantParts.set(index, parts);
+    return parts;
+  }
+
+  return {
+    // The same id always yields the same variant.
+    variantFor: (id) => SURVIVOR_VARIANTS[survivorVariantIndex(id)],
+    spawn(id) {
+      if (disposed) throw Error("Survivor kit disposed");
+      const index = survivorVariantIndex(id),
+        { materials, ring } = partsFor(index),
+        model = clone(source.gltf.scene);
+      setRigBones(model, description);
+      const equipped = equipDonorPlayer({ scene: model, animations: clipSource ?? source.gltf.animations }, source.equipment);
+      animations ??= equipped.animations;
+      model.traverse((o) => {
+        if (!o.isMesh) return;
+        o.frustumCulled = false;
+        const swap = (m) => materials.get(m) ?? m;
+        o.material = Array.isArray(o.material) ? o.material.map(swap) : swap(o.material);
+      });
+      const body = new THREE.Group(),
+        root = new THREE.Group(),
+        marker = new THREE.Mesh(ringGeometry, ring);
+      body.scale.setScalar(scale);
+      body.add(model);
+      marker.position.y = look.markerHeight;
+      marker.renderOrder = 1;
+      marker.name = "Friendly ring"; // text-ok: scene-graph node name, never shown
+      root.name = `Survivor ${id}`; // text-ok: scene-graph node name, never shown
+      root.add(body, marker);
+      const mixer = new THREE.AnimationMixer(model),
+        action = (name) => {
+          const a = mixer.clipAction(equipped.animations.find((c) => c.name === name));
+          a.play();
+          return a;
+        },
+        idle = action(clips.idle),
+        walk = action(clips.walk);
+      idle.setEffectiveWeight(1);
+      walk.setEffectiveWeight(0);
+      // Desynchronise the loops so a group of players never breathes in step.
+      mixer.update((survivorVariantIndex(`${id}:phase`, 1000) / 1000) * idle.getClip().duration);
+      let weight = 0,
+        last = now(),
+        gone = false,
+        dying = false;
+      const figure = {
+        root,
+        body, // the scaled group (the physics frame) and the skinned model under it: what a ragdoll death drives
+        model,
+        variant: SURVIVOR_VARIANTS[index],
+        mixer,
+        // The baked death (data/physicsDeath.json remote.fallbackClip): plays once and holds the last frame. The fall-back when no ragdoll is taken.
+        dieBaked() {
+          const clip = equipped.animations.find((c) => c.name === GAME_DATA.physicsDeath.remote.fallbackClip);
+          if (gone || dying) return;
+          dying = true;
+          idle.setEffectiveWeight(0);
+          walk.setEffectiveWeight(0);
+          if (!clip) return;
+          const a = mixer.clipAction(clip);
+          a.setLoop(THREE.LoopOnce, 1);
+          a.clampWhenFinished = true;
+          a.reset().play();
+        },
+        update({ moving = false } = {}) {
+          if (gone) return;
+          const t = now(),
+            dt = Math.min(look.maxFrameSeconds, Math.max(0, t - last));
+          last = t;
+          if (dying) return void mixer.update(dt);
+          weight = THREE.MathUtils.clamp(weight + (moving ? 1 : -1) * dt * look.walkBlendPerSecond, 0, 1);
+          idle.setEffectiveWeight(1 - weight);
+          walk.setEffectiveWeight(weight);
+          mixer.update(dt);
+        },
+        dispose() {
+          if (gone) return;
+          gone = true;
+          mixer.stopAllAction();
+          mixer.uncacheRoot(model);
+          root.removeFromParent();
+          figures.delete(figure);
+        },
+      };
+      figures.add(figure);
+      return figure;
+    },
+    get active() {
+      return figures.size;
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      for (const figure of [...figures]) figure.dispose();
+      for (const material of owned) material.dispose();
+      ringGeometry.dispose();
+      variantParts.clear();
+    },
+  };
+}

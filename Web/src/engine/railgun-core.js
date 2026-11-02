@@ -4,10 +4,10 @@ import { LOCKER_RESOURCE_RULES, LOCKER_WEAPON_IDS } from "./locker-state.js";
 export const RAILGUN_ITEM_ID = "borough-marshals-pistol-v1";
 export const RAILGUN_SAVE_KEY = "armagedom:railgun-run:v16";
 const versions = {
-  "armagedom:boss-equipment-run:v11": 11,
-  "armagedom:safehouse-run:v12": 12,
-  "armagedom:opening-story-run:v14": 14,
-  "armagedom:reaper-run:v15": 15,
+  "armagedom:boss-equipment-run:v11": 11, // tuning-ok: the save format version of that earlier run key
+  "armagedom:safehouse-run:v12": 12, // tuning-ok: the save format version of that earlier run key
+  "armagedom:opening-story-run:v14": 14, // tuning-ok: the save format version of that earlier run key
+  "armagedom:reaper-run:v15": 15, // tuning-ok: the save format version of that earlier run key
 };
 const envelope = [
   "version",

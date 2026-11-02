@@ -1,5 +1,8 @@
 import * as T from "three";
-const ROLES = new Set(["Weathered brindle coat", "Worn muzzle ear paw", "Nose eyes mouth", "Old ivory canine teeth"]);
+import { GAME_DATA } from "./engine/game-data.js";
+// The four material names of the original dog GLB are appearance.json `meshNames`.
+const { feralCoat: COAT, feralLimbs: LIMBS, feralFace: FACE, feralTeeth: TEETH } = GAME_DATA.appearance.meshNames;
+const ROLES = new Set([COAT, LIMBS, FACE, TEETH]);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 function coatSampler(texture) {
   const image = texture.image,
@@ -39,18 +42,18 @@ export function createFeralDogLibrary(source) {
     if (!m.isSkinnedMesh || !ROLES.has(m.material?.name)) return;
     const original = m.geometry,
       role = m.material.name,
-      g = role === "Old ivory canine teeth" ? original : original.clone(),
+      g = role === TEETH ? original : original.clone(),
       material = m.material.clone();
     const p = g.attributes.position,
       c = g.attributes.color,
       ix = g.attributes.skinIndex,
       w = g.attributes.skinWeight;
-    const texel = role === "Weathered brindle coat" ? coatSampler(material.map) : null,
+    const texel = role === COAT ? coatSampler(material.map) : null,
       uv = g.attributes.uv;
     if (!p || !c || !ix || !w) throw Error("Original dog attributes missing");
     let removedTufts = 0,
       raisedTufts = 0;
-    if (role === "Weathered brindle coat") {
+    if (role === COAT) {
       const indices = g.index,
         uses = new Uint16Array(p.count);
       for (let i = 0; i < indices.count; i++) uses[indices.getX(i)]++;
@@ -85,7 +88,7 @@ export function createFeralDogLibrary(source) {
       }
       g.setIndex(new T.BufferAttribute(new original.index.array.constructor(kept), 1));
     }
-    if (role !== "Old ivory canine teeth")
+    if (role !== TEETH)
       for (let i = 0; i < p.count; i++) {
         let torso = 0,
           chest = 0,
@@ -106,7 +109,7 @@ export function createFeralDogLibrary(source) {
         const x = p.getX(i),
           y = p.getY(i),
           z = p.getZ(i);
-        if (role === "Weathered brindle coat") {
+        if (role === COAT) {
           const lean = clamp((torso - 0.9) / 0.1, 0, 1),
             shoulder = clamp((chest - 0.9) / 0.1, 0, 1);
           p.setX(i, x * (1 - 0.27 * lean + 0.1 * shoulder));
@@ -137,7 +140,7 @@ export function createFeralDogLibrary(source) {
           // original atlas/UVs and its fine strand/stain variation between vertices.
           const rgb = texel(uv.getX(i), uv.getY(i));
           c.setXYZ(i, ...target.map((v, k) => Math.min(32, v / rgb[k])));
-        } else if (role === "Worn muzzle ear paw") {
+        } else if (role === LIMBS) {
           if (jaw > 0.95 && z > 0.36 && z < 0.408 && Math.abs(x) > 0.018 && y > 0.326) p.setY(i, y - 0.006);
           if (earR > 0.95 && y > 0.46) {
             p.setX(i, x + 0.018);
@@ -151,14 +154,14 @@ export function createFeralDogLibrary(source) {
           if (y > 0.398 && y < 0.423 && z > 0.29 && z < 0.325 && Math.abs(x) > 0.039) c.setXYZ(i, 0.105, 0.06, 0.035);
         }
       }
-    if (role !== "Old ivory canine teeth") {
+    if (role !== TEETH) {
       g.computeVertexNormals();
       g.computeBoundingBox();
       g.computeBoundingSphere();
       ownedG.add(g);
     }
-    material.roughness = role === "Nose eyes mouth" ? 0.55 : role === "Old ivory canine teeth" ? 0.83 : 1;
-    if (role === "Old ivory canine teeth") material.color.multiplyScalar(1.1);
+    material.roughness = role === FACE ? 0.55 : role === TEETH ? 0.83 : 1;
+    if (role === TEETH) material.color.multiplyScalar(1.1);
     ownedM.add(material);
     const active = new Set(g.index ? g.index.array : Array.from({ length: p.count }, (_, i) => i)),
       changed = [];

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "note": "Device quality tiers, presentation only (sim, hits, saves and spawns never read it). A signal is weak when the device value passes its limit; a signal the browser does not report is not counted. The tier is the row with the most weakSignals not above the count of weak signals, so a device needs at least two weak signals before it leaves full. Pixel ratio is deliberately NOT a signal (every current iPhone is 3). frameMs is the median over a long sample after warmupFrames, taken once; its limit is far worse than a 30 fps cap (iOS Low Power Mode is about 33 ms), so a capped but healthy phone stays on full. Frames longer than maxFrameMs (hidden tab, loading) are skipped. The device probe runs once per session and the tier never moves back up. Row caps are ceilings: full is deliberately permissive so the older data files stay the source for the full game. ?quality=auto|full|mid|low forces a tier (full is the off switch). distanceScale divides the distance used by the off-screen throttle and the hostile LOD, so weak devices thin and hide far actors sooner; shadowScale does the same for the ground blob shadow. globalName is a read-only window property showing the tier and its reasons.",
+  "enabled": true,
+  "param": "quality",
+  "autoValue": "auto",
+  "globalName": "__qualityTier",
+  "probe": { "warmupFrames": 60, "sampleFrames": 180, "maxFrameMs": 250 },
+  "signals": [
+    { "name": "cores", "weak": "atMost", "limit": 4 },
+    { "name": "memoryGb", "weak": "atMost", "limit": 3 },
+    { "name": "textureSize", "weak": "atMost", "limit": 4096 },
+    { "name": "frameMs", "weak": "atLeast", "limit": 45 }
+  ],
+  "tiers": [
+    { "name": "full", "weakSignals": 0, "pixelRatio": 4, "ragdolls": 12, "crowdBodies": 12, "distanceScale": 1, "shadowScale": 1 },
+    { "name": "mid", "weakSignals": 2, "pixelRatio": 1.25, "ragdolls": 3, "crowdBodies": 2, "distanceScale": 0.8, "shadowScale": 0.75 },
+    { "name": "low", "weakSignals": 3, "pixelRatio": 1, "ragdolls": 1, "crowdBodies": 1, "distanceScale": 0.6, "shadowScale": 0.5 }
+  ]
+}

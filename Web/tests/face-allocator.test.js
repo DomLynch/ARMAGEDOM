@@ -4,7 +4,7 @@ import {allocateFaceRecipes} from '../src/face-allocator.js';
 import {AREA_MOB_SPAWNS} from '../src/area-mob-spawns.js';
 const keys=n=>Array.from({length:n},(_,i)=>`fixture-resident-${String(i).padStart(3,'0')}`);
 const library=(n=50)=>({version:'fixture-v1',recipes:Array.from({length:n},(_,i)=>({id:`fixture-recipe-${i}`}))});
-test('actual6/9/9 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses',()=>{
+test('actual8/12/12 complete rosters use distinct first authored recipes for ordinary/Crooked/corpses',()=>{
  for(const[area,residents]of Object.entries(AREA_MOB_SPAWNS)){const l=library(),m=allocateFaceRecipes(area,residents.map(r=>r.key),l);assert.equal(m.size,residents.length);assert.equal(new Set(m.values()).size,residents.length);assert.deepEqual([...m.values()],l.recipes.slice(0,residents.length).map(r=>r.id));}
 });
 test('roster order, creation order and frozen inputs cannot change key identities',()=>{
@@ -35,16 +35,16 @@ test('reject malformed area/keys/version, sparse pools and duplicate/invalid rec
  for(const bad of [null,{}, {...l,version:''},{...l,version:1},{...l,recipes:[]},{...l,recipes:Array(1)},{...l,recipes:[null]},{...l,recipes:[{}]},{...l,recipes:[{id:1}]},{...l,recipes:[{id:''}]},{...l,recipes:[{id:'x'},{id:'x'}]},{...l,recipes:library(51).recipes}])assert.throws(()=>allocateFaceRecipes('east',[],bad));
  const special=['__proto__','constructor','toString'];assert.equal(allocateFaceRecipes('east',special,l).size,3);
 });
-test('combined24 roster shares one cross-area map for live, corpse, refresh and area-return lookups',()=>{
+test('combined32 roster shares one cross-area map for live, corpse, refresh and area-return lookups',()=>{
  const full=Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),l=library(),namespace='london-residents';
- assert.equal(full.length,24);assert.equal(new Set(full).size,24);
+ assert.equal(full.length,32);assert.equal(new Set(full).size,32);
  const shared=allocateFaceRecipes(namespace,full,l),snapshot=[...shared];
- assert.equal(shared.size,24);assert.equal(new Set(shared.values()).size,24);assert.deepEqual([...shared.values()],l.recipes.slice(0,24).map(r=>r.id));
+ assert.equal(shared.size,32);assert.equal(new Set(shared.values()).size,32);assert.deepEqual([...shared.values()],l.recipes.slice(0,32).map(r=>r.id));
  assert.deepEqual(allocateFaceRecipes(namespace,[...full].reverse(),l),shared);
  const dead=new Set(Object.values(AREA_MOB_SPAWNS).map(records=>records[0].key));
  const live=area=>AREA_MOB_SPAWNS[area].filter(r=>!dead.has(r.key)).map(r=>[r.key,shared.get(r.key)]);
  const westBefore=live('westminster'),east=live('east'),south=live('south'),westReturn=live('westminster');
  assert.deepEqual(westReturn,westBefore);assert.ok([...east,...south,...westReturn].every(([key,id])=>id===shared.get(key)));
  const corpseIds=[...dead].map(key=>shared.get(key)),all=[...westReturn,...east,...south].map(([,id])=>id).concat(corpseIds);
- assert.equal(all.length,24);assert.equal(new Set(all).size,24);assert.deepEqual([...shared],snapshot);
+ assert.equal(all.length,32);assert.equal(new Set(all).size,32);assert.deepEqual([...shared],snapshot);
 });

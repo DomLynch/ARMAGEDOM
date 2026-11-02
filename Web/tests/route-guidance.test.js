@@ -1,32 +1,44 @@
 import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';import{createHash}from'node:crypto';import*as THREE from'three';
 import{LondonWorld}from'../src/world.js';import{createGeometry}from'../src/world-geometry.js';import{validateGuidance,resolveGuidance,capsuleSegmentClear}from'../src/engine/route-guidance.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url))),fixture=read('./fixtures/phone-guidance-positions.json'),manifest=read('../public/world/manifest.json'),layout=area=>read('../public/world/'+area+'/layout.json');
-function setup(area,point){const l=layout(area),scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=new LondonWorld({THREE,scene,camera,layout:l,texture:new THREE.Texture(),manifest});world.areaId=area;world.update(world.geometry.ground(point),0,393,695,true);return{world,scene,camera};}
+function setup(area,point,l=layout(area)){const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),world=new LondonWorld({THREE,scene,camera,layout:l,texture:new THREE.Texture(),manifest});world.areaId=area;world.update(world.geometry.ground(point),0,393,695,true);return{world,scene,camera};}
 const hash=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
 test('guidance preserves accepted road geometry including the202 stair pocket; gates match registry',()=>{
  for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area);delete l.guidance;assert.equal(hash(l),fixture.baselineLayouts[area]);}
- assert.equal(manifest.links.length,28);
- assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[{from:'westminster',to:'east',requiresDefeat:'boss-witch-v1'},{from:'central-hub',to:'east',requiresDefeat:'boss-witch-v1'}]);
+ assert.equal(manifest.links.length,24);
+ assert.deepEqual(manifest.links.filter(link=>link.requiresDefeat).map(({from,to,requiresDefeat})=>({from,to,requiresDefeat})),[]);
 });
 test('authored rows have capsule-clear paths ending inside an existing destination trigger',()=>{
  let count=0;for(const area of Object.keys(fixture.baselineLayouts)){const l=layout(area),g=createGeometry(l),rows=validateGuidance(l,g,manifest.links.filter(r=>r.from===area));count+=rows.length;for(const row of rows){assert(row.path.every(p=>g.clear(p,.4)));assert(row.path.slice(1).every((p,i)=>capsuleSegmentClear(g,row.path[i],p)));}}
- assert.equal(count,7);
+ assert.equal(count,2);
 });
 test('malformed,blocked,off-edge,duplicate and wrong-destination rows are rejected',()=>{
- const original=layout('lambeth'),g=createGeometry(original),links=manifest.links.filter(r=>r.from==='lambeth');
- for(const mutate of[l=>l.guidance[0].path[0]={x:0,y:1},l=>l.guidance[0].segment[0].x+=.01,l=>l.guidance[0].to='south',l=>l.guidance.push(structuredClone(l.guidance[0])),l=>l.guidance[0].unknown=true,l=>l.guidance[0].path[1]=l.guidance[0].path[0]]){const l=structuredClone(original);mutate(l);assert.throws(()=>validateGuidance(l,g,links));}
+ const original=layout('area7'),g=createGeometry(original),links=manifest.links.filter(r=>r.from==='area7');
+ for(const mutate of[l=>l.guidance[0].path[0]={x:0,y:1},l=>l.guidance[0].edge=0,l=>l.guidance[0].to='south',l=>l.guidance.push(structuredClone(l.guidance[0])),l=>l.guidance[0].unknown=true,l=>l.guidance[0].path[1]=l.guidance[0].path[0]]){const l=structuredClone(original);mutate(l);assert.throws(()=>validateGuidance(l,g,links));}
 });
 test('every walkable sample in all five photo intervals receives a safe inward or exit waypoint',()=>{
  let checked=0;for(const row of fixture.rows){const l=layout(row.area),g=createGeometry(l),rows=validateGuidance(l,g,manifest.links.filter(r=>r.from===row.area));for(let ix=0;ix<=10;ix++)for(let iy=0;iy<=10;iy++){const q={x:row.bounds.x[0]+(row.bounds.x[1]-row.bounds.x[0])*ix/10,y:row.bounds.y[0]+(row.bounds.y[1]-row.bounds.y[0])*iy/10},p=g.ground(q);if(!g.clear(p,.4))continue;const cue=resolveGuidance(rows,g,p);assert(cue,`${row.id} lacks guidance at ${JSON.stringify(q)}`);assert(capsuleSegmentClear(g,p,cue.target));assert.equal(cue.row.kind,row.area==='lambeth'?'boundary':'exit');checked++;}}
- assert(checked>250);
+ assert(checked>150);
 });
 test('actual camera projection determines arrow text across phone aspects and activated stage camera',()=>{
- const arrows=['→','↗','↑','↖','←','↙','↓','↘'];for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);for(const size of[[393,695],[844,390]]){world.update(p,0,...size,true);const active=Object.assign(Object.create(LondonWorld.prototype),world,{camera:world.camera.clone()});active.camera.projectionMatrix.elements[0]*=-1;const cue=world.routeGuidance.resolve(p),a=active.toRender(p).project(active.camera),b=active.toRender(cue.target).project(active.camera),direction=arrows[(Math.round(Math.atan2(b.y-a.y,b.x-a.x)/(Math.PI/4))+8)%8];assert(active.exitHint(p).includes(direction));assert(!active.exitHint(p).includes('THEN'));}world.dispose();}
+ const arrows=['→','↗','↑','↖','←','↙','↓','↘'];for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);world.areaId='westminster';/* the cue logic runs only where the tutorial is */world.travelAt=()=>null;/* this check is about the arrow text, not Westminster's own exit zones */for(const size of[[393,695],[844,390]]){world.update(p,0,...size,true);const active=Object.assign(Object.create(LondonWorld.prototype),world,{camera:world.camera.clone()});active.camera.projectionMatrix.elements[0]*=-1;const cue=world.routeGuidance.resolve(p),a=active.toRender(p).project(active.camera),b=active.toRender(cue.target).project(active.camera),direction=arrows[(Math.round(Math.atan2(b.y-a.y,b.x-a.x)/(Math.PI/4))+8)%8];assert(active.exitHint(p).includes(direction));assert(!active.exitHint(p).includes('THEN'));}world.dispose();}
 });
 test('an actual gate retains its exit cue instead of a contradictory boundary cue',()=>{
- const{world}=setup('lambeth',{x:.25,y:.065}),p=world.geometry.ground({x:.25,y:.065});assert.equal(world.travelAt(p)?.areaId,'elephant-and-castle');assert.equal(world.exitHint(p),'EXIT → ELEPHANT AND CASTLE');assert.equal(world.routeGuidance.arrow.visible,false);world.dispose();
+ const{world}=setup('lambeth',{x:.25,y:.065}),p=world.geometry.ground({x:.25,y:.065});assert.equal(world.travelAt(p)?.areaId,'westminster');assert.equal(world.exitHint(p),'EXIT → WESTMINSTER');world.dispose();
 });
 test('barrier footprint remains outside collision,uses at most two meshes,and releases stage-owned resources once',()=>{
- const{world,scene}=setup('lambeth',{x:.5283,y:.1897}),cue=world.routeGuidance,positions=cue.barrier.geometry.attributes.position;for(let i=0;i<positions.count;i++)assert.equal(world.geometry.clear({x:positions.getX(i),z:-positions.getZ(i)},0),false);
+ const retired=read('./fixtures/lambeth-retired-boundaries.json').rows,{world,scene}=setup('lambeth',{x:.5283,y:.1897},{...layout('lambeth'),guidance:retired}),cue=world.routeGuidance,positions=cue.barrier.geometry.attributes.position;for(let i=0;i<positions.count;i++)assert.equal(world.geometry.clear({x:positions.getX(i),z:-positions.getZ(i)},0),false);
  assert.equal(cue.group.children.length,2);assert.equal(cue.barrier.material.vertexColors,true);let releases=0;for(const mesh of cue.group.children){mesh.geometry.addEventListener('dispose',()=>releases++);mesh.material.addEventListener('dispose',()=>releases++);}const actor=new THREE.Group();scene.add(actor);world.dispose();world.dispose();assert.equal(releases,4);assert.deepEqual(scene.children,[actor]);
+});
+test('the tutorial ground arrow is hidden in every area but Westminster; outside Westminster the only text is the EXIT label',()=>{
+ for(const row of fixture.rows){const{world}=setup(row.area,row.representative),p=world.geometry.ground(row.representative);world.update(p,0,393,695,true);const arrow=world.routeGuidance.arrow;assert.equal(arrow.name,'safe-route-direction',row.area);if(row.area!=='westminster')assert.equal(arrow.visible,false,row.area);const hint=world.exitHint(p);if(row.area!=='westminster')assert(hint===''||hint.startsWith('EXIT →'),`${row.area}: ${hint}`);world.dispose();}
+});
+test('in Westminster the arrow points at the current tutorial step (pistol, then salamander, then matron) and is gone when none is left',()=>{
+ const{world}=setup('westminster',{x:.5,y:.8075297613}),cue=world.routeGuidance,p=world.geometry.ground({x:.5,y:.8075297613});
+ const at=(target)=>{const dx=target.x-p.x,dz=target.z-p.z;return Math.atan2(dx,-dz)};
+ cue.setTutorial(true);cue.setPistolTarget({x:p.x+4,z:p.z});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'pistol step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x+4,z:p.z}))<1e-9);
+ cue.setTutorial(false);cue.setPistolTarget(null);cue.setHuntTarget({pos:{x:p.x,z:p.z+5},label:'Kill the giant salamander'});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'salamander step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x,z:p.z+5}))<1e-9);
+ cue.setHuntTarget({pos:{x:p.x-5,z:p.z},label:'Kill the Ember Matron'});world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,true,'matron step');assert.ok(Math.abs(cue.arrow.rotation.y-at({x:p.x-5,z:p.z}))<1e-9);
+ cue.setHuntTarget(null);world.update(p,0,393,695,true);assert.equal(cue.arrow.visible,false,'nothing left after the matron');
+ world.dispose();
 });

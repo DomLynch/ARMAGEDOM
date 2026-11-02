@@ -1,4 +1,10 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+// The contour stroke width, colour and render-order lift are appearance.json `pickupGlow`.
+const GLOW = GAME_DATA.appearance.pickupGlow;
+const KEY_DECIMALS = 6; // tuning-ok: hull welding, positions equal to a millionth of a metre are one point
+const XYZ = 3; // tuning-ok: a normal packed as three floats
+const CORNERS = 3; // tuning-ok: a triangle has three corners
 
 // Inverse hull of the actual static pickup mesh. No surface/texture mutation.
 const hulls = new WeakMap();
@@ -34,20 +40,21 @@ function acquireHull(source) {
     return entry;
   }
   const p = source.attributes.position,
-    normal = new Float32Array(p.count * 3),
+    normal = new Float32Array(p.count * XYZ),
     sum = new Map();
   const vector = new T.Vector3(),
     a = new T.Vector3(),
     b = new T.Vector3(),
     c = new T.Vector3(),
     edge = new T.Vector3();
-  const key = (i) => `${p.getX(i).toFixed(6)},${p.getY(i).toFixed(6)},${p.getZ(i).toFixed(6)}`;
+  const at6 = (v) => v.toFixed(KEY_DECIMALS),
+    key = (i) => `${at6(p.getX(i))},${at6(p.getY(i))},${at6(p.getZ(i))}`;
   // Merge only outline normals at coincident positions, leaving hard-surface
   // original normals/UV seams untouched. Area-weighted triangle normals.
   const index = source.index,
     at = (i) => (index ? index.getX(i) : i);
-  for (let f = 0; f < (index?.count ?? p.count); f += 3) {
-    const ids = [at(f), at(f + 1), at(f + 2)];
+  for (let f = 0; f < (index?.count ?? p.count); f += CORNERS) {
+    const ids = Array.from({ length: CORNERS }, (_, k) => at(f + k));
     a.fromBufferAttribute(p, ids[0]);
     b.fromBufferAttribute(p, ids[1]);
     c.fromBufferAttribute(p, ids[2]);
@@ -60,11 +67,11 @@ function acquireHull(source) {
   }
   for (let i = 0; i < p.count; i++) {
     vector.copy(sum.get(key(i))).normalize();
-    normal.set(vector.toArray(), i * 3);
+    normal.set(vector.toArray(), i * XYZ);
   }
   const geometry = new T.BufferGeometry();
   geometry.setAttribute("position", p.clone());
-  geometry.setAttribute("normal", new T.BufferAttribute(normal, 3));
+  geometry.setAttribute("normal", new T.BufferAttribute(normal, XYZ));
   if (index) geometry.setIndex(index.clone());
   geometry.setDrawRange(source.drawRange.start, source.drawRange.count);
   geometry.computeBoundingBox();
@@ -87,8 +94,8 @@ export function addPickupGlow(mesh) {
     fragmentShader,
     uniforms: {
       viewport: { value: new T.Vector2(1, 1) },
-      stroke: { value: 1.05 },
-      color: { value: new T.Color(0xffca85) },
+      stroke: { value: GLOW.stroke },
+      color: { value: new T.Color(GLOW.color) },
     },
     side: T.BackSide,
     depthTest: true,
@@ -111,14 +118,14 @@ export function addPickupGlow(mesh) {
     }
   }
   sync();
-  halo.name = "Ground pickup thin contour";
+  halo.name = "Ground pickup thin contour"; // text-ok: a scene-graph label for debugging, never shown to the player
   halo.frustumCulled = false;
-  halo.renderOrder = mesh.renderOrder + 0.01;
+  halo.renderOrder = mesh.renderOrder + GLOW.orderOffset;
   halo.onBeforeRender = (renderer) => {
     sync();
     renderer.getCurrentViewport(viewport);
     material.uniforms.viewport.value.set(Math.max(1, viewport.z), Math.max(1, viewport.w));
-    material.uniforms.stroke.value = 1.05 * renderer.getPixelRatio();
+    material.uniforms.stroke.value = GLOW.stroke * renderer.getPixelRatio() * (halo.userData.strokeScale ?? 1);
   };
   mesh.add(halo);
   return {

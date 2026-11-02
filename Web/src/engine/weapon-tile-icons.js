@@ -1,7 +1,8 @@
+import { GAME_DATA } from "./game-data.js";
 // Small local silhouettes of the carried weapon families; no model/image requests.
 const paths = {
   railgun:
-    "M3 17H19L26 21H43V16H95V22H43L39 35H30L34 24H22L17 32H9L13 23H3Z M49 9H55V29H49Z M63 9H69V29H63Z M77 9H83V29H77Z",
+    "M3 17H19L26 21H43V16H95V22H43L39 35H30L34 24H22L17 32H9L13 23H3Z M40 22H58V40H40Z",
   drone:
     "M18 11H35L42 17H58L65 11H82V21H65L58 27H42L35 21H18Z M8 5H30V9H8Z M70 5H92V9H70Z M8 27H30V31H8Z M70 27H92V31H70Z M45 27H55V36H45Z",
   knife: "M8 30 35 22 91 10C85 23 63 33 40 33L37 28 12 39Z M34 20 38 19 43 36 39 37Z",
@@ -16,20 +17,21 @@ const paths = {
   grenade: "M42 13H60L68 24 67 35 58 42H43L34 35 33 24Z M43 6H57V14H43Z M53 6H68L76 22 72 25 63 12H53Z M47 0H55V6H47Z",
   rocket: "M3 15H11V11H17V15H75L83 10 97 20 83 30 75 25H54L50 39H43L46 25H29V31H22V25H17V29H11V25H3Z M36 9H48V15H36Z",
 };
-const styles = {
-  knife: ["knife", "KNIFE"],
-  "hale-pitborn-cleaver-v1": ["cleaver", "CLEAVER"],
-  "surgeons-knife-v1": ["saw", "BONE SAW"],
-  "westminster-start-pistol-v1": ["pistol", "PISTOL"],
-  "watchmans-pistol-v1": ["drone", "REAPER"],
-  "borough-marshals-pistol-v1": ["railgun", "RAILGUN"],
-  "bridge-warden-rifle-v1": ["rifle", "RIFLE"],
-  "flamethrower-area8-v1": ["flame", "EMBER"],
-  "ember-flamethrower-v1": ["flame", "EMBER"],
-  "south-stalker-shotgun-v1": ["shotgun", "SHOTGUN"],
-  "standard-grenade-v1": ["grenade", "GRENADE"],
-  "borough-butchers-rocket-launcher-v1": ["rocket", "ROCKET"],
+const families = {
+  knife: "knife",
+  "hale-pitborn-cleaver-v1": "cleaver",
+  "surgeons-knife-v1": "saw",
+  "westminster-start-pistol-v1": "pistol",
+  "watchmans-pistol-v1": "drone",
+  "borough-marshals-pistol-v1": "railgun",
+  "bridge-warden-rifle-v1": "rifle",
+  "flamethrower-area8-v1": "flame",
+  "ember-flamethrower-v1": "flame",
+  "south-stalker-shotgun-v1": "shotgun",
+  "standard-grenade-v1": "grenade",
+  "borough-butchers-rocket-launcher-v1": "rocket",
 };
+const CAPTIONS = GAME_DATA.combatText.gear.iconCaptions; // data/combatText.json: the caption under each silhouette
 const icons = Object.fromEntries(
   Object.entries(paths).map(([id, d]) => [
     id,
@@ -39,7 +41,7 @@ const icons = Object.fromEntries(
   ]),
 );
 export function weaponTileIcon(itemId) {
-  const style = styles[itemId];
-  if (!style) throw Error("Missing carried weapon silhouette: " + itemId);
-  return { family: style[0], caption: style[1], mask: icons[style[0]] };
+  const family = families[itemId];
+  if (!family || !CAPTIONS[itemId]) throw Error("Missing carried weapon silhouette: " + itemId);
+  return { family, caption: CAPTIONS[itemId], mask: icons[family] };
 }

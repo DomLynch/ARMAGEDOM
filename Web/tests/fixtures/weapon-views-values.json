@@ -1,0 +1,849 @@
+{
+ "rocket": [
+  {
+   "label": "start",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.2,
+      0.2,
+      0.2
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.85,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.85,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "t1.05",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.314285714,
+      0.314285714,
+      0.314285714
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.728571429,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.728571429,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "t1.2",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.657142857,
+      0.657142857,
+      0.657142857
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.364285714,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.364285714,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "t1.3",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.885714286,
+      0.885714286,
+      0.885714286
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.121428571,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.121428571,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "t1.34",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.977142857,
+      0.977142857,
+      0.977142857
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.024285714,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.024285714,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "end",
+   "children": []
+  },
+  {
+   "label": "default-radius",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.2,
+      0.2,
+      0.2
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 2.92,
+        "outerRadius": 3,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.85,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.85,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "default-radius-mid",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.428571429,
+      0.428571429,
+      0.428571429
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 2.92,
+        "outerRadius": 3,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.607142857,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.607142857,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "stale",
+   "children": []
+  },
+  {
+   "label": "edge",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 1.946666667,
+        "outerRadius": 2,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "boss",
+   "children": [
+    {
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "scale": [
+      0.428571429,
+      0.428571429,
+      0.428571429
+     ],
+     "parts": [
+      {
+       "type": "Mesh",
+       "colour": 16760932,
+       "position": [
+        0,
+        0,
+        0
+       ],
+       "rotation": [
+        -1.570796327,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "innerRadius": 3.893333333,
+        "outerRadius": 4,
+        "thetaSegments": 40,
+        "phiSegments": 1,
+        "thetaStart": 0,
+        "thetaLength": 6.283185307
+       },
+       "opacity": 0.607142857,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 2
+      },
+      {
+       "type": "Mesh",
+       "colour": 16766871,
+       "position": [
+        0,
+        0.25,
+        0
+       ],
+       "rotation": [
+        0,
+        0,
+        0
+       ],
+       "scale": [
+        1,
+        1,
+        1
+       ],
+       "geometry": {
+        "radius": 0.25,
+        "widthSegments": 8,
+        "heightSegments": 6,
+        "phiStart": 0,
+        "phiLength": 6.283185307,
+        "thetaStart": 0,
+        "thetaLength": 3.141592654
+       },
+       "opacity": 0.607142857,
+       "transparent": true,
+       "depthWrite": false,
+       "depthTest": true,
+       "side": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "label": "boss-gone",
+   "children": []
+  }
+ ],
+ "flamePickup": {
+  "ring": [
+   {
+    "type": "Mesh",
+    "colour": 16760162,
+    "position": [
+     0,
+     0.025,
+     0
+    ],
+    "rotation": [
+     -1.570796327,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ],
+    "geometry": {
+     "radius": 0.35,
+     "tube": 0.025,
+     "radialSegments": 4,
+     "tubularSegments": 20,
+     "arc": 6.283185307
+    },
+    "opacity": 1,
+    "transparent": false,
+    "depthWrite": true,
+    "depthTest": true,
+    "side": 0
+   }
+  ],
+  "large": {
+   "scale": [
+    0.199692071,
+    0.199692071,
+    0.199692071
+   ],
+   "position": [
+    0,
+    0.124846035,
+    0
+   ]
+  },
+  "small": {
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "position": [
+    0,
+    0.175000006,
+    0
+   ]
+  }
+ },
+ "flameMessages": {
+  "empty": {
+   "message": "Flamethrower is out of fuel.",
+   "until": 104
+  },
+  "failed": {
+   "message": "Could not load flamethrower. Try Equip again.",
+   "until": 104
+  },
+  "ready": {
+   "message": "Ember Projector ready · hold Flame to fire.",
+   "until": 104
+  },
+  "claim": {
+   "message": "Flamethrower collected.",
+   "until": 104
+  }
+ }
+}

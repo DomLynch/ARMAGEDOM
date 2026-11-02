@@ -1,0 +1,359 @@
+{
+ "version": "armagedom-face-v1",
+ "recipes": [
+  {
+   "id": "face-narrow-buzz-light",
+   "headPreset": "narrow",
+   "hairPreset": "buzz",
+   "skinPreset": "light",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-broad-back-crop-brown",
+   "headPreset": "broad",
+   "hairPreset": "back-crop",
+   "skinPreset": "brown",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-narrow-crest-tan",
+   "headPreset": "narrow",
+   "hairPreset": "crest",
+   "skinPreset": "tan",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-broad-buzz-deep",
+   "headPreset": "broad",
+   "hairPreset": "buzz",
+   "skinPreset": "deep",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-narrow-messy-olive",
+   "headPreset": "narrow",
+   "hairPreset": "messy",
+   "skinPreset": "olive",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-broad-crest-light",
+   "headPreset": "broad",
+   "hairPreset": "crest",
+   "skinPreset": "light",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-narrow-rough-crop-brown",
+   "headPreset": "narrow",
+   "hairPreset": "rough-crop",
+   "skinPreset": "brown",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-broad-messy-tan",
+   "headPreset": "broad",
+   "hairPreset": "messy",
+   "skinPreset": "tan",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-narrow-back-crop-deep",
+   "headPreset": "narrow",
+   "hairPreset": "back-crop",
+   "skinPreset": "deep",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-broad-rough-crop-olive",
+   "headPreset": "broad",
+   "hairPreset": "rough-crop",
+   "skinPreset": "olive",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-narrow-buzz-olive",
+   "headPreset": "narrow",
+   "hairPreset": "buzz",
+   "skinPreset": "olive",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-broad-back-crop-light",
+   "headPreset": "broad",
+   "hairPreset": "back-crop",
+   "skinPreset": "light",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-narrow-crest-brown",
+   "headPreset": "narrow",
+   "hairPreset": "crest",
+   "skinPreset": "brown",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-broad-buzz-tan",
+   "headPreset": "broad",
+   "hairPreset": "buzz",
+   "skinPreset": "tan",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-narrow-messy-deep",
+   "headPreset": "narrow",
+   "hairPreset": "messy",
+   "skinPreset": "deep",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-broad-crest-olive",
+   "headPreset": "broad",
+   "hairPreset": "crest",
+   "skinPreset": "olive",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-narrow-rough-crop-light",
+   "headPreset": "narrow",
+   "hairPreset": "rough-crop",
+   "skinPreset": "light",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-broad-messy-brown",
+   "headPreset": "broad",
+   "hairPreset": "messy",
+   "skinPreset": "brown",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-narrow-back-crop-tan",
+   "headPreset": "narrow",
+   "hairPreset": "back-crop",
+   "skinPreset": "tan",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-broad-rough-crop-deep",
+   "headPreset": "broad",
+   "hairPreset": "rough-crop",
+   "skinPreset": "deep",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-narrow-buzz-deep",
+   "headPreset": "narrow",
+   "hairPreset": "buzz",
+   "skinPreset": "deep",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-broad-back-crop-olive",
+   "headPreset": "broad",
+   "hairPreset": "back-crop",
+   "skinPreset": "olive",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-narrow-crest-light",
+   "headPreset": "narrow",
+   "hairPreset": "crest",
+   "skinPreset": "light",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-broad-buzz-brown",
+   "headPreset": "broad",
+   "hairPreset": "buzz",
+   "skinPreset": "brown",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-narrow-messy-tan",
+   "headPreset": "narrow",
+   "hairPreset": "messy",
+   "skinPreset": "tan",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-broad-crest-deep",
+   "headPreset": "broad",
+   "hairPreset": "crest",
+   "skinPreset": "deep",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-narrow-rough-crop-olive",
+   "headPreset": "narrow",
+   "hairPreset": "rough-crop",
+   "skinPreset": "olive",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-broad-messy-light",
+   "headPreset": "broad",
+   "hairPreset": "messy",
+   "skinPreset": "light",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-narrow-back-crop-brown",
+   "headPreset": "narrow",
+   "hairPreset": "back-crop",
+   "skinPreset": "brown",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-broad-rough-crop-tan",
+   "headPreset": "broad",
+   "hairPreset": "rough-crop",
+   "skinPreset": "tan",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-narrow-buzz-tan",
+   "headPreset": "narrow",
+   "hairPreset": "buzz",
+   "skinPreset": "tan",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-broad-back-crop-deep",
+   "headPreset": "broad",
+   "hairPreset": "back-crop",
+   "skinPreset": "deep",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-narrow-crest-olive",
+   "headPreset": "narrow",
+   "hairPreset": "crest",
+   "skinPreset": "olive",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-broad-buzz-light",
+   "headPreset": "broad",
+   "hairPreset": "buzz",
+   "skinPreset": "light",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-narrow-messy-brown",
+   "headPreset": "narrow",
+   "hairPreset": "messy",
+   "skinPreset": "brown",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-broad-crest-tan",
+   "headPreset": "broad",
+   "hairPreset": "crest",
+   "skinPreset": "tan",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-narrow-rough-crop-deep",
+   "headPreset": "narrow",
+   "hairPreset": "rough-crop",
+   "skinPreset": "deep",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-broad-messy-olive",
+   "headPreset": "broad",
+   "hairPreset": "messy",
+   "skinPreset": "olive",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-narrow-back-crop-light",
+   "headPreset": "narrow",
+   "hairPreset": "back-crop",
+   "skinPreset": "light",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-broad-rough-crop-brown",
+   "headPreset": "broad",
+   "hairPreset": "rough-crop",
+   "skinPreset": "brown",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-narrow-buzz-brown",
+   "headPreset": "narrow",
+   "hairPreset": "buzz",
+   "skinPreset": "brown",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-broad-back-crop-tan",
+   "headPreset": "broad",
+   "hairPreset": "back-crop",
+   "skinPreset": "tan",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-narrow-crest-deep",
+   "headPreset": "narrow",
+   "hairPreset": "crest",
+   "skinPreset": "deep",
+   "weatheringPreset": "dust"
+  },
+  {
+   "id": "face-broad-buzz-olive",
+   "headPreset": "broad",
+   "hairPreset": "buzz",
+   "skinPreset": "olive",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-narrow-messy-light",
+   "headPreset": "narrow",
+   "hairPreset": "messy",
+   "skinPreset": "light",
+   "weatheringPreset": "stubble"
+  },
+  {
+   "id": "face-broad-crest-brown",
+   "headPreset": "broad",
+   "hairPreset": "crest",
+   "skinPreset": "brown",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-narrow-rough-crop-tan",
+   "headPreset": "narrow",
+   "hairPreset": "rough-crop",
+   "skinPreset": "tan",
+   "weatheringPreset": "scar"
+  },
+  {
+   "id": "face-broad-messy-deep",
+   "headPreset": "broad",
+   "hairPreset": "messy",
+   "skinPreset": "deep",
+   "weatheringPreset": "grime"
+  },
+  {
+   "id": "face-narrow-back-crop-olive",
+   "headPreset": "narrow",
+   "hairPreset": "back-crop",
+   "skinPreset": "olive",
+   "weatheringPreset": "ash"
+  },
+  {
+   "id": "face-broad-rough-crop-light",
+   "headPreset": "broad",
+   "hairPreset": "rough-crop",
+   "skinPreset": "light",
+   "weatheringPreset": "dust"
+  }
+ ],
+ "heads": 2,
+ "hairs": 5,
+ "skins": 5,
+ "weathering": 5
+}

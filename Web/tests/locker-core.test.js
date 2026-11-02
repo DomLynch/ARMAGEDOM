@@ -6,7 +6,8 @@ import{BOSS_EQUIPMENT_PROFILES as profiles}from'../src/engine/boss-equipment-dat
 import{lockerInventory}from'../src/engine/locker-core.js';
 import{RIFLE_SAVE_KEY}from'../src/engine/rifle-core.js';
 import{FLAME_SAVE_KEY}from'../src/engine/flame-core.js';
-const data=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),receipt=JSON.parse(fs.readFileSync(new URL('./fixtures/rifle166-earned-v9.json',import.meta.url)));
+import{withLegacySafehouse}from'./helpers/legacy-safehouse.js';
+const data=withLegacySafehouse(JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url)))),receipt=JSON.parse(fs.readFileSync(new URL('./fixtures/rifle166-earned-v9.json',import.meta.url)));
 function make(records=new Map([[RIFLE_SAVE_KEY,receipt.rawV9],[FLAME_SAVE_KEY,receipt.rawV8]])){const f=fixture({areaId:'westminster',records,extraWorld:{bossEquipmentData:profiles,safehouseData:data.safehouse}});f.restore();assert(!f.g.runSaveInvalid);f.g.player.pos=f.world.geometry.ground(data.safehouse.props.find(p=>p.id==='locker').standing);return f;}
 const transfer=(f,action)=>f.p.dispatchLocker(f.g,action,true);
 const deposit=(resource,amount)=>({type:'depositSupply',resource,amount});

@@ -1,22 +1,31 @@
 import { safehouseCrosses } from "./engine/safehouse.js";
 import { createRouteGuidance } from "./engine/route-guidance.js";
+import { createExitRings } from "./engine/exit-rings.js";
+import { createWorldPickups } from "./engine/world-pickups-view.js";
+import { createKillDropsView } from "./engine/kill-drops-view.js";
 import { createGeometry } from "./world-geometry.js";
 import { areaDisplayName, createAreaRegistry } from "./area-registry.js";
 import { validateAreaMetadata, validateAreaGeometry } from "./engine/area-content.js";
-const ASPECT = 1672 / 941;
+import { GAME_DATA, fillText } from "./engine/game-data.js";
+const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
+const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
+const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+// GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
+export const backdropTextureBytes = (texture, mipped = false) =>
+  (texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * (mipped ? 4 / 3 : 1); // tuning-ok: RGBA bytes; a mip chain adds a third
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
 function damp(value, target, velocity, time, dt) {
-  const omega = 2 / Math.max(0.0001, time),
+  const omega = 2 / Math.max(0.0001, time), // tuning-ok: SmoothDamp omega
     x = omega * dt,
-    decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x); // tuning-ok: SmoothDamp decay polynomial
   const change = value - target,
     temp = (velocity + omega * change) * dt;
   return [target + (change + temp) * decay, (velocity - omega * temp) * decay];
 }
 function initialSpawn(geometry, registry) {
   const row = registry.get(registry.initialArea);
-  return row.id === "westminster" || row.visibility === "private" ? { x: 0, z: -6 } : geometry.ground(row.entry);
+  return row.id === "westminster" || row.visibility === "private" ? { x: VIEW.londonEntry.x, z: VIEW.londonEntry.z } : geometry.ground(row.entry);
 }
 export class LondonWorld {
   constructor({
@@ -29,7 +38,7 @@ export class LondonWorld {
     baseUrl = null,
     viewZoomMultiplier = 1,
     registry = null,
-    textureBudgetBytes = 48 * 1024 * 1024,
+    textureBudgetBytes = VIEW.textureBudgetMiB * MIB,
     validatedLayouts = null,
     residentPlacements = null,
     areaAtmosphere = null,
@@ -47,16 +56,18 @@ export class LondonWorld {
     safehouseData = null,
     reaperData = null,
     markedData = null,
+    cursedRelicData = null,
   }) {
     if (!Number.isFinite(viewZoomMultiplier) || viewZoomMultiplier < 1)
       throw Error("View zoom multiplier must be finite and at least 1");
     if (
       !Number.isFinite(textureBudgetBytes) ||
-      textureBudgetBytes < 16 * 1024 * 1024 ||
-      textureBudgetBytes > 48 * 1024 * 1024
+      textureBudgetBytes < VIEW.textureBudgetMinMiB * MIB ||
+      textureBudgetBytes > VIEW.textureBudgetMiB * MIB
     )
       throw Error("Invalid texture budget");
     this.markedData = markedData;
+    this.cursedRelicData = cursedRelicData;
     this.reaperData = reaperData;
     this.safehouseData = safehouseData;
     this.bossEquipmentData = bossEquipmentData;
@@ -89,14 +100,14 @@ export class LondonWorld {
     this.baseUrl = baseUrl;
     this.areaId = this.registry.initialArea;
     this.disposed = false;
-    this.center = { x: 0.5, y: 0.5 };
+    this.center = { x: 0.5, y: 0.5 }; // tuning-ok: centre of the painting
     this.velocity = { x: 0, y: 0 };
     this.group = new THREE.Group();
-    this.group.name = "London registered image stage";
+    this.group.name = "London registered image stage"; // text-ok: internal mesh name
     camera.fov = layout.fieldOfView;
     camera.aspect = ASPECT;
-    camera.near = 0.1;
-    camera.far = 300;
+    camera.near = VIEW.cameraNear;
+    camera.far = VIEW.cameraFar;
     camera.position.set(0, layout.height, layout.distance);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, -layout.targetZ);
@@ -110,6 +121,10 @@ export class LondonWorld {
     this.ndc = new THREE.Vector2();
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+    // The backdrop is never drawn smaller than its pixels (view zoom is at least 1), so it needs no mip chain: no generation at area
+    // preparation and a third less GPU memory. See textureBytes().
+    texture.generateMipmaps = false;
+    texture.minFilter = texture.magFilter = THREE.LinearFilter;
     this.backdrop = this.quad(
       [
         { x: 0, y: 1 },
@@ -128,7 +143,7 @@ export class LondonWorld {
       }),
       -100,
     );
-    this.backdrop.name = "Original London image";
+    this.backdrop.name = "Original London image"; // text-ok: internal mesh name
     const depth = new THREE.MeshBasicMaterial({
       colorWrite: false,
       depthWrite: true,
@@ -144,8 +159,11 @@ export class LondonWorld {
     });
     this.depthMaterial = depth;
     this.routeGuidance = createRouteGuidance(this);
+    this.exitRings = createExitRings(this);
+    this.worldPickups = createWorldPickups(this);
+    this.killDrops = createKillDropsView(this);
     scene.add(this.group);
-    this.update(this.spawn, 0, 1672, 941, true);
+    this.update(this.spawn, 0, VIEW.artSize[0], VIEW.artSize[1], true);
   }
   toRender(position, height = 0) {
     return new this.THREE.Vector3(position.x, height, -position.z);
@@ -156,7 +174,7 @@ export class LondonWorld {
       uv = [],
       indices = [];
     for (const p of points) {
-      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, 0.5);
+      const v = new THREE.Vector3(2 * p.x - 1, 1 - 2 * p.y, 0.5); // tuning-ok: painting fraction to NDC, mid-depth
       if (registered) v.applyMatrix4(this.calibrated.clone().invert());
       else v.unproject(camera).applyMatrix4(camera.matrixWorldInverse);
       v.multiplyScalar(distance / -v.z).applyMatrix4(camera.matrixWorld);
@@ -165,8 +183,8 @@ export class LondonWorld {
     }
     for (let i = 1; i < points.length - 1; i++) indices.push(0, i, i + 1);
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); // tuning-ok: x, y, z per vertex
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); // tuning-ok: u, v per vertex
     geometry.setIndex(indices);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.renderOrder = order;
@@ -204,7 +222,7 @@ export class LondonWorld {
     const guidance = this.routeGuidance?.hint(position, this);
     if (guidance) return guidance;
     let nearest = null,
-      distance = 6;
+      distance = VIEW.exitHintMeters;
     for (const link of this.registry.links(this.areaId)) {
       if (this.routeGuidance?.allowsExitHint?.(link.to) === false) continue;
       const c = link.condition,
@@ -217,7 +235,7 @@ export class LondonWorld {
         nearest = link.to;
       }
     }
-    return nearest ? `EXIT → ${areaDisplayName(nearest).toUpperCase()}` : "";
+    return nearest ? fillText(GAME_DATA.visual.routeGuidance.text.exit, { area: areaDisplayName(nearest).toUpperCase() }) : "";
   }
   async loadArea(areaId, entryPoint = this.registry.get(areaId)?.entry) {
     if (!this.registry.has(areaId) || !entryPoint) throw Error("Unknown London area");
@@ -227,7 +245,7 @@ export class LondonWorld {
     try {
       const next = await this.prepareArea(areaId),
         entry = next.geometry.ground(entryPoint);
-      if (!next.geometry.clear(entry, 0.4)) throw Error("London entry is blocked");
+      if (!next.geometry.clear(entry, VIEW.entryClearance)) throw Error("London entry is blocked");
       if (cache.disposed || generation !== cache.generation) throw Error("London load superseded");
       const { scene, camera, THREE } = this,
         source = { ...this },
@@ -244,9 +262,12 @@ export class LondonWorld {
         camera.copy(next.camera, false);
         previous.scene.add(this.group);
         cache.stages.set(this.areaId, previous);
+        const leaving = source.areaId;
         Object.assign(this, next, { scene, camera, areaCache: cache, spawn: { ...entry } });
         cache.activeArea = areaId;
+        cache.previousArea = leaving;
         scene.add(this.group);
+        this.trimParkedStages();
         return { ...entry };
       } catch (error) {
         try {
@@ -296,6 +317,41 @@ export class LondonWorld {
       if (count > 0) cache.leases.set(areaId, count);
       else cache.leases.delete(areaId);
     };
+  }
+  // Parked-area budget (set while prefetch is on): at most `maxAreas` parked stages or `maxBytes` of their textures,
+  // whichever is reached first. Least recently used go first; the area just left is never evicted here.
+  trimParkedStages() {
+    const cache = this.areaCache,
+      limit = cache?.parkedLimit;
+    if (!limit) return;
+    const parked = [...cache.stages].filter(([id]) => id !== cache.activeArea);
+    const bytes = () => parked.reduce((n, [, stage]) => n + stage.textureBytes(), 0);
+    const candidates = parked
+      .filter(([id]) => id !== cache.previousArea && !cache.pending.has(id) && !cache.leases.has(id))
+      .sort(([a], [b]) => (cache.usage.get(a) ?? 0) - (cache.usage.get(b) ?? 0));
+    for (const [id, stage] of candidates) {
+      if (parked.length <= limit.maxAreas && bytes() <= limit.maxBytes) break;
+      cache.stages.delete(id);
+      cache.usage.delete(id);
+      parked.splice(
+        parked.findIndex(([other]) => other === id),
+        1,
+      );
+      stage.disposeStage();
+      cache.evictions++;
+      cache.lastEvicted = id;
+    }
+  }
+  setParkedLimit(limit) {
+    (this.areaCache ??= this.createAreaCache()).parkedLimit = limit;
+  }
+  // Layout and backdrop files a later prepareArea would fetch; empty once the stage is prepared.
+  areaPrefetchUrls(areaId) {
+    const row = this.registry.get(areaId);
+    if (!row || this.areaCache?.stages.has(areaId)) return [];
+    return [row.layoutRef, row.backdropRef]
+      .filter((ref) => ref !== row.layoutRef || !this.validatedLayouts?.[ref])
+      .map((ref) => new URL(this.registry.asset(ref).path, this.baseUrl).href);
   }
   admitTexture(bytes) {
     const cache = this.areaCache,
@@ -352,6 +408,7 @@ export class LondonWorld {
         this.populationData,
         this.flameData,
         this.safehouseData,
+        this.cursedRelicData,
       );
       const texture = await new this.THREE.TextureLoader().loadAsync(
         new URL(this.registry.asset(row.backdropRef).path, this.baseUrl).href,
@@ -359,7 +416,7 @@ export class LondonWorld {
       let next;
       try {
         if (cache.disposed) throw Error("London cache disposed");
-        this.admitTexture(((texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * 7) / 3);
+        this.admitTexture(backdropTextureBytes(texture));
         next = new LondonWorld({
           THREE: this.THREE,
           scene: new this.THREE.Scene(),
@@ -386,10 +443,17 @@ export class LondonWorld {
           safehouseData: this.safehouseData,
           reaperData: this.reaperData,
           markedData: this.markedData,
+          cursedRelicData: this.cursedRelicData,
           rifleData: this.rifleData,
           flameData: this.flameData,
         });
         next.areaId = areaId;
+        next.exitRings.dispose(); // built in the constructor for the initial area; rebuilt for the area this stage really is
+        next.exitRings = createExitRings(next);
+        next.worldPickups.dispose();
+        next.worldPickups = createWorldPickups(next);
+        next.killDrops.dispose();
+        next.killDrops = createKillDropsView(next);
         cache.stages.set(areaId, next);
         cache.usage.set(areaId, cache.nextUse++);
         return next;
@@ -410,7 +474,7 @@ export class LondonWorld {
     }
   }
   textureBytes() {
-    return ((this.texture.image?.width ?? 0) * (this.texture.image?.height ?? 0) * 4 * 7) / 3;
+    return backdropTextureBytes(this.texture);
   }
   preparationStats() {
     const c = this.areaCache;
@@ -450,32 +514,46 @@ export class LondonWorld {
     const hit = this.ray.ray.intersectPlane(this.plane, this.hit);
     return hit ? { x: hit.x, z: -hit.z } : null;
   }
-  update(playerPosition, dt, width, height, immediate = false) {
+  // `deathView` (engine/death-presentation.js, boss/marked-hunter death): { zoomMul, focus: {x,z}, share } or null; null = unchanged view.
+  update(playerPosition, dt, width, height, immediate = false, deathView = null) {
     this.width = width;
     this.height = height;
     const { layout, geometry, camera } = this;
     const p = geometry.point(playerPosition);
     let zoom = layout.zoom;
     if (layout.followPlayerSize) {
-      const reference = geometry.ground({ x: 0.52, y: 0.78 });
-      const projectedHeight = (q) => Math.abs(geometry.point(q, 2).y - geometry.point(q).y);
-      zoom = clamp((zoom * projectedHeight(reference)) / projectedHeight(playerPosition), 1, 4);
+      const reference = geometry.ground({ ...VIEW.followReference });
+      const projectedHeight = (q) => Math.abs(geometry.point(q, VIEW.referenceHeight).y - geometry.point(q).y);
+      zoom = clamp((zoom * projectedHeight(reference)) / projectedHeight(playerPosition), 1, VIEW.maxZoom);
     }
     const aspect = Math.max(1, width) / Math.max(1, height),
       portrait = aspect < 1;
     if (portrait) {
-      // A scaled 2m reference stays ~63 CSS pixels; zoom>=1 keeps the finite painting covering the screen.
-      const actorHeight = Math.abs(geometry.point(playerPosition, 2 * layout.characterScale).y - p.y);
-      zoom = clamp(63 / (actorHeight * Math.max(1, height)), 1, 4);
+      // A scaled 2m reference stays ~portraitActorPixels CSS pixels; zoom>=1 keeps the finite painting covering the screen.
+      const actorHeight = Math.abs(geometry.point(playerPosition, VIEW.referenceHeight * layout.characterScale).y - p.y);
+      // A layout may name a `portraitScale` factor on that size (smaller = the scene and the player drawn smaller); absent = the default.
+      const actorPixels = VIEW.portraitActorPixels * (layout.portraitScale ?? VIEW.defaultPortraitScale);
+      zoom = clamp(actorPixels / (actorHeight * Math.max(1, height)), 1, VIEW.maxZoom);
     }
-    if (!portrait) zoom *= 1.1;
-    else zoom *= 1.05;
-    zoom *= this.viewZoomMultiplier;
+    if (!portrait) zoom *= VIEW.landscapeZoomBoost;
+    else zoom *= VIEW.portraitZoomBoost;
+    zoom *= this.viewZoomMultiplier * (deathView?.zoomMul ?? 1);
+    // The follow target slides from the player toward the dying body by `share`; the size reference above stays on the player.
+    const k = deathView?.focus ? deathView.share : 0,
+      f = k
+        ? geometry.point({
+            x: playerPosition.x + (deathView.focus.x - playerPosition.x) * k,
+            z: playerPosition.z + (deathView.focus.z - playerPosition.z) * k,
+          })
+        : p;
     const zx = zoom * Math.max(1, ASPECT / aspect),
       zy = zoom * Math.max(1, aspect / ASPECT);
-    const ex = 0.5 / zx,
-      ey = 0.5 / zy,
-      target = { x: clamp(p.x, ex, 1 - ex), y: clamp(1 - p.y + (portrait ? 0.02 / zy : 0.1), ey, 1 - ey) };
+    const ex = 0.5 / zx, // tuning-ok: half the visible painting width
+      ey = 0.5 / zy, // tuning-ok: half the visible painting height
+      target = {
+        x: clamp(f.x, ex, 1 - ex),
+        y: clamp(1 - f.y + (portrait ? VIEW.portraitLift / zy : VIEW.landscapeLift), ey, 1 - ey),
+      };
     if (immediate) {
       this.center = target;
       this.velocity = { x: 0, y: 0 };
@@ -485,14 +563,14 @@ export class LondonWorld {
         target.x,
         this.velocity.x,
         layout.followSeconds,
-        Math.max(0, Math.min(dt, 0.1)),
+        Math.max(0, Math.min(dt, VIEW.maxFollowSeconds)),
       );
       [this.center.y, this.velocity.y] = damp(
         this.center.y,
         target.y,
         this.velocity.y,
         layout.followSeconds,
-        Math.max(0, Math.min(dt, 0.1)),
+        Math.max(0, Math.min(dt, VIEW.maxFollowSeconds)),
       );
     }
     this.center.x = clamp(this.center.x, ex, 1 - ex);
@@ -500,8 +578,8 @@ export class LondonWorld {
     this.crop.identity();
     this.crop.elements[0] = zx;
     this.crop.elements[5] = zy;
-    this.crop.elements[12] = -2 * zx * (this.center.x - 0.5);
-    this.crop.elements[13] = -2 * zy * (this.center.y - 0.5);
+    this.crop.elements[12] = -2 * zx * (this.center.x - 0.5); // tuning-ok: painting fraction to NDC offset
+    this.crop.elements[13] = -2 * zy * (this.center.y - 0.5); // tuning-ok: painting fraction to NDC offset
     camera.projectionMatrix.multiplyMatrices(this.crop, this.calibrated);
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     this.routeGuidance?.update(playerPosition, this);
@@ -525,6 +603,9 @@ export class LondonWorld {
     if (this.disposed) return;
     this.disposed = true;
     this.routeGuidance?.dispose();
+    this.exitRings?.dispose();
+    this.worldPickups?.dispose();
+    this.killDrops?.dispose();
     this.group.removeFromParent();
     this.group.traverse((object) => object.geometry?.dispose());
     this.backdrop.material.dispose();
@@ -578,9 +659,10 @@ export async function createWorld({
     content?.populationData,
     content?.flameData,
     content?.safehouseData,
+    content?.cursedRelicData,
   );
   const geometry = createGeometry(layout);
-  if (!geometry.clear(initialSpawn(geometry, registry), 0.4)) throw Error("London starting spawn is blocked");
+  if (!geometry.clear(initialSpawn(geometry, registry), VIEW.entryClearance)) throw Error("London starting spawn is blocked");
   const texture = await new THREE.TextureLoader().loadAsync(
     new URL(registry.asset(row.backdropRef).path, baseUrl).href,
   );
@@ -612,6 +694,7 @@ export async function createWorld({
       safehouseData: content?.safehouseData,
       reaperData: content?.reaperData,
       markedData: content?.markedData,
+      cursedRelicData: content?.cursedRelicData,
       rifleData: content?.rifleData,
       flameData: content?.flameData,
     });

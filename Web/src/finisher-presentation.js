@@ -1,4 +1,5 @@
 import { prepareArmSever } from "./engine/finisher-arm.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import {
   FINISHER_DATA,
   FLAME_DEATH_DATA,
@@ -7,12 +8,15 @@ import {
   withFinisherAliases,
 } from "./engine/finisher-data.js";
 import * as T from "three";
+import { rigBone } from "./rig-bones.js";
 import { nativeFinisherSupport } from "./engine/finisher-cosmetics.js";
 import { prepareSplitCrownSteps } from "./finisher-crown.js";
 import { prepareOpenedSteps } from "./finisher-opened.js";
 import { prepareVictimGroundingSteps } from "./finisher-grounding.js";
 
-const HEAD_NAMES = ["Photo", "PhotoEyes", "PhotoTeeth"];
+// The three head mesh names live in Web/src/data/appearance.json `faceMesh.headNames`, shared with face-appearance.js.
+const { headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
+const HAIR_NAME = GAME_DATA.appearance.meshNames.hair;
 export function validateHeadParts(parts = HEAD_NAMES) {
   if (
     !Array.isArray(parts) ||
@@ -27,9 +31,17 @@ export function validateHeadParts(parts = HEAD_NAMES) {
   return [...parts];
 }
 const PART_LIFETIME = FINISHER_DATA.limits.partLifetime;
+// The pose emphasis, bake clock, neck stump and cap, head throw and bounce, hit shove and the moment the cut opens are appearance.json `finisherPresentation`.
+const LOOK = GAME_DATA.appearance.finisherPresentation;
+const SKIN_INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+const MAT4 = 16; // tuning-ok: a 4x4 matrix has sixteen elements
+const midpoint = (a, b) => (a + b) / 2; // tuning-ok: the middle of two values
+const halfSpan = (a, b) => (b - a) / 2; // tuning-ok: half the distance between two values
 // Brief victim pose emphasis. Detached-part physics and expiry use real age.
 export function finisherVictimPoseAge(age, { enabled = true, restored = false } = {}) {
-  return enabled && !restored ? age - 0.25 * Math.min(0.2, Math.max(0, age)) : age;
+  return enabled && !restored
+    ? age - LOOK.poseEmphasis.share * Math.min(LOOK.poseEmphasis.window, Math.max(0, age))
+    : age;
 }
 export function presentedSeverFlash(entity, { started = false, activePartCost = 0 } = {}) {
   const recipe = entity?.finisher;
@@ -67,7 +79,7 @@ function directionOf(direction) {
 // buffers and materials; selected face geometry/maps/skeletons remain borrowed.
 function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
   const nodes = headParts.map((name) => model.getObjectByName(name));
-  const hair = model.getObjectByName("Scavenger hair");
+  const hair = model.getObjectByName(HAIR_NAME);
   if (hair?.visible) nodes.push(hair);
   if (
     nodes.some((n) => !n?.isSkinnedMesh || !n.visible) ||
@@ -81,7 +93,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
     group = new T.Group(),
     geometries = [],
     materials = [];
-  group.name = "Prepared detached Hollow head";
+  group.name = "Prepared detached Hollow head"; // text-ok: a scene-graph label for debugging, never shown to the player
   const clean = () => {
     geometries.forEach((g) => g.dispose());
     materials.forEach((m) => m.dispose());
@@ -110,7 +122,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
             bind = node.bindMatrix,
             unbind = node.bindMatrixInverse;
           for (let i = 0; i < attr.count; i++) {
-            if ((i & 127) === 0 && performance.now() - since >= 4) {
+            if (i % LOOK.clockEvery === 0 && performance.now() - since >= LOOK.clockMs) {
               yield "head-snapshot";
               since = performance.now();
             }
@@ -118,11 +130,11 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
             if (name === "position") node.applyBoneTransform(i, v).applyMatrix4(worldToHead);
             else {
               skin.elements.fill(0);
-              for (let k = 0; k < 4; k++) {
+              for (let k = 0; k < SKIN_INFLUENCES; k++) {
                 const weight = weights.getComponent(i, k);
                 if (!weight) continue;
-                joint.fromArray(node.skeleton.boneMatrices, indices.getComponent(i, k) * 16);
-                for (let j = 0; j < 16; j++) skin.elements[j] += joint.elements[j] * weight;
+                joint.fromArray(node.skeleton.boneMatrices, indices.getComponent(i, k) * MAT4);
+                for (let j = 0; j < MAT4; j++) skin.elements[j] += joint.elements[j] * weight;
               }
               skin.premultiply(unbind).multiply(bind);
               v.applyMatrix3(new T.Matrix3().setFromMatrix4(skin)).applyMatrix3(normalMatrix).normalize();
@@ -152,16 +164,17 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
       maxZ = -Infinity;
     const positions = photo.attributes.position;
     for (let i = 0; i < positions.count; i++)
-      if (positions.getY(i) < bottom + 0.008) {
+      if (positions.getY(i) < bottom + LOOK.stumpBand) {
         minX = Math.min(minX, positions.getX(i));
         maxX = Math.max(maxX, positions.getX(i));
         minZ = Math.min(minZ, positions.getZ(i));
         maxZ = Math.max(maxZ, positions.getZ(i));
       }
-    const rim = new T.Vector3((minX + maxX) / 2, bottom, (minZ + maxZ) / 2);
-    const rx = (maxX - minX) / 2,
-      rz = (maxZ - minZ) / 2;
-    if (!(rx > 0.005 && rz > 0.005 && rx < 0.15 && rz < 0.15)) return null;
+    const rim = new T.Vector3(midpoint(minX, maxX), bottom, midpoint(minZ, maxZ));
+    const rx = halfSpan(minX, maxX),
+      rz = halfSpan(minZ, maxZ);
+    const { min: stumpMin, max: stumpMax } = LOOK.stumpRadius;
+    if (!(rx > stumpMin && rz > stumpMin && rx < stumpMax && rz < stumpMax)) return null;
     let radius = 0,
       vertices = 0,
       triangles = 0;
@@ -170,12 +183,12 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
       const p = mesh.geometry.attributes.position;
       vertices += p.count;
       for (let i = 0; i < p.count; i++) radius = Math.max(radius, Math.hypot(p.getX(i), p.getY(i), p.getZ(i)));
-      triangles += (mesh.geometry.index?.count ?? p.count) / 3;
+      triangles += (mesh.geometry.index?.count ?? p.count) / 3; // tuning-ok: three corners per triangle
       mesh.geometry.computeBoundingSphere();
     }
     // Small opaque wound surfaces fill both neck openings; no whole-body cut.
-    const capGeometry = new T.CylinderGeometry(1, 1, 0.003, 12),
-      capMaterial = new T.MeshStandardMaterial({ color: 0x49251f, roughness: 1 });
+    const capGeometry = new T.CylinderGeometry(1, 1, LOOK.cap.thickness, LOOK.cap.segments),
+      capMaterial = new T.MeshStandardMaterial({ color: LOOK.cap.color, roughness: 1 });
     geometries.push(capGeometry);
     materials.push(capMaterial);
     const cap = new T.Mesh(capGeometry, capMaterial);
@@ -196,7 +209,7 @@ function* snapshotHeadSteps(model, bone, maxVertices, headParts) {
       center,
       radius,
       vertices,
-      triangles: triangles + 48,
+      triangles: triangles + LOOK.cap.triangles,
       geometries,
       materials,
       dispose() {
@@ -231,14 +244,18 @@ export function* createFinisherPresentationSteps({
   isPlayer = false,
   armAsset = null,
   prepareHead = true,
-  maxVertices = 24000,
+  maxVertices = LOOK.headMaxVertices,
   prepareCrown = false,
-  maxCrownVertices = 100000,
+  maxCrownVertices = GAME_DATA.appearance.crownSplit.maxVertices,
   prepareOpened = false,
-  maxOpenedVertices = 300000,
+  maxOpenedVertices = GAME_DATA.appearance.finisherOpened.maxVertices,
   prepareRunThrough = false,
   groundingCache = null,
   headParts = HEAD_NAMES,
+  // Build only the cheap base (ordinary death); the returned presentation's prepare() adds the rest in steps.
+  deferPreparation = false,
+  // Changes whenever the caller rewrote the rig's pose between two preparation steps (see finisher-grounding.js).
+  rigEpoch = () => 0,
 } = {}) {
   headParts = validateHeadParts(headParts);
   const death = durationOf(clips, "Death"),
@@ -248,7 +265,7 @@ export function* createFinisherPresentationSteps({
   if (!validDuration(death)) throw new TypeError("Finisher presentation requires a native Death clip");
   const support = isPlayer ? [] : nativeFinisherSupport({ clip: "Death", seconds: death }),
     bone = model.getObjectByName("Head"),
-    torso = model.getObjectByName("spine_01"),
+    torso = rigBone(model, "torso"),
     anchorPoint = new T.Vector3(),
     anchorNormal = new T.Vector3();
   let runGrounding = null,
@@ -266,135 +283,180 @@ export function* createFinisherPresentationSteps({
     openedPreparationError = null,
     crownActive = false,
     crownPreparationError = null,
-    preparationError = null;
+    preparationError = null,
+    featuresPrepared = false,
+    featuresPreparing = false,
+    keepOnAbandon = false,
+    settled = false;
   try {
-    if (
-      !isPlayer &&
-      prepareRunThrough &&
-      model.getObjectByName("Photo") &&
-      model.getObjectByName("pelvis") &&
-      validDuration(runThrough) &&
-      runThrough <= 1.25
-    ) {
+    // The heavy part: ground the run-through death, snapshot the head, cut the crown, bake the opened body,
+    // prepare the arm. Each result lands in the variables above and its recipe in `support`, which the sim reads
+    // by reference when a kill picks a recipe, so a recipe appears there only once it is fully prepared.
+    function* prepareFeatures() {
+      if (featuresPrepared || featuresPreparing || settled || disposed) return;
+      featuresPreparing = true;
+      let finished = false;
       try {
-        runGrounding = yield* prepareVictimGroundingSteps({
-          model,
-          root,
-          clip: clips.find((c) => c.name === "Death_RunThrough"),
-          cache: groundingCache,
-        });
+        yield* prepareFeatureSteps();
+        finished = true;
+      } finally {
+        featuresPreparing = false;
+        if (finished && !disposed) featuresPrepared = true;
+        else if (keepOnAbandon && !disposed) {
+          // The resident died mid-preparation: the sim may already have picked a recipe whose piece is done, so
+          // keep every finished piece (only the step in progress is dropped) and stop preparing.
+          settled = true;
+          support.splice(0, support.length, ...withFinisherAliases(support));
+        } else {
+          // Abandoned half way (area left, cancelled, disposed): drop the partial pieces so a later run starts clean.
+          arm?.dispose();
+          opened?.dispose();
+          crown?.dispose();
+          head?.dispose();
+          arm = opened = crown = head = null;
+          runGrounding = null;
+          support.splice(0, support.length, ...withFinisherAliases(baseSupport()));
+        }
+      }
+    }
+    const baseSupport = () => (isPlayer ? [] : nativeFinisherSupport({ clip: "Death", seconds: death }));
+    function* prepareFeatureSteps() {
+      if (
+        !isPlayer &&
+        prepareRunThrough &&
+        model.getObjectByName("Photo") &&
+        model.getObjectByName("pelvis") &&
+        validDuration(runThrough) &&
+        runThrough <= LOOK.runThroughMax
+      ) {
+        try {
+          runGrounding = yield* prepareVictimGroundingSteps({
+            model,
+            root,
+            clip: clips.find((c) => c.name === "Death_RunThrough"),
+            cache: groundingCache,
+            rigEpoch,
+          });
+          support.push({
+            id: "run-through",
+            clip: "Death_RunThrough",
+            seconds: runThrough,
+            cost: 0,
+            parts: [],
+            prepared: true,
+            requiresGroundLift: true,
+          });
+        } catch (error) {
+          runPreparationError = error.message;
+        }
+      }
+      if (
+        !isPlayer &&
+        prepareHead &&
+        bone &&
+        scene?.isScene &&
+        Number.isFinite(groundY) &&
+        typeof isBlocked === "function"
+      ) {
+        try {
+          head = yield* snapshotHeadSteps(model, bone, maxVertices, headParts);
+        } catch (error) {
+          preparationError = error.message;
+        }
+      }
+      if (!isPlayer && validDuration(death) && validDuration(hit))
         support.push({
-          id: "run-through",
-          clip: "Death_RunThrough",
-          seconds: runThrough,
+          id: "pistol-directional",
+          clip: "Death",
+          reactionClip: "Hit",
+          reactionSeconds: hit,
+          seconds: hit + death,
           cost: 0,
           parts: [],
           prepared: true,
-          requiresGroundLift: true,
         });
-      } catch (error) {
-        runPreparationError = error.message;
-      }
-    }
-    if (
-      !isPlayer &&
-      prepareHead &&
-      bone &&
-      scene?.isScene &&
-      Number.isFinite(groundY) &&
-      typeof isBlocked === "function"
-    ) {
-      try {
-        head = yield* snapshotHeadSteps(model, bone, maxVertices, headParts);
-      } catch (error) {
-        preparationError = error.message;
-      }
-    }
-    if (!isPlayer && validDuration(death) && validDuration(hit))
-      support.push({
-        id: "pistol-directional",
-        clip: "Death",
-        reactionClip: "Hit",
-        reactionSeconds: hit,
-        seconds: hit + death,
-        cost: 0,
-        parts: [],
-        prepared: true,
-      });
-    if (head && validDuration(hit))
-      support.push({
-        id: "pistol-decapitation",
-        clip: "Death",
-        reactionClip: "Hit",
-        reactionSeconds: hit,
-        seconds: hit + death,
-        cost: 1,
-        parts: ["head"],
-        prepared: true,
-        lifetime: PART_LIFETIME,
-      });
-    if (head && prepareCrown && validDuration(cut)) {
-      try {
-        crown = yield* prepareSplitCrownSteps(head, { maxVertices: maxCrownVertices });
+      if (head && validDuration(hit))
         support.push({
-          id: "split-crown",
-          clip: "Death_SplitCrown",
-          seconds: cut,
+          id: "pistol-decapitation",
+          clip: "Death",
+          reactionClip: "Hit",
+          reactionSeconds: hit,
+          seconds: hit + death,
           cost: 1,
-          parts: ["crown"],
+          parts: ["head"],
           prepared: true,
           lifetime: PART_LIFETIME,
         });
-      } catch (error) {
-        crownPreparationError = error.message;
+      if (head && prepareCrown && validDuration(cut)) {
+        try {
+          crown = yield* prepareSplitCrownSteps(head, { maxVertices: maxCrownVertices });
+          support.push({
+            id: "split-crown",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["crown"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+        } catch (error) {
+          crownPreparationError = error.message;
+        }
       }
-    }
-    if (!isPlayer && prepareOpened && validDuration(cut)) {
-      try {
-        opened = yield* prepareOpenedSteps({ model, root, clips, groundY, isBlocked, maxVertices: maxOpenedVertices });
+      if (!isPlayer && prepareOpened && validDuration(cut)) {
+        try {
+          opened = yield* prepareOpenedSteps({
+            model,
+            root,
+            clips,
+            groundY,
+            isBlocked,
+            maxVertices: maxOpenedVertices,
+          });
+          support.push({
+            id: "opened",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["upper-body"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+        } catch (error) {
+          openedPreparationError = error.message;
+        }
+      }
+      if (head && validDuration(cut))
         support.push({
-          id: "opened",
+          id: "decapitation",
           clip: "Death_SplitCrown",
           seconds: cut,
           cost: 1,
-          parts: ["upper-body"],
+          parts: ["head"],
           prepared: true,
           lifetime: PART_LIFETIME,
         });
-      } catch (error) {
-        openedPreparationError = error.message;
+      if (!isPlayer && armAsset && validDuration(cut)) {
+        try {
+          arm = prepareArmSever({ model, asset: armAsset, scene, groundY, isBlocked, lifetime: PART_LIFETIME });
+          support.push({
+            id: "left-arm-sever",
+            clip: "Death_SplitCrown",
+            seconds: cut,
+            cost: 1,
+            parts: ["left-arm"],
+            prepared: true,
+            lifetime: PART_LIFETIME,
+          });
+          yield "arm-prepared";
+        } catch (error) {
+          armPreparationError = error.message;
+        }
       }
+      support.splice(0, support.length, ...withFinisherAliases(support));
     }
-    if (head && validDuration(cut))
-      support.push({
-        id: "decapitation",
-        clip: "Death_SplitCrown",
-        seconds: cut,
-        cost: 1,
-        parts: ["head"],
-        prepared: true,
-        lifetime: PART_LIFETIME,
-      });
-    if (!isPlayer && armAsset && validDuration(cut)) {
-      try {
-        arm = prepareArmSever({ model, asset: armAsset, scene, groundY, isBlocked, lifetime: PART_LIFETIME });
-        support.push({
-          id: "left-arm-sever",
-          clip: "Death_SplitCrown",
-          seconds: cut,
-          cost: 1,
-          parts: ["left-arm"],
-          prepared: true,
-          lifetime: PART_LIFETIME,
-        });
-        yield "arm-prepared";
-      } catch (error) {
-        armPreparationError = error.message;
-      }
-    }
-    support.splice(0, support.length, ...withFinisherAliases(support));
     let chosen = null,
-      recipe = ordinary(validDuration(death) ? death : 2.4),
+      recipe = ordinary(validDuration(death) ? death : GAME_DATA.appearance.actorView.defaultDeathSeconds),
       direction = null,
       disposed = false,
       detached = false,
@@ -416,7 +478,7 @@ export function* createFinisherPresentationSteps({
         openedActive = false;
       }
     }
-    const ownedGeometryBytes =
+    const ownedBytes = () =>
       (head?.geometries ?? []).reduce(
         (bytes, g) =>
           bytes +
@@ -426,9 +488,18 @@ export function* createFinisherPresentationSteps({
       ) +
       (crown?.stats().geometryBytes ?? 0) +
       (opened?.stats().geometryBytes ?? 0);
+    if (deferPreparation) support.splice(0, support.length, ...withFinisherAliases(support));
+    else yield* prepareFeatures();
     completed = true;
     return {
       support,
+      // Steps that finish a deferred preparation; a no-op when already prepared or being prepared.
+      prepare: prepareFeatures,
+      // The resident died while preparing: the next abandon keeps the finished pieces instead of releasing them.
+      settle() {
+        keepOnAbandon = true;
+      },
+      isPrepared: () => featuresPrepared,
       setScene(next) {
         if (!next?.isScene) throw Error("Finisher scene missing");
         scene = next;
@@ -493,8 +564,8 @@ export function* createFinisherPresentationSteps({
             visible.push([node, node.visible]);
             node.visible = false;
           }
-          velocity.set(direction.x * 1.6, 1.8, -direction.z * 1.6);
-          spin.set(-direction.z, 0, -direction.x).normalize().multiplyScalar(6);
+          velocity.set(direction.x * LOOK.headThrow.out, LOOK.headThrow.up, -direction.z * LOOK.headThrow.out);
+          spin.set(-direction.z, 0, -direction.x).normalize().multiplyScalar(LOOK.headThrow.spin);
           detached = true;
         }
         return recipe;
@@ -502,22 +573,23 @@ export function* createFinisherPresentationSteps({
       pose(age) {
         const elapsed = Math.max(0, Number.isFinite(age) ? age : 0);
         if (expired && finisherPresentationId(recipe.id) === "opened")
-          return { clip: "Death", phase: 0.999999, offset: { x: 0, z: 0 } };
+          return { clip: "Death", phase: LOOK.lastPhase, offset: { x: 0, z: 0 } };
         if (recipe.reactionClip === "Hit" && elapsed < hit) {
-          const amount = 0.1 * Math.sin((Math.PI * elapsed) / hit),
+          const amount = LOOK.hitShove * Math.sin((Math.PI * elapsed) / hit),
             proposed = { x: direction.x * amount, z: direction.z * amount };
           const origin = { x: root.position.x, z: -root.position.z };
           const offset =
-            typeof isBlocked === "function" && !isBlocked({ x: origin.x + proposed.x, z: origin.z + proposed.z }, 0.2)
+            typeof isBlocked === "function" &&
+            !isBlocked({ x: origin.x + proposed.x, z: origin.z + proposed.z }, LOOK.shoveClearance)
               ? proposed
               : { x: 0, z: 0 };
-          return { clip: "Hit", phase: Math.min(0.999999, elapsed / hit), offset };
+          return { clip: "Hit", phase: Math.min(LOOK.lastPhase, elapsed / hit), offset };
         }
         const offset = { x: 0, z: 0 },
           clip = recipe.clip,
           clipSeconds = durationOf(clips, clip);
         const phase = Math.min(
-          0.999999,
+          LOOK.lastPhase,
           Math.max(0, elapsed - (recipe.reactionClip === "Hit" ? hit : 0)) / clipSeconds,
         );
         root.getWorldScale(runScale);
@@ -540,7 +612,7 @@ export function* createFinisherPresentationSteps({
             expire();
             return;
           }
-          if (age >= 0.045) {
+          if (age >= LOOK.cutStart) {
             if (!openedShown) {
               for (const node of opened.nodes) {
                 visible.push([node, node.visible]);
@@ -558,8 +630,8 @@ export function* createFinisherPresentationSteps({
             expire();
             return;
           }
-          const t = T.MathUtils.clamp((age - 0.045) / 0.12, 0, 1);
-          crown.open(t * t * (3 - 2 * t));
+          const t = T.MathUtils.clamp((age - LOOK.cutStart) / LOOK.crownOpenSeconds, 0, 1);
+          crown.open(t * t * (3 - 2 * t)); // tuning-ok: the smoothstep polynomial
           return;
         }
         if (!detached) return;
@@ -568,11 +640,11 @@ export function* createFinisherPresentationSteps({
           return;
         }
         const elapsed = Math.min(PART_LIFETIME, Math.max(0, Number.isFinite(dt) ? dt : 0));
-        const steps = Math.min(6, Math.ceil(elapsed * 60)),
+        const steps = Math.min(LOOK.maxSteps, Math.ceil(elapsed * 60)),
           step = steps ? elapsed / steps : 0;
         const radius = head.radius * Math.max(head.group.scale.x, head.group.scale.y, head.group.scale.z);
         for (let i = 0; i < steps; i++) {
-          velocity.y -= 9.8 * step;
+          velocity.y -= LOOK.gravity * step;
           const x = head.group.position.x + velocity.x * step,
             z = head.group.position.z + velocity.z * step;
           if (!isBlocked({ x, z: -z }, radius, { x: head.group.position.x, z: -head.group.position.z })) {
@@ -585,13 +657,13 @@ export function* createFinisherPresentationSteps({
           head.group.position.y += velocity.y * step;
           if (head.group.position.y < groundY + radius) {
             head.group.position.y = groundY + radius;
-            velocity.y = velocity.y < -1 ? -velocity.y * 0.22 : 0;
-            velocity.x *= 0.65;
-            velocity.z *= 0.65;
-            spin.multiplyScalar(0.8);
+            velocity.y = velocity.y < -1 ? -velocity.y * LOOK.bounce.restitution : 0;
+            velocity.x *= LOOK.bounce.friction;
+            velocity.z *= LOOK.bounce.friction;
+            spin.multiplyScalar(LOOK.bounce.spinDamp);
           }
           const rate = spin.length();
-          if (rate > 0.02) {
+          if (rate > LOOK.spinMin) {
             axis.copy(spin).multiplyScalar(1 / rate);
             matrix.makeRotationAxis(axis, rate * step);
             head.group.matrix.premultiply(matrix);
@@ -604,7 +676,7 @@ export function* createFinisherPresentationSteps({
         if (disposed || expired || !chosen || recipe.id === "ordinary") return null;
         if (
           (finisherPresentationId(recipe.id) === "opened" && !openedShown) ||
-          (finisherPresentationId(recipe.id) === "split-crown" && age <= 0.045)
+          (finisherPresentationId(recipe.id) === "split-crown" && age <= LOOK.cutStart)
         )
           return null;
         root.updateWorldMatrix(true, true);
@@ -657,7 +729,7 @@ export function* createFinisherPresentationSteps({
           vertices: head?.vertices ?? 0,
           triangles: head?.triangles ?? 0,
           ownedGeometries: head?.geometries.length ?? 0,
-          ownedGeometryBytes,
+          ownedGeometryBytes: ownedBytes(),
           ownedMaterials: head?.materials.length ?? 0,
           lethalVertexCopies: 0,
           detached,

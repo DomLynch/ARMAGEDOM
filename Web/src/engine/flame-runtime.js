@@ -116,6 +116,16 @@ export function stepFlame(g, dt, services, applyHit) {
         horizontal > 1e-8 &&
         (source.direction.x * g.player.facing.x + source.direction.z * g.player.facing.z) / horizontal >=
           Math.cos((data.contact.coneDegrees * Math.PI) / 360);
+    // Once per contact interval the cone is announced, so props that are not enemies (the chained Pitborn, chain-break.js) can answer to it.
+    if (aligned)
+      g.events.push({
+        type: "flame-contact",
+        actor: g.player,
+        origin: { x: source.position.x, z: source.position.z },
+        direction: { x: source.direction.x, z: source.direction.z },
+        range: data.contact.range,
+        coneDegrees: data.contact.coneDegrees,
+      });
     if (aligned)
       for (const target of [...g.enemies])
         if (

@@ -1,4 +1,6 @@
 import { createProgressionModel } from "./progression-state.js";
+import { GAME_DATA } from "./game-data.js";
+import { cursedDamage } from "./cursed-relic.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
 import { DRONE_KEYS } from "../drone-mechanics.js";
 export function progressionOptions(g) {
@@ -9,6 +11,8 @@ export function progressionOptions(g) {
         (world.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? []).map((row) => ({ key: row.key })),
       ]),
     );
+  for (const [area, list] of Object.entries(GAME_DATA.spawns.reservedPlacements ?? {}))
+    for (const key of list) if (placements[area] && !placements[area].some((row) => row.key === key)) placements[area].push({ key });
   for (const [key, area] of Object.entries(DRONE_KEYS))
     if (placements[area] && !placements[area].some((row) => row.key === key)) placements[area].push({ key });
   return {
@@ -30,7 +34,9 @@ export function progressionDamage(g, weaponId) {
 }
 // Shared by combat and equipment comparisons; keep existing per-family scaling.
 export function effectiveWeaponDamage(g, weaponId, baseDamage) {
-  return baseDamage * (weaponId === "knife" ? g.player.damage / 20 : 1) * progressionDamage(g, weaponId);
+  const scaled =
+    baseDamage * (weaponId === "knife" ? g.player.damage / GAME_DATA.combatRules.player.damage : 1) * progressionDamage(g, weaponId);
+  return cursedDamage(g, scaled); // the cursed relic's multiplier (cursed-relic.js); 1 when no relic is carried
 }
 export function stageProgressionDeath(g, e, weaponId, damageApplied) {
   if (

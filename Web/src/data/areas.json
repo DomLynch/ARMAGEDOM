@@ -1,0 +1,549 @@
+{
+  "schema_version": 1,
+  "areas": [
+    {
+      "id": "westminster",
+      "visibility": "public",
+      "layoutRef": "layout.westminster",
+      "backdropRef": "backdrop.westminster",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.52,
+        "y": 0.78
+      },
+      "exits": [
+        {
+          "id": "exit.westminster.central-hub",
+          "target": "central-hub",
+          "condition": {
+            "xMin": 0.955,
+            "yMin": 0.28,
+            "yMax": 0.4
+          },
+          "entry": {
+            "x": 0.075,
+            "y": 0.432
+          }
+        },
+        {
+          "id": "exit.westminster.area8",
+          "target": "area8",
+          "condition": {
+            "yMin": 0.335,
+            "yMax": 0.38,
+            "xMin": 0.19,
+            "xMax": 0.24
+          },
+          "entry": {
+            "x": 0.206,
+            "y": 0.876
+          }
+        },
+        {
+          "id": "exit.westminster.lambeth",
+          "target": "lambeth",
+          "condition": {
+            "yMin": 0.96,
+            "xMin": 0.49,
+            "xMax": 0.75
+          },
+          "entry": {
+            "x": 0.192,
+            "y": 0.052
+          }
+        }
+      ]
+    },
+    {
+      "id": "east",
+      "visibility": "public",
+      "layoutRef": "layout.east",
+      "backdropRef": "backdrop.east",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.1,
+        "y": 0.72
+      },
+      "exits": [
+        {
+          "id": "exit.east.central-hub",
+          "target": "central-hub",
+          "condition": {
+            "xMax": 0.045,
+            "yMin": 0.6,
+            "yMax": 0.69
+          },
+          "entry": {
+            "x": 0.92,
+            "y": 0.432
+          }
+        },
+        {
+          "id": "exit.east.east-bridge",
+          "target": "east-bridge",
+          "condition": {
+            "xMin": 0.82,
+            "xMax": 0.885,
+            "yMax": 0.285
+          },
+          "entry": {
+            "x": 0.745,
+            "y": 0.84
+          }
+        },
+        {
+          "id": "exit.east.elephant-and-castle",
+          "target": "elephant-and-castle",
+          "condition": {
+            "yMin": 0.775,
+            "xMax": 0.13
+          },
+          "entry": {
+            "x": 0.96,
+            "y": 0.23
+          }
+        }
+      ]
+    },
+    {
+      "id": "south",
+      "visibility": "public",
+      "layoutRef": "layout.south",
+      "backdropRef": "backdrop.south",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.55,
+        "y": 0.29
+      },
+      "exits": [
+        {
+          "id": "exit.south.central-hub",
+          "target": "central-hub",
+          "condition": {
+            "yMax": 0.08,
+            "xMin": 0.28,
+            "xMax": 0.38
+          },
+          "entry": {
+            "x": 0.5,
+            "y": 0.887
+          }
+        },
+        {
+          "id": "exit.south.lambeth",
+          "target": "lambeth",
+          "condition": {
+            "xMax": 0.22,
+            "yMin": 0.67,
+            "yMax": 0.77
+          },
+          "entry": {
+            "x": 0.891,
+            "y": 0.896
+          }
+        },
+        {
+          "id": "exit.south.elephant-and-castle",
+          "target": "elephant-and-castle",
+          "condition": {
+            "xMin": 0.86,
+            "yMin": 0.62,
+            "yMax": 0.79
+          },
+          "entry": {
+            "x": 0.092,
+            "y": 0.847
+          }
+        }
+      ]
+    },
+    {
+      "id": "east-bridge",
+      "visibility": "public",
+      "layoutRef": "layout.east-bridge",
+      "backdropRef": "backdrop.east-bridge",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.07,
+        "y": 0.835
+      },
+      "exits": [
+        {
+          "id": "exit.east-bridge.area7",
+          "target": "area7",
+          "condition": {
+            "xMax": 0.04,
+            "yMin": 0.755,
+            "yMax": 0.815
+          },
+          "entry": {
+            "x": 0.805,
+            "y": 0.333
+          }
+        },
+        {
+          "id": "exit.east-bridge.east",
+          "target": "east",
+          "condition": {
+            "xMin": 0.71,
+            "xMax": 0.79,
+            "yMin": 0.9
+          },
+          "entry": {
+            "x": 0.797,
+            "y": 0.246
+          }
+        }
+      ]
+    },
+    {
+      "id": "elephant-and-castle",
+      "visibility": "public",
+      "layoutRef": "layout.elephant-and-castle",
+      "backdropRef": "backdrop.elephant-and-castle",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.07,
+        "y": 0.855
+      },
+      "exits": [
+        {
+          "id": "exit.elephant-and-castle.south",
+          "target": "south",
+          "condition": {
+            "xMax": 0.045,
+            "yMin": 0.825,
+            "yMax": 0.885
+          },
+          "entry": {
+            "x": 0.68,
+            "y": 0.804
+          }
+        },
+        {
+          "id": "exit.elephant-and-castle.east",
+          "target": "east",
+          "condition": {
+            "yMax": 0.21,
+            "xMin": 0.9
+          },
+          "entry": {
+            "x": 0.088,
+            "y": 0.725
+          }
+        }
+      ]
+    },
+    {
+      "id": "lambeth",
+      "visibility": "public",
+      "layoutRef": "layout.lambeth",
+      "backdropRef": "backdrop.lambeth",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.29,
+        "y": 0.11
+      },
+      "exits": [
+        {
+          "id": "exit.lambeth.westminster",
+          "target": "westminster",
+          "condition": {
+            "xMin": 0.21,
+            "xMax": 0.31,
+            "yMax": 0.085
+          },
+          "entry": {
+            "x": 0.611,
+            "y": 0.892
+          }
+        },
+        {
+          "id": "exit.lambeth.south",
+          "target": "south",
+          "condition": {
+            "xMin": 0.94,
+            "yMin": 0.88,
+            "yMax": 0.97
+          },
+          "entry": {
+            "x": 0.261,
+            "y": 0.691
+          }
+        }
+      ]
+    },
+    {
+      "id": "area7",
+      "visibility": "public",
+      "layoutRef": "layout.area7",
+      "backdropRef": "backdrop.area7",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.11317835,
+        "y": 0.87363397
+      },
+      "exits": [
+        {
+          "id": "exit.area7.area8",
+          "target": "area8",
+          "condition": {
+            "xMax": 0.05,
+            "yMin": 0.885,
+            "yMax": 0.965
+          },
+          "entry": {
+            "x": 0.857,
+            "y": 0.354
+          }
+        },
+        {
+          "id": "exit.area7.east-bridge",
+          "target": "east-bridge",
+          "condition": {
+            "xMin": 0.83,
+            "yMin": 0.325,
+            "yMax": 0.365
+          },
+          "entry": {
+            "x": 0.084,
+            "y": 0.783
+          }
+        },
+        {
+          "id": "exit.area7.central-hub",
+          "target": "central-hub",
+          "condition": {
+            "yMin": 0.915,
+            "xMin": 0.72,
+            "xMax": 0.83
+          },
+          "entry": {
+            "x": 0.499,
+            "y": 0.057
+          }
+        }
+      ]
+    },
+    {
+      "id": "area8",
+      "visibility": "public",
+      "layoutRef": "layout.area8",
+      "backdropRef": "backdrop.area8",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.2092118,
+        "y": 0.88603067
+      },
+      "exits": [
+        {
+          "id": "exit.area8.area7",
+          "target": "area7",
+          "condition": {
+            "xMin": 0.9,
+            "yMin": 0.32,
+            "yMax": 0.365
+          },
+          "entry": {
+            "x": 0.1,
+            "y": 0.894
+          }
+        },
+        {
+          "id": "exit.area8.westminster",
+          "target": "westminster",
+          "condition": {
+            "yMin": 0.94,
+            "xMin": 0.14,
+            "xMax": 0.25
+          },
+          "entry": {
+            "x": 0.256,
+            "y": 0.403
+          }
+        }
+      ]
+    },
+    {
+      "id": "central-hub",
+      "visibility": "public",
+      "layoutRef": "layout.central-hub",
+      "backdropRef": "backdrop.central-hub",
+      "audioRef": "audio.combat",
+      "entry": {
+        "x": 0.5,
+        "y": 0.46
+      },
+      "exits": [
+        {
+          "id": "exit.central-hub.westminster",
+          "target": "westminster",
+          "condition": {
+            "xMax": 0.045,
+            "yMin": 0.42,
+            "yMax": 0.49
+          },
+          "entry": {
+            "x": 0.911,
+            "y": 0.401
+          }
+        },
+        {
+          "id": "exit.central-hub.east",
+          "target": "east",
+          "condition": {
+            "xMin": 0.955,
+            "yMin": 0.42,
+            "yMax": 0.49
+          },
+          "entry": {
+            "x": 0.084,
+            "y": 0.623
+          }
+        },
+        {
+          "id": "exit.central-hub.area7",
+          "target": "area7",
+          "condition": {
+            "yMax": 0.045,
+            "xMin": 0.48,
+            "xMax": 0.52
+          },
+          "entry": {
+            "x": 0.82,
+            "y": 0.85
+          }
+        },
+        {
+          "id": "exit.central-hub.south",
+          "target": "south",
+          "condition": {
+            "yMin": 0.955,
+            "xMin": 0.47,
+            "xMax": 0.525
+          },
+          "entry": {
+            "x": 0.322,
+            "y": 0.093
+          }
+        }
+      ]
+    }
+  ],
+  "assets": {
+    "layout.westminster": {
+      "kind": "layout",
+      "path": "world/westminster/layout.json",
+      "sha256": "02b4d971eb7a8c6c51ff314a302f45d0e3b6f6f61487df7c71038eee85a179b0",
+      "bytes": 10072
+    },
+    "backdrop.westminster": {
+      "kind": "backdrop",
+      "path": "world/westminster/backdrop-phone.webp",
+      "sha256": "6aef2ea1005f5a25f56b763cdacbf57554e38933c041b7c8ec043e42c6a3c434",
+      "bytes": 391872
+    },
+    "layout.south": {
+      "kind": "layout",
+      "path": "world/south/layout.json",
+      "sha256": "820ebadb710c3448de0ed26f95d728e25f0b566d6f5df5ad098fd3c01c9bccd2",
+      "bytes": 7654
+    },
+    "backdrop.south": {
+      "kind": "backdrop",
+      "path": "world/south/backdrop-phone.webp",
+      "sha256": "ebad2f43c2f633483a64b08d39d32128684725a3c734fead450b3d4ca9e4b061",
+      "bytes": 474344
+    },
+    "layout.east": {
+      "kind": "layout",
+      "path": "world/east/layout.json",
+      "sha256": "4facdaf40e033749d023061c67f277edb69e65ed432d3e1fc83d0e52e50a7c8f",
+      "bytes": 11552
+    },
+    "backdrop.east": {
+      "kind": "backdrop",
+      "path": "world/east/backdrop-phone.webp",
+      "sha256": "ddc745a7dc2d291e6d42f5c2b7e2fb586d0d727f59ca399110283e9457387158",
+      "bytes": 373760
+    },
+    "audio.combat": {
+      "kind": "audio",
+      "path": "audio/combat.m4a",
+      "sha256": "22f4c8e97bd1c4ed6b2e293cf2ef5a9225e01915e76587a900fe0a5d9b1d5087",
+      "bytes": 284152
+    },
+    "layout.east-bridge": {
+      "kind": "layout",
+      "path": "world/east-bridge/layout.json",
+      "sha256": "ab6024d0b5cac3de8bbe0116c527b6f135a3b8b040a72db5669db6ea5b89fb57",
+      "bytes": 4427
+    },
+    "backdrop.east-bridge": {
+      "kind": "backdrop",
+      "path": "world/east-bridge/backdrop-phone.webp",
+      "sha256": "2666e7f8935a94055973b7b934483657d72120ae7c490f59a28d743b078a7a54",
+      "bytes": 509572
+    },
+    "layout.elephant-and-castle": {
+      "kind": "layout",
+      "path": "world/elephant-and-castle/layout.json",
+      "sha256": "4d76f9a84d3a8dc37efe9640b621d3930c4880c45bfccc45bf2397311c227ed3",
+      "bytes": 4747
+    },
+    "backdrop.elephant-and-castle": {
+      "kind": "backdrop",
+      "path": "world/elephant-and-castle/backdrop-phone.webp",
+      "sha256": "40b502c1628db48e969da6388dd053a7c391365feac15135655e9e59ac80de7a",
+      "bytes": 515708
+    },
+    "layout.lambeth": {
+      "kind": "layout",
+      "path": "world/lambeth/layout.json",
+      "sha256": "5ac8c0b04591c8f3a64046e1a7bb4d16f8b2b40fe3ffd5ef67bc0c7086c4340b",
+      "bytes": 6915
+    },
+    "backdrop.lambeth": {
+      "kind": "backdrop",
+      "path": "world/lambeth/backdrop-phone.webp",
+      "sha256": "cccea985e8a566b9892d3b5e6c362aa86f21c2bdd721c5028dcec244cf853756",
+      "bytes": 556624
+    },
+    "layout.area7": {
+      "kind": "layout",
+      "path": "world/area7/layout.json",
+      "sha256": "f1240eaf98e15b383da272bfde7cc25e6b05a0b6c2937cf2624bcc3a7fd63556",
+      "bytes": 10681
+    },
+    "backdrop.area7": {
+      "kind": "backdrop",
+      "path": "world/area7/backdrop-phone.webp",
+      "sha256": "a9ff5928994e47e2c9656a2c74bcb109661a32d17f28c12dea8338b077e00f50",
+      "bytes": 571818
+    },
+    "layout.area8": {
+      "kind": "layout",
+      "path": "world/area8/layout.json",
+      "sha256": "83fc9c96f087830ef273d2ee15d9a191281077179c5143086421a65205c0c3ef",
+      "bytes": 10979
+    },
+    "backdrop.area8": {
+      "kind": "backdrop",
+      "path": "world/area8/backdrop-phone.webp",
+      "sha256": "b431d868d6e0d06bb9dbf6dd0110f50c1d7b7d407ea2306ba3f6ce5ac2999ef2",
+      "bytes": 545776
+    },
+    "layout.central-hub": {
+      "kind": "layout",
+      "path": "world/central-hub/layout.json",
+      "sha256": "86f7fd44cdf4376c3843249c930cf3885778697285aed7dc16a53baa9e35cc47",
+      "bytes": 4602
+    },
+    "backdrop.central-hub": {
+      "kind": "backdrop",
+      "path": "world/central-hub/backdrop-phone.webp",
+      "sha256": "579ee1d23d147dc27a1794588a13336e4b2bd6eebbf8a5e6f2a78c1e48b0ffc0",
+      "bytes": 511722
+    }
+  }
+}

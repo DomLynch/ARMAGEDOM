@@ -6,9 +6,15 @@ import {createGeometry} from '../../src/world-geometry.js';
 import {stageProgressionDeath} from '../../src/engine/progression-runtime.js';
 import {issueSupply} from '../../src/supplies.js';
 export const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
-export const markedData=validateAreaMetadata(read('../../public/world/area-content.json'),registry);
+import {withLegacySafehouse} from './legacy-safehouse.js';
+// The Marked mechanics rows keep a polygon safehouse in Westminster (the recorded legacy copy): the shipped Westminster has none.
+export const shipped=validateAreaMetadata(withLegacySafehouse(read('../../public/world/area-content.json')),registry);
+// The shipped data has the bounty off and hunters always on with a 75 s first arrival (Dom, 25 Oct). The Marked mechanics rows keep
+// covering the bounty-gated tier they were written for: bounty on, a 300 bounty needed, a 6 s arrival and the shortest re-arrival.
+// tests/hunters-always-on.test.js covers the shipped data itself.
+export const markedData={...shipped,markedData:{...shipped.markedData,hunters:true,bounty:true,hunterBounty:300,arrivalDelay:6,respawnDelay:30}};
 export const raw17=fs.readFileSync(new URL('../fixtures/marked196-source195-v17.json',import.meta.url),'utf8');
-export function make({earned=false,areaId='westminster',records=earned?new Map([['armagedom:central-hub-run:v17',raw17]]):new Map(),restore=true}={}){const f=fixture({areaId,records,extraWorld:{markedData:markedData.markedData,bossEquipmentData:markedData.bossEquipmentData,safehouseData:markedData.safehouseData,reaperData:markedData.reaperData}});if(restore)f.restore();return f;}
+export function make({earned=false,areaId='westminster',records=earned?new Map([['armagedom:central-hub-run:v17',raw17]]):new Map(),restore=true,data=markedData}={}){const f=fixture({areaId,records,extraWorld:{markedData:data.markedData,bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData}});if(restore)f.restore();return f;}
 export function stageDeath(f,e,weapon='knife',amount=10){const g=f.g;assert(e);e.hp=0;g.supplies=issueSupply(g.supplies,{areaId:g.world.areaId,placementKey:e.placementKey,position:e.pos,hp:0,rules:g.lootRules,cycle:g.animalCycle}).state;stageProgressionDeath(g,e,weapon,amount);g.enemies=g.enemies.filter(x=>x!==e);g.corpses.push(e);return e;}
 export function ordinary(f){return f.g.enemies.find(e=>e.hp>0&&!e.bossProfile&&!e.markedHunter);}
 export function earn(f,{boss=false}={}){const e=boss?f.g.enemies.find(e=>e.bossProfile&&e.hp>0):ordinary(f);stageDeath(f,e);assert(f.p.persistRun(f.g));return e;}

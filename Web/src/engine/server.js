@@ -1,6 +1,7 @@
 // Renderer-free simulation entry. The world supplies domain movement/area IO.
 import { createGame, stepGame } from "../combat.js";
 import { travelTo } from "../travel.js";
+import { GAME_DATA } from "./game-data.js";
 import { SIMULATION_STEP_SECONDS, assertSession } from "./contracts.js";
 import { readonlyState, eventSnapshot } from "./state.js";
 export function createSession({ world, pilot } = {}) {
@@ -29,7 +30,7 @@ export function createSession({ world, pilot } = {}) {
       live();
       if (!Number.isFinite(seconds) || seconds < 0) throw new TypeError("Finite nonnegative step required");
       if (paused || game.finished) return;
-      accumulator += Math.min(0.1, seconds);
+      accumulator += Math.min(GAME_DATA.browserSession.maxStepSeconds, seconds);
       while (accumulator >= SIMULATION_STEP_SECONDS) {
         stepGame(game, pending, SIMULATION_STEP_SECONDS);
         pending = { ...pending, actions: [], guardPressed: false, dodge: false };

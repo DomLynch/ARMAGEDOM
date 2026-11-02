@@ -6,48 +6,42 @@ import {
   safehouseInteraction,
   safehouseAnchor,
   safehouseSite,
-  safehouseProtected,
 } from "./safehouse.js";
-import { lockerInventory, lockerStored } from "./locker-core.js";
+import { lockerInventory, lockerHolds } from "./locker-core.js";
+import { huntTarget } from "./route-guidance.js";
 import { LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
-const names = [
-  "Starting pistol · shared variants",
-  "Bridge Rifle",
-  "Ember Projector",
-  "Pitborn Cleaver",
-  "Stalker Shotgun",
-  "Grenades",
-  "The Bone Saw",
-  "Rocket Launcher",
-  "Reaper Drone",
-  "Thundercoil Railgun",
-];
-const resources = {
-  "railgun-reserve": "Railgun reserve",
-  "pistol-reserve": "Pistol reserve",
-  "rifle-reserve": "Rifle reserve",
-  "shotgun-reserve": "Shotgun reserve",
-  "rocket-reserve": "Rocket reserve",
-  "grenade-charges": "Grenade charges",
-  "flame-fuel": "Flame fuel",
-};
+import { SAFEHOUSE_VIEW } from "./safehouse-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const CUE = SAFEHOUSE_VIEW.cue,
+  CONTOUR = SAFEHOUSE_VIEW.contour,
+  TEXT = GAME_DATA.safehouseText.safehouse;
 // A short wall-clock presentation pulse; gameplay and storage clocks are untouched.
 export function safehouseCueOpacity(
   time,
-  { period = 3.5, phase = 0, near = false, selected = false, reduced = false } = {},
+  { period = CUE.period, phase = 0, near = false, selected = false, reduced = false } = {},
 ) {
-  if (reduced) return 0.75;
-  const pulse = Math.pow((1 + Math.sin(2 * Math.PI * (time / period - phase))) / 2, 8),
-    floor = selected ? 0.82 : near ? 0.7 : 0.4;
+  if (reduced) return CUE.reducedOpacity;
+  const pulse = Math.pow(
+      (1 + Math.sin(2 * Math.PI * (time / period - phase))) / 2, // tuning-ok: full turn, and the sine remapped from -1..1 to 0..1
+      CUE.pulseExponent,
+    ),
+    floor = selected ? CUE.floor.selected : near ? CUE.floor.near : CUE.floor.idle;
   return floor + (1 - floor) * pulse;
 }
 // Native registered-image plane; world owns the backdrop, this view owns only its patch/cues.
 // Existing weapon owners skip the opening tutorial only on first observation.
-// Once a fresh run starts it, ordinary pickup cannot complete the shelter goal.
+// Once a fresh run starts it, ordinary pickup cannot complete the tutorial; only reaching the Westminster steps (the layout's
+// setPieceSlot, the end of its tutorialPath) does, within visual.json routeGuidance.tutorialArrived metres.
 export function shelterTutorialPending(g, pending) {
   if (pending === undefined)
     pending = !g.pistol?.collected && !g.expedition?.visitedIds?.some((id) => id !== "westminster");
-  return !!pending && !(g.world.areaId === "westminster" && safehouseProtected(g));
+  const slot = g.world.layout?.setPieceSlot?.at,
+    at = slot && g.world.geometry?.ground(slot),
+    arrived =
+      g.world.areaId === "westminster" &&
+      !!at &&
+      Math.hypot(g.player.pos.x - at.x, g.player.pos.z - at.z) <= GAME_DATA.visual.routeGuidance.tutorialArrived;
+  return !!pending && !arrived;
 }
 export function createSafehouseView(s, dispatch) {
   let owner = null,
@@ -67,7 +61,7 @@ export function createSafehouseView(s, dispatch) {
     target = document.createElement("button");
     target.type = "button";
     target.id = "safehouse-interact";
-    target.setAttribute("aria-label", "Open safehouse");
+    target.setAttribute("aria-label", TEXT.interactAria);
     target.hidden = true;
     target.style.cssText =
       "position:fixed;z-index:5;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;touch-action:none";
@@ -93,8 +87,8 @@ export function createSafehouseView(s, dispatch) {
       target.hidden = true;
       return;
     }
-    const xs = points.map((p) => rect.left + ((p.x + 1) * rect.width) / 2),
-      ys = points.map((p) => rect.top + ((1 - p.y) * rect.height) / 2),
+    const xs = points.map((p) => rect.left + ((p.x + 1) * rect.width) / 2), // tuning-ok: NDC -1..1 to pixels is half the canvas width
+      ys = points.map((p) => rect.top + ((1 - p.y) * rect.height) / 2), // tuning-ok: NDC -1..1 to pixels is half the canvas height
       left = Math.max(rect.left, Math.min(...xs)),
       top = Math.max(rect.top, Math.min(...ys)),
       right = Math.min(rect.right, Math.max(...xs)),
@@ -121,8 +115,8 @@ export function createSafehouseView(s, dispatch) {
   function planePoint(w, x, y) {
     const a = w.backdrop.geometry.attributes.position,
       T = w.THREE,
-      tl = new T.Vector3().fromBufferAttribute(a, 3),
-      tr = new T.Vector3().fromBufferAttribute(a, 2),
+      tl = new T.Vector3().fromBufferAttribute(a, 3), // tuning-ok: vertex index of the backdrop plane's top-left corner
+      tr = new T.Vector3().fromBufferAttribute(a, 2), // tuning-ok: vertex index of the backdrop plane's top-right corner
       bl = new T.Vector3().fromBufferAttribute(a, 0);
     return tl.clone().addScaledVector(tr.sub(tl), x).addScaledVector(bl.sub(tl), y);
   }
@@ -142,11 +136,11 @@ export function createSafehouseView(s, dispatch) {
       "position",
       new T.Float32BufferAttribute(
         coords.flatMap(([x, y]) => planePoint(w, x, y).toArray()),
-        3,
+        3, // tuning-ok: x, y, z per vertex
       ),
     );
-    geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
-    geometry.setIndex([0, 1, 2, 0, 2, 3]);
+    geometry.setAttribute("uv", new T.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2)); // tuning-ok: u, v per vertex
+    geometry.setIndex([0, 1, 2, 0, 2, 3]); // tuning-ok: vertex indices of the quad's two triangles
     const material = new T.MeshBasicMaterial({
       map: texture,
       depthTest: false,
@@ -156,35 +150,13 @@ export function createSafehouseView(s, dispatch) {
     });
     material.color.setRGB(w.layout.exposure, w.layout.exposure, w.layout.exposure);
     const patch = new T.Mesh(geometry, material);
-    patch.name = "Westminster safehouse approved art";
-    patch.renderOrder = -99;
+    patch.name = "Westminster safehouse approved art"; // text-ok: three.js mesh name, never shown to the player
+    patch.renderOrder = SAFEHOUSE_VIEW.patchRenderOrder;
     patch.frustumCulled = false;
     owner.add(patch);
     meshes.push(patch);
     // Each outline follows its own painted prop, never the patch rectangle.
-    const silhouettes = {
-      locker: [
-        [0.09, 0.05],
-        [0.91, 0],
-        [1, 0.86],
-        [0.77, 1],
-        [0, 0.88],
-      ],
-      comms: [
-        [0, 0.31],
-        [0.76, 0],
-        [1, 0.23],
-        [0.96, 0.84],
-        [0.25, 1],
-        [0.02, 0.82],
-      ],
-      map: [
-        [0, 0.13],
-        [0.91, 0],
-        [1, 0.84],
-        [0.08, 1],
-      ],
-    };
+    const silhouettes = SAFEHOUSE_VIEW.silhouettes;
     for (const prop of data.props) {
       const b = prop.bounds,
         paths = prop.outlines ?? [
@@ -198,18 +170,18 @@ export function createSafehouseView(s, dispatch) {
       }
       const geometry = new LineSegmentsGeometry().setPositions(segments),
         material = new LineMaterial({
-          color: 0xddba70,
-          linewidth: 2,
+          color: "#" + CONTOUR.colour,
+          linewidth: CONTOUR.linewidth,
           worldUnits: false,
           transparent: true,
-          opacity: 0.4,
+          opacity: CONTOUR.opacity,
           depthTest: false,
           depthWrite: false,
           toneMapped: false,
         }),
         line = new LineSegments2(geometry, material);
-      line.name = "Safehouse " + prop.id + " painted contour";
-      line.renderOrder = -98;
+      line.name = "Safehouse " + prop.id + " painted contour"; // text-ok: three.js line object name, never shown to the player
+      line.renderOrder = CONTOUR.renderOrder;
       line.frustumCulled = false;
       line.userData.prop = prop;
       owner.add(line);
@@ -238,11 +210,7 @@ export function createSafehouseView(s, dispatch) {
     lastPanel = key;
     panel.replaceChildren();
     const can = allowed() && safehouseProp(g, "locker");
-    status.textContent =
-      lastError ||
-      (!can
-        ? "Storage is available anywhere on the safehouse landing."
-        : "Transfers save immediately. Equipped weapons must be put away first.");
+    status.textContent = lastError || (!can ? TEXT.statusUnavailable : TEXT.statusReady);
     const button = (row, text, action, enabled) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -253,38 +221,46 @@ export function createSafehouseView(s, dispatch) {
         lastError = result.ok
           ? ""
           : result.code === "storage-unavailable"
-            ? "Saving unavailable. Everything was kept."
-            : "Transfer unavailable. Your equipment was kept.";
+            ? TEXT.saveUnavailable
+            : TEXT.transferUnavailable;
         renderPanel(true);
         s.updateExpedition?.();
       });
       row.append(b);
     };
-    for (const [id, i] of LOCKER_WEAPON_IDS.map((id, i) => [id, i])) {
+    for (const id of LOCKER_WEAPON_IDS) {
       const item = inv.weapons[id];
       if (!item.owned) continue;
       const row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p"),
-        stored = lockerStored(g, id);
-      text.textContent = `${names[i]} · ${stored ? "Stored" : item.equipped ? "Equipped" : "Carried"}`;
+        stored = lockerHolds(g, id); // the Storage list only: a weapon in the body bag is not in the Storage
+      text.textContent = fillText(TEXT.weaponRow, {
+        name: TEXT.weaponNames[id],
+        state: stored ? TEXT.stored : item.equipped ? TEXT.equipped : TEXT.carried,
+      });
       row.append(text);
       button(
         row,
-        stored ? "Retrieve" : "Store",
+        stored ? TEXT.retrieve : TEXT.store,
         { type: stored ? "withdrawWeapon" : "depositWeapon", itemId: id },
         !item.equipped,
       );
       panel.append(row);
     }
-    for (const [resource, title] of Object.entries(resources)) {
-      const carry = inv.ammo[resource],
+    for (const resource of Object.keys(LOCKER_RESOURCE_RULES)) {
+      const title = TEXT.resourceNames[resource],
+        carry = inv.ammo[resource],
         stash = locker?.ammo[resource] ?? 0,
         rule = LOCKER_RESOURCE_RULES[resource],
         row = document.createElement("div");
       row.className = "locker-row";
       const text = document.createElement("p");
-      text.textContent = `${title} · carried ${+carry.toFixed(2)} · stored ${+stash.toFixed(2)}`;
+      text.textContent = fillText(TEXT.resourceRow, {
+        title,
+        carried: +carry.toFixed(SAFEHOUSE_VIEW.amountDigits),
+        stored: +stash.toFixed(SAFEHOUSE_VIEW.amountDigits),
+      });
       row.append(text);
       const amount = document.createElement("input");
       amount.type = "number";
@@ -292,12 +268,12 @@ export function createSafehouseView(s, dispatch) {
       amount.step = resource === "flame-fuel" ? ".01" : "1";
       amount.value = resource === "flame-fuel" ? "10" : "1";
       amount.max = String(Math.max(rule.carryCap, rule.stashCap));
-      amount.setAttribute("aria-label", title + " transfer amount");
+      amount.setAttribute("aria-label", fillText(TEXT.amountAria, { title }));
       row.append(amount);
       for (const type of ["depositSupply", "withdrawSupply"]) {
         const b = document.createElement("button");
         b.type = "button";
-        b.textContent = type === "depositSupply" ? "Store" : "Retrieve";
+        b.textContent = type === "depositSupply" ? TEXT.store : TEXT.retrieve;
         b.disabled = !can || !(type === "depositSupply" ? carry : stash);
         b.addEventListener("click", () => {
           const result = dispatch(
@@ -308,8 +284,8 @@ export function createSafehouseView(s, dispatch) {
           lastError = result.ok
             ? ""
             : result.code === "storage-unavailable"
-              ? "Saving unavailable. Everything was kept."
-              : "Choose an available amount within the carrying and locker limits.";
+              ? TEXT.saveUnavailable
+              : TEXT.amountUnavailable;
           renderPanel(true);
         });
         row.append(b);
@@ -321,15 +297,23 @@ export function createSafehouseView(s, dispatch) {
     const g = s.game,
       w = s.world,
       data = safehouseSite(w);
+    // The opening tutorial's arrow targets belong to Westminster, which has no safehouse: they are set before the safehouse gate.
+    if (g && w) {
+      const pending = shelterTutorialPending(g, tutorialRuns.get(g));
+      tutorialRuns.set(g, pending);
+      w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
+      const pistol = g.pistol;
+      w.routeGuidance?.setPistolTarget?.(
+        pistol && !pistol.collected && w.areaId === pistol.pickupAreaId ? pistol.pickupPos : null,
+      );
+      w.routeGuidance?.setHuntTarget?.(w.areaId === "westminster" ? huntTarget(g) : null);
+    }
     if (!g || !w || !data) {
       if (target) target.hidden = true;
       return;
     }
     ensureTarget();
     const inArea = w.areaId === data.areaId;
-    const pending = shelterTutorialPending(g, tutorialRuns.get(g));
-    tutorialRuns.set(g, pending);
-    w.routeGuidance?.setTutorial?.(w.areaId === "westminster" && pending);
     if (data.patch && !texture && !loading && !failed && inArea) {
       loading = true;
       new w.THREE.TextureLoader().load(
@@ -378,7 +362,7 @@ export function createSafehouseView(s, dispatch) {
     if (!allowed() || s.paused || !safehouseInteraction(s.game)) return false;
     lastError = "";
     renderPanel(true);
-    const pages = ["locker", "gear", "journal", "map"],
+    const pages = ["locker", "gear", "map"],
       page = lastHubPage ? (pages.includes(s.hud.menuPage) ? s.hud.menuPage : lastHubPage) : "locker";
     if (s.hud.showMenuPage(page) !== false) lastHubPage = page;
     return true;
@@ -386,7 +370,7 @@ export function createSafehouseView(s, dispatch) {
   function interaction() {
     const g = s.game;
     if (!g || !allowed() || s.paused || !safehouseInteraction(g)) return null;
-    return { id: "safehouse", label: "Open Safehouse", position: safehouseAnchor(g), run: interact };
+    return { id: "safehouse", label: TEXT.interactLabel, position: safehouseAnchor(g), run: interact };
   }
 
   return {

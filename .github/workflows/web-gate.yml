@@ -1,0 +1,117 @@
+# The source gate on GitHub runners (ci-runners-first, Dom 2026-10-12 and 2026-10-24).
+# Every PR and every push to main runs verify_web.mjs split across shards, plus the
+# server/db tests. `web-gate` is the single required check; it passes only when all do.
+# Packaging, rollback-saves, browser and phone acceptance stay with Deploy.
+name: web-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: web-gate-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: web ${{ matrix.shard }}/8
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: node scripts/verify_web.mjs
+        env:
+          VERIFY_WEB_SHARD: ${{ matrix.shard }}/8
+
+  server:
+    name: server db + presence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: npm install --no-audit --no-fund
+        working-directory: server/db
+      - run: npm test
+        working-directory: server/db
+      # server/presence imports Web/src rule tables; it has no package of its own.
+      - run: node --test server/presence/*.test.js
+      - run: node --test server/writer/*.test.js
+      # The release builder (bundle completeness, immutability, manifest, lockfile); it builds with --no-install, so no network.
+      - run: node --test ops/realtime/build-release.test.mjs
+      # The layout gate (presence's running layout must equal the release's): pure hash comparison over fake lines and files.
+      - run: node --test ops/realtime/check-presence-layout.test.mjs
+      # The hosted drift check: a changed row, function, grant, RLS flag, policy or registry sha must be reported (pglite, no network).
+      - run: node --test ops/realtime/check-db-drift.test.mjs
+      # verify-hosted.sql (the schema lock-down check apply-migrations.sh runs on hosted) passes on the migrated schema and names each break.
+      - run: node --test ops/realtime/verify-hosted.test.mjs
+
+  # The PRODUCTION build, loaded in headless Chromium (release 311 passed every source test, then the built game did not boot:
+  # the build's lowering of a default parameter emitted out-of-scope code). Fails on ARMAGEDOM_BOOT_FAILED, any page error or
+  # console.error at boot, and on the Westminster new-game start not reaching loaded. Tier-a: CI/tools only.
+  boot:
+    name: built-game boot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: Web
+      - run: npm run build
+        working-directory: Web
+      # Same playwright version scripts/qa pins; --no-save keeps it out of Web's lockfile and dependencies.
+      - run: npm install --no-save --no-audit --no-fund playwright@1.63.0
+        working-directory: Web
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-1.63.0-chromium-${{ runner.os }}
+      - run: npx playwright install --with-deps chromium
+        working-directory: Web
+      - run: node scripts/boot-check.mjs
+        working-directory: Web
+        timeout-minutes: 3
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-game-boot-failure
+          path: Web/boot-check-out/
+          if-no-files-found: ignore
+
+  web-gate:
+    name: web-gate
+    if: always()
+    needs: [web, server, boot]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "web: ${{ needs.web.result }}  server: ${{ needs.server.result }}  boot: ${{ needs.boot.result }}"
+          test "${{ needs.web.result }}" = success
+          test "${{ needs.server.result }}" = success
+          test "${{ needs.boot.result }}" = success

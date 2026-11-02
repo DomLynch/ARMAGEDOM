@@ -1,13 +1,6 @@
 // Transient x/z attachment proposals only. The host confirms real surface hits,
 // commits throws and owns time, 3D presentation, cleanup and detonation.
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+import { closed } from "./shared-checks.js";
 const id = (value) =>
   typeof value === "string" &&
   /^[a-zA-Z0-9][a-zA-Z0-9:_-]{0,159}$/.test(value) &&

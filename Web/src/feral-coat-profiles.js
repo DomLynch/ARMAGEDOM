@@ -1,14 +1,8 @@
 // Pigment only on the already-applied accepted feral dog. No geometry or rig edits.
-export const FERAL_COAT_PROFILES = Object.freeze(
-  [
-    { id: "dog-street-mongrel", tint: [1, 1, 1], shapePending: false },
-    { id: "dog-gaunt-hound", tint: [0.9, 0.88, 0.78], shapePending: true },
-    { id: "dog-stocky-yard", tint: [0.58, 0.62, 0.68], shapePending: true },
-    { id: "dog-ash-coated", tint: [1.4, 1.42, 1.45], shapePending: false },
-    { id: "dog-mangy-stray", tint: [1.13, 0.8, 0.59], shapePending: false },
-    { id: "dog-pack-chaser", tint: [0.72, 0.83, 1.08], shapePending: false },
-  ].map((r) => Object.freeze({ ...r, tint: Object.freeze(r.tint) })),
-);
+// The profiles (id, tint, shapePending) live in Web/src/data/creatures.json `feralCoatProfiles`.
+import { GAME_DATA } from "./engine/game-data.js";
+export const FERAL_COAT_PROFILES = GAME_DATA.creatures.feralCoatProfiles;
+const COAT_NAME = GAME_DATA.appearance.meshNames.feralCoat;
 // Apply AFTER feral finish, BEFORE actor-private material/flash clones.
 // Templates are borrowed by actors, owned by this cache; dispose after last actor.
 export function createFeralCoatProfileLibrary(T) {
@@ -22,7 +16,7 @@ export function createFeralCoatProfileLibrary(T) {
       if (!profile) throw Error("Unknown feral coat profile " + id);
       const meshes = [];
       model.traverse((m) => {
-        if (m.isSkinnedMesh && m.material?.name === "Weathered brindle coat") meshes.push(m);
+        if (m.isSkinnedMesh && m.material?.name === COAT_NAME) meshes.push(m);
       });
       if (meshes.length !== 1 || !meshes[0].geometry.attributes.color || !meshes[0].material.vertexColors)
         throw Error("Apply accepted feral finish before coat profile");

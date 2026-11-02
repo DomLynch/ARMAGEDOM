@@ -16,7 +16,7 @@ function fixture(){
 const identities=g=>new Map(g.enemies.map(e=>[e.placementKey,{size:e.mobSize,combatScale:e.combatScale,bodyScale:e.bodyScale,radius:e.radius,outfit:hollowPaletteFor(e,g.world.areaId)}]));
 test('production resident factory applies one balanced absolute profile and preserves player/stats/clothing',()=>{
  const g=fixture(),sizes=allocateMobSizes('westminster',AREA_MOB_SPAWNS.westminster.map(r=>r.key));
- assert.equal(g.enemies.length,6);assert.equal(g.player.combatScale,1.265);assert.equal(g.player.radius,.4);assert.equal(g.player.mobSize,undefined);
+ assert.equal(g.enemies.length,8)/*population-spread*/;assert.equal(g.player.combatScale,1.265);assert.equal(g.player.radius,.4);assert.equal(g.player.mobSize,undefined);
  for(const e of g.enemies){assert.equal(e.mobSize,sizes.get(e.placementKey));assert.equal(e.combatScale,1.265*e.mobSize);assert.equal(e.radius,.4*e.mobSize);assert.equal(e.bodyScale,1);assert.equal(e.hp,40);assert.equal(e.moveSpeed,2.1);assert.equal(e.recoveryDelay,.55);assert.ok(hollowPaletteFor(e,'westminster'));}
  const again=fixture();assert.deepEqual(identities(again),identities(g));assert.notEqual(again.enemies[0].id,g.enemies[0].id);
 });
@@ -24,11 +24,11 @@ test('normal DTO restore filters dead residents after complete size/clothing all
  const g=fixture(),before=identities(g),key='westminster-roamer-3',dead=g.enemies.find(e=>e.placementKey===key);
  g.supplies=issueSupply(g.supplies,{areaId:'westminster',placementKey:key,position:dead.pos,hp:0}).state;
  const encoded=encodeRun(g);assert.equal(JSON.parse(encoded).version,2);assert.ok(!encoded.includes('mobSize'));
- const fresh=fixture(),saved=restoreRun(fresh,encoded);assert.ok(saved);applySavedRun(fresh,saved);assert.equal(fresh.enemies.length,5);
+ const fresh=fixture(),saved=restoreRun(fresh,encoded);assert.ok(saved);applySavedRun(fresh,saved);assert.equal(fresh.enemies.length,7);
  for(const [key,value] of identities(fresh))assert.deepEqual(value,before.get(key));
 });
 test('parked actual domain area return preserves absolute sizes and outfits without reapplication',async()=>{
- const g=fixture(),west=identities(g);await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,9);const east=identities(g);await travelTo(g,{areaId:'south'});assert.equal(g.enemies.length,9);await travelTo(g,{areaId:'east'});assert.deepEqual(identities(g),east);await travelTo(g,{areaId:'westminster'});assert.deepEqual(identities(g),west);
+ const g=fixture(),west=identities(g);await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,12);const east=identities(g);await travelTo(g,{areaId:'south'});assert.equal(g.enemies.length,12);await travelTo(g,{areaId:'east'});assert.deepEqual(identities(g),east);await travelTo(g,{areaId:'westminster'});assert.deepEqual(identities(g),west);
 });
 test('actual player attack admits enlarged capsule boundary and rejects smaller, blocked and hidden targets',()=>{
  const def=KNIFE_MOVES.light_right,range=def.range*1.265+KNIFE_RULES.walkSpeed*def.stepIn*(def.windupTicks-KNIFE_RULES.stepInFrom-1)/60;

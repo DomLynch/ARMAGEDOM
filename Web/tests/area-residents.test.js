@@ -17,24 +17,24 @@ const shoot=(g,e)=>{
 };
 test('opening remains atomic and West extras cannot suppress its three actors',()=>{
  const g=fixture();assert.equal(g.enemies.length,0);assert.equal(g.areaInitialized,false);
- assert.equal(spawnWave(g),true);assert.equal(g.enemies.length,9);
- assert.equal(g.enemies.filter(e=>!e.home).length,3);assert.equal(g.enemies.filter(e=>e.home).length,6);
- assert.equal(spawnWave(g),false);assert.equal(g.enemies.length,9);
- assert.deepEqual(Object.values(AREA_MOB_SPAWNS).map(a=>a.length),[6,9,9]);
+ assert.equal(spawnWave(g),true);assert.equal(g.enemies.length,11);
+ assert.equal(g.enemies.filter(e=>!e.home).length,3);assert.equal(g.enemies.filter(e=>e.home).length,8);
+ assert.equal(spawnWave(g),false);assert.equal(g.enemies.length,11);
+ assert.deepEqual(Object.values(AREA_MOB_SPAWNS).map(a=>a.length),[8,12,12]);
  assert.ok(g.enemies.every(e=>e.hp===40&&e.moveSpeed===2.1&&e.recoveryDelay===.55));
 });
 test('failed opening geometry retries without allocating residents',()=>{
  const g=fixture();g.world.clear=()=>false;
  assert.equal(spawnWave(g),false);assert.equal(g.enemies.length,0);assert.equal(g.areaInitialized,false);
- g.world.clear=()=>true;assert.equal(spawnWave(g),true);assert.equal(g.enemies.length,9);
+ g.world.clear=()=>true;assert.equal(spawnWave(g),true);assert.equal(g.enemies.length,11);
 });
-test('all side areas initialize nine once and retain numeric IDs across returns',async()=>{
+test('all side areas initialize twelve once and retain numeric IDs across returns',async()=>{
  const g=fixture();spawnWave(g);const west=g.enemies.map(e=>e.id);
- await travelTo(g,{areaId:'east'});const east=g.enemies.map(e=>e.id);assert.equal(east.length,9);
- await travelTo(g,{areaId:'south'});const south=g.enemies.map(e=>e.id);assert.equal(south.length,9);
+ await travelTo(g,{areaId:'east'});const east=g.enemies.map(e=>e.id);assert.equal(east.length,12);
+ await travelTo(g,{areaId:'south'});const south=g.enemies.map(e=>e.id);assert.equal(south.length,12);
  await travelTo(g,{areaId:'east'});assert.deepEqual(g.enemies.map(e=>e.id),east);
  await travelTo(g,{areaId:'westminster'});assert.deepEqual(g.enemies.map(e=>e.id),west);
- assert.equal(new Set([...west,...east,...south]).size,27);
+ assert.equal(new Set([...west,...east,...south]).size,35);
 });
 test('distant West residents patrol without joining the opening fight',()=>{
  const g=fixture();spawnWave(g);const residents=g.enemies.filter(e=>e.home),before=residents.map(e=>({...e.pos}));
@@ -72,16 +72,16 @@ test('last local kill clears without ending/reward; corpses and consumed ammo su
  const g=fixture();spawnWave(g);const last=g.enemies[0];g.enemies=[last];last.hp=1;g.player.hp=41;
  shoot(g,last);assert.equal(g.enemies.length,0);assert.equal(g.corpses[0],last);assert.equal(g.finished,false);assert.equal(g.won,false);assert.equal(g.encounterCleared,true);assert.equal(g.encounterActive,false);assert.equal(g.player.hp,41);assert.equal(g.pistol.magazine,5);
  const pos={...g.player.pos};ticks(g,10,{move:{x:1,z:0}});assert.notDeepEqual(g.player.pos,pos);
- await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,9);assert.equal(g.encounterCleared,false);
+ await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,12);assert.equal(g.encounterCleared,false);
  await travelTo(g,{areaId:'westminster'});assert.equal(g.enemies.length,0);assert.equal(g.corpses[0],last);assert.equal(g.encounterCleared,true);ticks(g,200);assert.equal(g.enemies.length,0);assert.equal(g.player.hp,41);assert.equal(g.pistol.magazine,5);assert.equal(g.pistol.collected,true);
 });
 test('three opening kills do not clear West while residents remain',()=>{
  const g=fixture();spawnWave(g);for(const e of g.enemies.filter(e=>!e.home)){e.hp=1;shoot(g,e);}
- assert.equal(g.enemies.filter(e=>!e.home).length,0);assert.equal(g.enemies.length,6);assert.equal(g.finished,false);assert.notEqual(g.encounterCleared,true);
+ assert.equal(g.enemies.filter(e=>!e.home).length,0);assert.equal(g.enemies.length,8);assert.equal(g.finished,false);assert.notEqual(g.encounterCleared,true);
 });
 test('failed area load preserves all state; only Retry creates fresh population',async()=>{
  const g=fixture();spawnWave(g);const old=g.enemies;g.world.loadArea=async()=>{throw Error('503')};await assert.rejects(travelTo(g,{areaId:'east'}),/503/);assert.equal(g.enemies,old);assert.deepEqual(g.areaFights,{});
- const retry=fixture();spawnWave(retry);assert.equal(retry.enemies.length,9);assert.ok(retry.enemies.every(e=>e.hp===40));assert.equal(retry.pistol.collected,false);
+ const retry=fixture();spawnWave(retry);assert.equal(retry.enemies.length,11);assert.ok(retry.enemies.every(e=>e.hp===40));assert.equal(retry.pistol.collected,false);
 });
 test('player death still finishes and stops movement',()=>{
  const g=fixture();spawnWave(g);receiveHit(g,{amount:1000,origin:{x:0,z:0},block:false,parry:false});assert.equal(g.player.hp,0);assert.equal(g.finished,true);assert.equal(g.won,false);const pos={...g.player.pos};ticks(g,10,{move:{x:1,z:0}});assert.deepEqual(g.player.pos,pos);

@@ -3,7 +3,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { asDataProblems } from "./as-data-gate.mjs";
+import { asDataProblems, constantTableProblems, dataDebt, dataImportProblems, numberLiteralProblems, tuningMarkProblems } from "./as-data-gate.mjs";
+import { textLiteralProblems } from "./text-literal-gate.mjs";
 
 function files(directory, suffix) {
   return readdirSync(directory, { withFileTypes: true })
@@ -48,7 +49,7 @@ export function densityProblems(paths, baseline = {}, sourceRoot = "") {
   return problems;
 }
 
-export function verifyWeb(root, { quiet = false } = {}) {
+export function verifyWeb(root, { quiet = false, shard = null } = {}) {
   const source = files(join(root, "Web/src"), ".js");
   const tests = files(join(root, "Web/tests"), ".test.js");
   if (!source.length) throw Error("No Web source files found");
@@ -66,14 +67,51 @@ export function verifyWeb(root, { quiet = false } = {}) {
     source,
     Object.keys(
       JSON.parse(
-        readFileSync(join(root, "Web/src/rig-capabilities.json"), "utf8"),
-      ),
+        readFileSync(join(root, "Web/src/data/creatures.json"), "utf8"),
+      ).rigCapabilities,
     ),
     JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
     join(root, "Web/src"),
   );
   if (asData.length)
     throw Error(`Web as-data gate failed:\n${asData.join("\n")}`);
+  const dataLayer = [
+    ...constantTableProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+    ...dataImportProblems(
+      source,
+      join(root, "Web/src"),
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+    ),
+    ...numberLiteralProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+    ...tuningMarkProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+    ...textLiteralProblems(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    ),
+  ];
+  if (dataLayer.length)
+    throw Error(`Web data-layer gate failed:\n${dataLayer.join("\n")}`);
+  if (!quiet) {
+    const debt = dataDebt(
+      source,
+      JSON.parse(readFileSync(join(root, "scripts/as-data-baseline.json"), "utf8")),
+      join(root, "Web/src"),
+    );
+    console.log(`Data debt: ${debt.debt} constant table(s) to move (${debt.tables} total, ${debt.kept} kept in code).`);
+  }
   // A gate invoked by a test must still start a fresh test runner.
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
@@ -90,7 +128,17 @@ export function verifyWeb(root, { quiet = false } = {}) {
   }
   for (const path of source) run("syntax", ["--check", path]);
   // Asset integration tests decode full rigs; bound workers on shared runners.
-  run("tests", ["--test", "--test-concurrency=2", ...tests]);
+  // CI splits the suite across runners: shard is "<index>/<total>". Only the CLI entry
+  // reads VERIFY_WEB_SHARD, so fixture runs inside the tests never inherit it.
+  if (shard && !/^\d+\/\d+$/.test(shard))
+    throw Error(`VERIFY_WEB_SHARD must be <index>/<total>, got ${shard}`);
+  delete env.VERIFY_WEB_SHARD;
+  run("tests", [
+    "--test",
+    "--test-concurrency=2",
+    ...(shard ? [`--test-shard=${shard}`] : []),
+    ...tests,
+  ]);
   return true;
 }
 
@@ -107,7 +155,7 @@ if (
     if (tooling.error) throw tooling.error;
     if (tooling.status !== 0)
       throw Error(`Tooling gate failed (${tooling.signal ?? tooling.status})`);
-    verifyWeb(root);
+    verifyWeb(root, { shard: process.env.VERIFY_WEB_SHARD || null });
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

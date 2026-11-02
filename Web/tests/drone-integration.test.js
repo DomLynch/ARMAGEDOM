@@ -13,8 +13,8 @@ const ticks=(g,n,intent={})=>{for(let i=0;i<n;i++)stepGame(g,intent);};
 const drone=g=>g.enemies.find(e=>e.rig==='low-hover-drone');
 function solo(g){const e=drone(g);g.enemies=[e];g.player.pos={x:e.pos.x,z:e.pos.z-2};return e;}
 test('adds one drone per area, preserves ground keys and parked warning duration',async()=>{
- const g=fixture();assert.equal(g.enemies.length,7);const e=solo(g);ticks(g,1);assert.equal(e.droneState.phase,'warning');
- const remaining=e.droneState.warning.releaseAt-g.time;await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,10);ticks(g,60);await travelTo(g,{areaId:'south'});assert.equal(g.enemies.length,10);await travelTo(g,{areaId:'westminster'});
+ const g=fixture();assert.equal(g.enemies.length,9);const e=solo(g);ticks(g,1);assert.equal(e.droneState.phase,'warning');
+ const remaining=e.droneState.warning.releaseAt-g.time;await travelTo(g,{areaId:'east'});assert.equal(g.enemies.length,13);ticks(g,60);await travelTo(g,{areaId:'south'});assert.equal(g.enemies.length,13);await travelTo(g,{areaId:'westminster'});
  assert.equal(drone(g),e);assert.ok(Math.abs(e.droneState.warning.releaseAt-g.time-remaining)<1e-8);
 });
 test('warning freezes on pause, commits one real bolt after .6s and damages once through projectile authority',()=>{

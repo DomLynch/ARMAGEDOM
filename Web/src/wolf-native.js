@@ -1,27 +1,23 @@
+import { CREATURE_MOVES } from "./creature-moves.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { rigNumber, rigOfSpecies } from "./rig-capabilities.js";
+import { rigResponse } from "./rig-response.js";
 // Own wolf skeleton and native Bite; no Dog retargeting or flame profile.
-export const WOLF_RIG = "original-wolf";
-export const WOLF_BITE = Object.freeze({
-  moveId: "wolf_bite",
-  clip: "Bite",
-  foundationRef: WOLF_RIG,
-  windupTicks: 20,
-  activeTicks: 12,
-  recoveryTicks: 24,
-  windup: 20 / 60,
-  active: 12 / 60,
-  recovery: 24 / 60,
-  damage: 8,
-  staminaDamage: 8,
-  range: 2.5,
-  weapon: "teeth",
-});
+// The bite is a row of Web/src/data/creatures.json (resolved in creature-moves.js).
+const WOLF = rigOfSpecies("wolf");
+// The share of a vertex's skin weight that must sit on the torso bones to bind a face to the body is appearance.json `wolfNative.bodyWeightMin`.
+const BODY_WEIGHT_MIN = GAME_DATA.appearance.wolfNative.bodyWeightMin;
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+const CORNERS = 3; // tuning-ok: a triangle has three corners
+export const WOLF_BITE = CREATURE_MOVES.wolf_bite;
+// The reaction clips and ticks are the wolf's rigCapabilities row.
 export function wolfResponse(alive, start) {
-  return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };
+  return rigResponse(WOLF, alive ? 1 : 0, start);
 }
-// The measured mouth surface is .24995m to the actor's right. Aim the
+// The measured mouth surface is rigCapabilities `mouthOffset` metres to the actor's right, at the wolf's bite reach. Aim the
 // existing native root so that surface, rather than the body centre, faces the torso.
 export function wolfBiteDirection(direction) {
-  const angle = Math.atan2(0.24995, 2.375),
+  const angle = Math.atan2(rigNumber(WOLF, "mouthOffset"), GAME_DATA.creatures.catalogue.reach[WOLF]),
     c = Math.cos(angle),
     s = Math.sin(angle);
   return { x: direction.x * c - direction.z * s, z: direction.x * s + direction.z * c };
@@ -39,12 +35,12 @@ export function wolfBodyReceiverBindings(model) {
     vertices = new Set();
   for (let i = 0; i < skin.count; i++) {
     let sum = 0;
-    for (let j = 0; j < 4; j++) if (body.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
-    if (sum >= 0.5) vertices.add(i);
+    for (let j = 0; j < INFLUENCES; j++) if (body.has(skin.getComponent(i, j))) sum += weights.getComponent(i, j);
+    if (sum >= BODY_WEIGHT_MIN) vertices.add(i);
   }
   const faceBindings = [];
-  for (let face = 0; face < indices.count / 3; face++) {
-    const row = [0, 1, 2].map((k) => indices.getX(face * 3 + k));
+  for (let face = 0; face < indices.count / CORNERS; face++) {
+    const row = Array.from({ length: CORNERS }, (_, k) => indices.getX(face * CORNERS + k));
     if (row.some((i) => vertices.has(i))) faceBindings.push({ face, vertices: row });
   }
   return [{ runtimeName: "Skin", faceBindings }];

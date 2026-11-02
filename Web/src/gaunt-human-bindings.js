@@ -1,10 +1,7 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Body presentation only; retain each resident's role, supplies and saved identity.
-const bindings = Object.freeze({
-  westminster: "westminster-roamer-1",
-  east: "east-roamer-1",
-  south: "south-roamer-9",
-});
-export const GAUNT_HUMAN_CYCLES = Object.freeze({ A: bindings, B: bindings });
+// Which placement key gets the gaunt body in each area and cycle lives in Web/src/data/creatures.json `gauntHumanCycles`.
+export const GAUNT_HUMAN_CYCLES = GAME_DATA.creatures.gauntHumanCycles;
 
 export function gauntHumanRecipe(cycle, areaId, entity) {
   const key = GAUNT_HUMAN_CYCLES[cycle]?.[areaId];

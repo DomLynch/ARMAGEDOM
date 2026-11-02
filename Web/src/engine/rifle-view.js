@@ -1,6 +1,12 @@
 import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { addPickupGlow } from "../pickup-glow.js";
+import { createDropMarker, createMarkerOnlyDrop } from "./drop-marker.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const RIFLE = WEAPON_VIEWS.rifle;
+const TEXT = GAME_DATA.weaponViewText.rifle;
 export function createRifleView(s, dispatch) {
   const el = (id) => document.getElementById(id),
     panel = el("rifle-equipment"),
@@ -26,8 +32,9 @@ export function createRifleView(s, dispatch) {
   function clear() {
     if (!drop) return;
     drop.root.removeFromParent();
-    for (const c of drop.contours) c.dispose();
-    for (const m of drop.materials) m.dispose();
+    for (const c of drop.contours ?? []) c.dispose();
+    for (const m of drop.materials ?? []) m.dispose();
+    drop.marker.dispose();
     drop = null;
   }
   function prepare() {
@@ -46,8 +53,8 @@ export function createRifleView(s, dispatch) {
       .catch((error) => {
         failed = true;
         if (s.game === owner) {
-          owner.message = "Rifle loading unavailable. Selection and ammunition kept; retry in Gear.";
-          owner.messageUntil = owner.time + 5;
+          owner.message = TEXT.loadFailed;
+          owner.messageUntil = owner.time + RIFLE.loadFailedSeconds;
         }
         throw error;
       })
@@ -62,16 +69,16 @@ export function createRifleView(s, dispatch) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? "Bridge Rifle collected. Equip it in Gear."
+          ? collectedMessage(TEXT.name)
           : command.equipped
-            ? "RIFLE EQUIPPED · Press Fire once per shot; Reload transfers reserve rounds."
-            : "Returned to melee.";
-      g.messageUntil = g.time + 4;
-      s.input.clear();
+            ? TEXT.equipped
+            : TEXT.returned;
+      g.messageUntil = g.time + RIFLE.messageSeconds;
+      s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
   }
-  const equip = async () => {
+  const equip = async (options) => {
     const owner = s.game;
     if (!safe(owner)) return;
     try {
@@ -85,14 +92,21 @@ export function createRifleView(s, dispatch) {
       execute({
         type: "equip",
         itemId: owner.world.rifleData.itemId,
-        equipped: !!owner.flame?.equipped || !owner.rifle.selected,
+        equipped: options?.raiseOnly === true || !!owner.flame?.equipped || !owner.rifle.selected,
       });
     update();
   };
   const claim = () => {
     const g = s.game;
-    if (!s.paused && g.rifle?.status === "pending")
-      execute({ type: "claimPickup", pickupId: g.world.rifleData.itemId });
+    if (s.paused || g.rifle?.status !== "pending") return;
+    execute({ type: "claimPickup", pickupId: g.world.rifleData.itemId });
+    if (g.rifle?.status === "owned")
+      void autoEquipAfterClaim(g, {
+        equip,
+        active: () => !!g.rifle?.selected,
+        itemId: g.world.rifleData.itemId,
+        name: TEXT.name,
+      });
   };
   button.addEventListener("click", equip);
   pickup.addEventListener("click", claim);
@@ -102,7 +116,7 @@ export function createRifleView(s, dispatch) {
       materials = [],
       contours = [],
       meshes = [];
-    display.rotation.z = Math.PI / 2;
+    display.rotation.z = Math.PI / 2; // tuning-ok: quarter turn lays the rifle flat on the ground
     root.add(display);
     display.traverse((n) => {
       if (n.isMesh) {
@@ -119,13 +133,15 @@ export function createRifleView(s, dispatch) {
     root.updateWorldMatrix(true, true);
     let box = new T.Box3().setFromObject(root),
       size = box.getSize(new T.Vector3());
-    display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+    display.scale.setScalar(Math.min(1, RIFLE.pickup.fitSize / Math.hypot(size.x, size.z)));
     root.updateWorldMatrix(true, true);
     box = new T.Box3().setFromObject(root);
     const center = box.getCenter(new T.Vector3());
-    display.position.set(-center.x, 0.025 - box.min.y, -center.z);
+    display.position.set(-center.x, RIFLE.pickup.lift - box.min.y, -center.z);
+    const marker = createDropMarker(s.game?.world?.rifleData?.name ?? GAME_DATA.combatText.gear.defaultRifleName);
+    root.add(marker.group);
     s.scene.add(root);
-    return { root, materials, contours };
+    return { root, materials, contours, marker, model: true };
   }
   function update() {
     if (disposed) return;
@@ -143,28 +159,43 @@ export function createRifleView(s, dispatch) {
     if ((state?.status === "pending" || state?.selected) && !ready && !pending && !failed) prepare().catch(() => {});
     const owned = state?.status === "owned";
     label.textContent = owned
-      ? `${data.name} · ${data.rules.damage} damage · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve. Spent ammunition stays spent on Retry.`
+      ? fillText(TEXT.stateOwned, {
+          name: data.name,
+          damage: data.rules.damage,
+          magazine: state.magazine,
+          capacity: data.rules.capacity,
+          reserve: state.reserve,
+        })
       : state?.status === "pending"
-        ? "Bridge Warden dropped a Rifle. Approach it and collect it."
+        ? TEXT.statePending
         : state?.status === "legacy-dead"
-          ? "Bridge Warden was already defeated. A new defeat after Retry can drop the Rifle."
-          : "Defeat Bridge Warden to earn the Rifle.";
+          ? TEXT.stateLegacyDead
+          : TEXT.stateLocked;
     button.hidden = !owned && !(state?.status === "pending" && failed);
     button.disabled = lockerStored(g, data.itemId) || !safe(g) || !!pending;
     button.textContent = lockerStored(g, data.itemId)
-      ? "Stored in safehouse"
+      ? GAME_DATA.weaponViewText.shared.storedInSafehouse
       : pending
-        ? "Preparing rifle…"
+        ? TEXT.buttonLoading
         : failed
-          ? "Retry rifle loading"
+          ? TEXT.buttonRetry
           : state?.selected && !g.flame?.equipped
-            ? "Return to melee"
-            : "Equip rifle";
-    if (state?.status !== "pending" || g.world.areaId !== data.source.areaId || !ready) {
+            ? TEXT.buttonLower
+            : TEXT.buttonEquip;
+    if (state?.status !== "pending" || g.world.areaId !== data.source.areaId) {
       clear();
       return;
     }
-    drop ??= createDrop(s.actors.rifleAsset());
+    // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
+    if (drop && ready && !drop.model) clear();
+    if (!drop) {
+      if (ready) drop = createDrop(s.actors.rifleAsset());
+      else {
+        const bare = createMarkerOnlyDrop(data.name);
+        s.scene.add(bare.root);
+        drop = { root: bare.root, marker: bare.marker, model: false };
+      }
+    }
     drop.root.position.copy(s.world.toRender(state.dropPosition));
   }
   function interaction() {
@@ -185,7 +216,8 @@ export function createRifleView(s, dispatch) {
       return null;
     return {
       id: data.itemId,
-      label: "Collect " + data.name,
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: data.name }),
+      pickup: true,
       position: state.dropPosition,
       run() {
         claim();

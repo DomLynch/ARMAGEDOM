@@ -9,13 +9,58 @@
     <meta name="theme-color" content="#101719" />
     <title>ARMAGEDOM · London 2030</title>
     <link rel="stylesheet" href="/src/style.css" />
+    <script id="boot-failure">
+      // Classic inline script in <head> on purpose: Vite bundles module scripts and puts its own
+      // module tag after this one, so this still runs when the game bundle fails to download or start.
+      (function () {
+        var failure = null;
+        function describe(event) {
+          var target = event.target;
+          if (target && target !== window && (target.src || target.href))
+            return "could not fetch " + (target.src || target.href);
+          return (event.reason && event.reason.message) || event.message || "unknown error";
+        }
+        function apply() {
+          // Once the game has started it owns its own load errors and Retry.
+          if (window.__armagedomBooted) return;
+          var entry = document.getElementById("entry");
+          var enter = document.getElementById("enter");
+          var loading = document.getElementById("loading");
+          if (!failure || !entry || entry.hidden || !enter || !loading) return;
+          // The card shows only the page's own text; what failed (a script URL, an error message) goes to the console, never to the player.
+          console.error("ARMAGEDOM_BOOT_FAILED", failure);
+          loading.textContent = entry.getAttribute("data-boot-failed") || "";
+          enter.textContent = entry.getAttribute("data-boot-retry") || "";
+          enter.disabled = false;
+          if (!enter.getAttribute("data-boot-retry")) {
+            enter.setAttribute("data-boot-retry", "1");
+            enter.addEventListener("click", function () {
+              window.location.reload();
+            });
+          }
+        }
+        function show(event) {
+          if (window.__armagedomBooted) return;
+          failure = describe(event);
+          // The entry card may not be parsed yet when a fast failure arrives.
+          if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply);
+          else apply();
+        }
+        // Capture phase: a failed <script> fires a non-bubbling error on the element itself.
+        window.addEventListener("error", show, true);
+        window.addEventListener("unhandledrejection", show);
+      })();
+    </script>
   </head>
   <body>
+    <div id="pickup-flash" aria-hidden="true"></div>
     <canvas
       id="world"
-      aria-label="Westminster fight. WASD to move; left click slash, right click stab, Q heavy, E special, Space dodge, F guard."
+      aria-label="Westminster fight. WASD to move; left click attack, right click or F guard, R stab or reload, Q heavy, Space dodge, 1-6 or wheel to switch weapon."
     ></canvas>
     <div id="hud" hidden>
+      <!-- One column: vitals, ammo, then the three centre lines, so none of them can overlap however many lines they wrap to. -->
+      <div id="hud-top">
       <section id="vitals" aria-label="Survivor status">
         <div class="hud-name">
           SURVIVOR <span id="health-number">100 / 100</span>
@@ -39,15 +84,26 @@
           <span id="guard-fill"></span>
         </div>
         <div id="objective">WESTMINSTER · WAVE 0 / 3</div>
+        <div id="cursed-status" role="status" hidden></div>
         <div id="mastery" hidden></div>
       </section>
-      <button id="menu-button" aria-label="Open game menu">☰</button>
-      <p id="notice" role="status"></p>
       <p id="ammo" hidden aria-live="polite"></p>
+      <p id="notice" role="status"></p>
+      <p id="expedition-objective" hidden></p>
+      <p id="run-hud" hidden role="status"></p>
+      <p id="marked-status" hidden role="status"></p>
+      </div>
+      <div id="extraction-ring" hidden role="status">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle id="extraction-ring-track" cx="50" cy="50"></circle><circle id="extraction-ring-fill" cx="50" cy="50"></circle></svg>
+        <strong id="extraction-ring-percent"></strong>
+        <span id="extraction-ring-text"></span>
+      </div>
+      <div id="run-banner" hidden role="status"><strong id="run-banner-title"></strong><span id="run-banner-line"></span></div>
+      <button id="menu-button" aria-label="Open game menu">☰</button>
+      <!-- Desktop only (body.desktop-ui, not body.touch): the key hints, filled from data/inputKeys.json by hud.js. -->
+      <div id="key-hints" aria-hidden="true"></div>
       <span id="pistol-icon" hidden aria-hidden="true">PISTOL</span>
       <button id="pistol-interact" hidden>Equip pistol · G</button>
-      <p id="expedition-objective" hidden></p>
-      <p id="marked-status" hidden role="status"></p>
       <span id="safehouse-status" hidden>SAFEHOUSE · WEAPONS LOWERED</span>
       <span id="expedition-case-label" class="expedition-world-label" hidden>STOLEN SUPPLY CASE</span>
       <span id="flame-pickup-label" class="expedition-world-label" hidden></span>
@@ -78,7 +134,15 @@
         </div>
       </div>
     </div>
-    <section id="entry" class="overlay">
+    <!-- data-boot-failed and data-boot-retry are the load-failure card's text for the inline boot-failure script above, which runs when the
+         game bundle itself did not load and so cannot read webText.json. tests/web-text-boot-card.test.js keeps them equal to the ids
+         boot.failed and boot.retry in src/data/webText.json. -->
+    <section
+      id="entry"
+      class="overlay"
+      data-boot-failed="Could not load the game. Check your connection and retry."
+      data-boot-retry="Retry loading"
+    >
       <div class="card">
         <p class="eyebrow">LONDON · 2030</p>
         <h1>ARMAGEDOM</h1>
@@ -91,14 +155,15 @@
     </section>
     <div id="hit-marker" class="combat-hit" hidden aria-hidden="true"></div>
     <dialog id="menu" aria-labelledby="menu-title">
-      <header id="menu-header"><div class="menu-brand"><h2 id="menu-title">ARMAGEDOM</h2><p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p></div><button id="resume" type="button">Back to game</button><button id="close-menu" class="close" aria-label="Close menu">×</button></header>
+      <header id="menu-header"><div class="menu-brand"><h2 id="menu-title">ARMAGEDOM</h2><p class="eyebrow" id="menu-area">WESTMINSTER · LONDON 2030</p></div><button id="close-menu" class="close" aria-label="Close menu">×</button></header>
       <nav id="menu-tabs" role="tablist" aria-label="Field menu">
         <button id="menu-tab-locker" type="button" role="tab" aria-controls="menu-locker" aria-selected="false" tabindex="-1">Storage</button>
         <button id="menu-tab-gear" type="button" role="tab" aria-controls="menu-gear" aria-selected="true">Gear</button>
-        <button id="menu-tab-journal" type="button" role="tab" aria-controls="menu-journal" aria-selected="false" tabindex="-1">Journal</button>
+        <button id="menu-tab-items" type="button" role="tab" aria-controls="menu-items" aria-selected="false" tabindex="-1">Items</button>
         <button id="menu-tab-map" type="button" role="tab" aria-controls="menu-map" aria-selected="false" tabindex="-1">Map</button>
       </nav>
       <div id="menu-content">
+        <section id="run-panel" hidden aria-label="Apocalypse run"><p id="run-start-hint"></p><button id="run-start" type="button"></button></section>
         <section id="expedition-panel" hidden aria-label="Gear, journal and discovery atlas">
           <section id="menu-gear" role="tabpanel" aria-labelledby="menu-tab-gear">
             <details id="equipment-panel" open><summary>Equipment</summary>
@@ -115,8 +180,9 @@
           <section id="menu-journal" role="tabpanel" aria-labelledby="menu-tab-journal" hidden><h3>Journal</h3><p class="eyebrow">Side quest</p><div class="journal-next"><p class="eyebrow">Stolen Supplies</p><h4 id="contract-title">Stolen Supplies</h4><p id="contract-status" role="status"></p></div><p id="contract-reward"></p><button id="contract-action" type="button"></button><details id="contract-details"><summary>Contract details</summary><p id="contract-description"></p></details></section>
           <section id="menu-map" role="tabpanel" aria-labelledby="menu-tab-map" hidden><h3>Discovery atlas</h3><details id="atlas-panel" open><summary>Discovery atlas · schematic</summary><p>Nine locations. Choose a known destination to show only its route and next exit. Tile positions are schematic; movement stays manual. Westminster Shelter is inside Westminster. Central Safehouse has marked side entrances.</p><div id="atlas-map"><svg id="atlas-links" viewBox="0 0 300 300" aria-hidden="true"></svg><div id="atlas-nodes"></div></div><p id="atlas-route" role="status"></p><button id="atlas-objective" type="button">Pin objective</button></details></section>
         </section>
+        <section id="menu-items" role="tabpanel" aria-labelledby="menu-tab-items" hidden><h3 id="items-title"></h3><p id="items-intro"></p><div id="items-strip" role="list"></div><p id="items-more"></p><article id="items-card" hidden></article><p id="items-status" role="status"></p></section>
         <section id="menu-locker" role="tabpanel" aria-labelledby="menu-tab-locker" hidden><h3>Safehouse storage</h3><section id="marked-bank" hidden></section><p id="locker-status" role="status"></p><div id="locker-items"></div></section>
-        <section id="menu-settings" role="region" aria-labelledby="menu-settings-button" hidden><h3>Settings</h3><button id="sound" aria-pressed="true">Sound on</button><button id="assist" aria-pressed="true">Assist: 100%</button><label for="feedback-mode">Combat feedback</label><select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select>
+        <section id="menu-settings" role="region" aria-labelledby="menu-settings-button" hidden><h3>Settings</h3><button id="sound" aria-pressed="true">Sound on</button><button id="assist" aria-pressed="true">Assist: 100%</button><label for="feedback-mode">Combat feedback</label><select id="feedback-mode"><option value="high">High</option><option value="low">Low</option><option value="off">Off</option></select><button id="haptics" aria-pressed="true" hidden></button><label id="haptics-label" for="haptics-intensity" hidden></label><select id="haptics-intensity" hidden></select>
       <details>
         <summary>Controls</summary>
         <p>
@@ -126,9 +192,9 @@
           Guard to turn your defence. Hold Guard to block, press just before
           eligible melee hits to parry.
         </p>
-        <p>
-          Desktop: WASD move · mouse aims · LMB Slash · RMB Stab · Q Heavy · E
-          Special · Space Dodge · hold F Guard · hold Shift Sprint · R Retry.
+        <p id="controls-desktop">
+          Desktop: WASD move · mouse aims · LMB Attack · RMB/F Guard · Space Dodge roll · R Stab / reload · Q Heavy · 1-6/Wheel Weapon
+          · Esc Menu. Keys can be changed in data/inputKeys.json.
         </p>
         <p>
           Attacks, dodge and sprint spend stamina. Recover when not attacking or
@@ -152,13 +218,7 @@
           <details id="testing-tools"><summary>Retry &amp; Reset</summary>
       <button id="retry">Retry encounter</button>
       <button id="reset-game" type="button">Reset game</button>
-      <section id="reset-confirmation" hidden aria-label="Confirm game reset">
-        <h3>Reset test progress?</h3>
-        <p>Restarts Westminster and resets enemies, pickups, quests and equipment.</p>
-        <button id="confirm-reset" type="button">Reset game</button>
-        <button id="cancel-reset" type="button">Cancel</button>
-        <p id="reset-status" role="status" aria-live="polite"></p>
-      </section>
+      <p id="reset-status" role="status" aria-live="polite"></p>
       <p class="version" id="version">Three.js conversion preview</p>
           </details>
         </section>
@@ -169,9 +229,26 @@
       <div class="card">
         <h2 id="result"></h2>
         <p id="result-hint"></p>
-        
+        <div id="share-card" class="share-card" hidden>
+          <p id="share-heading" class="eyebrow"></p>
+          <div id="share-picks" class="share-picks"></div>
+          <p id="share-status" class="share-status" role="status"></p>
+          <div class="share-actions">
+            <button id="share-send" class="share-button" type="button" disabled>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>
+              <span id="share-send-label"></span>
+            </button>
+            <button id="share-link" class="share-button" type="button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+              <span id="share-link-label"></span>
+            </button>
+          </div>
+        </div>
         <button id="again">Try again</button>
       </div>
+    </section>
+    <section id="run-results" class="overlay" hidden>
+      <div class="card"><h2 id="run-results-title"></h2><div id="run-results-rows"></div><button id="run-continue" type="button"></button></div>
     </section>
     <script type="module" src="/src/main.js"></script>
   <button id="rifle-pickup" type="button" hidden style="position:fixed;z-index:8;transform:translate(-50%,-100%);padding:.4rem .6rem;background:#392a16;color:#f6d281;border:1px solid #c6a75d;border-radius:.4rem">PICK UP RIFLE</button>

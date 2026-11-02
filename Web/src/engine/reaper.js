@@ -1,18 +1,12 @@
 import { closedData } from "./progression-state.js";
 import { safehouseWeaponBlocked, safehouseTouches, safehouseBlocksSegment } from "./safehouse.js";
+import { GAME_DATA } from "./game-data.js";
+const MOTION = GAME_DATA.reaperMotion; // data/reaperMotion.json: the step bound and the orbit speed
 export const REAPER_ITEM_ID = "watchmans-pistol-v1";
 export const REAPER_RECEIPT = "west-east-stolen-supply-v1:watchmans-pistol-v1";
-export const REAPER_ACTOR_ID = -1;
-export const REAPER_RULES = Object.freeze({
-  damage: 6,
-  range: 6,
-  cadence: 1.4,
-  windup: 0.2,
-  boltSpeed: 8,
-  boltRange: 6,
-  orbitRadius: 1.4,
-  followSpeed: 8,
-});
+const REAPER_ACTOR_ID = -1;
+// The rule values live only in area-content.json `reaper.rules`; this is just the closed set of names the validator accepts.
+const RULE_KEYS = ["damage", "range", "cadence", "windup", "boltSpeed", "boltRange", "orbitRadius", "followSpeed"];
 export function ownsReaper(g) {
   return (
     g.expedition?.status === "claimed" &&
@@ -41,7 +35,7 @@ export function stopReaper(g, reason = "cancel") {
   g.bolts = (g.bolts ?? []).filter((b) => b.source !== "reaper");
 }
 export function reaperLegalTarget(g, e, origin) {
-  const r = g.world.reaperData?.rules ?? REAPER_RULES;
+  const r = g.world.reaperData.rules;
   return (
     !!e &&
     e.id !== 0 &&
@@ -76,7 +70,7 @@ export function reaperTarget(g, origin) {
 export function stepReaper(g, dt, { source, trace, aimHeight, emitBolt, hit } = {}) {
   const r = g.world.reaperData?.rules;
   if (!r) return;
-  if (!Number.isFinite(dt) || dt <= 0 || dt > 1 / 30) throw TypeError("Finite Reaper step required");
+  if (!Number.isFinite(dt) || dt <= 0 || dt > MOTION.maxStepSeconds) throw TypeError("Finite Reaper step required");
   const p = g.player;
   if (
     !reaperSelected(g) ||
@@ -103,8 +97,8 @@ export function stepReaper(g, dt, { source, trace, aimHeight, emitBolt, hit } = 
     s.actor.pos = { ...p.pos };
   }
   const goal = {
-      x: p.pos.x + Math.cos(g.time * 0.65) * r.orbitRadius,
-      z: p.pos.z + Math.sin(g.time * 0.65) * r.orbitRadius,
+      x: p.pos.x + Math.cos(g.time * MOTION.orbitRate) * r.orbitRadius,
+      z: p.pos.z + Math.sin(g.time * MOTION.orbitRate) * r.orbitRadius,
     },
     dx = goal.x - s.actor.pos.x,
     dz = goal.z - s.actor.pos.z,
@@ -215,12 +209,12 @@ export function validateReaperData(input, expedition) {
     input.version !== 1 ||
     input.itemId !== REAPER_ITEM_ID ||
     input.receiptId !== REAPER_RECEIPT ||
-    input.name !== "Reaper Drone" ||
+    input.name !== GAME_DATA.combatText.rewardNames.reaper ||
     input.visual !== "low-hover-watcher" ||
     expedition?.contract.rewardVariantId !== input.itemId ||
     expedition.contract.receiptId !== input.receiptId ||
-    !closedData(input.rules, Object.keys(REAPER_RULES)) ||
-    !Object.keys(REAPER_RULES).every((k) => Number.isFinite(input.rules[k]) && input.rules[k] > 0) ||
+    !closedData(input.rules, RULE_KEYS) ||
+    !RULE_KEYS.every((k) => Number.isFinite(input.rules[k]) && input.rules[k] > 0) ||
     input.rules.cadence < input.rules.windup ||
     input.rules.cadence < 0.5 ||
     input.rules.windup < 0.05 ||

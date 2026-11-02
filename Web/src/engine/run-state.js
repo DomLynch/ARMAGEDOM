@@ -1,4 +1,6 @@
 import { upgradeSupplies } from "../supply-ledger-v2.js";
+import { GAME_DATA } from "./game-data.js";
+import { sessionText } from "./session-text.js";
 import { initializeAreaResidents } from "../combat.js";
 import { DRONE_KEYS } from "../drone-mechanics.js";
 import {
@@ -9,9 +11,12 @@ import {
   legacyIssuedCount,
   collectedGearSource,
 } from "../supplies.js";
-import { createVestState, isVestState, collectVest } from "../vest.js";
+import { createVestState, isVestState, collectVest, VEST_RULES } from "../vest.js";
+import { PISTOL_RULES } from "../pistol.js";
+
+const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
 // Clear native circle movement/LOS from spawn;1.15m from the pistol stash.
-export const VEST_BAG_POSITION = Object.freeze({ x: -2, z: -6.15 });
+export const VEST_BAG_POSITION = GAME_DATA.supplies.vestBagPosition; // data/supplies.json
 // Only this pilot's ownership and finite ammunition; no inventory/run framework.
 export const PISTOL_SAVE_KEY = "armagedom:pistol:v1";
 export function encodePistol(state) {
@@ -40,10 +45,10 @@ export function restorePistol(state, raw) {
     typeof saved.equipped !== "boolean" ||
     !Number.isInteger(saved.magazine) ||
     saved.magazine < 0 ||
-    saved.magazine > 6 ||
+    saved.magazine > PISTOL_RULES.capacity ||
     !Number.isInteger(saved.reserve) ||
     saved.reserve < 0 ||
-    saved.reserve > 12 ||
+    saved.reserve > PISTOL_RULES.reserve ||
     (!saved.collected && (saved.equipped || saved.magazine || saved.reserve))
   )
     return null;
@@ -62,7 +67,7 @@ export function restorePistol(state, raw) {
 export const RUN_SAVE_KEY = "armagedom:area1-run:v1";
 export function encodeRun(g) {
   return JSON.stringify({
-    version: g.supplies?.version === 2 ? 3 : 2,
+    version: g.supplies?.version === 2 ? 3 : 2, // tuning-ok: the run save format versions with the v2 and the v1 supplies ledger
     pistol: JSON.parse(encodePistol(g.pistol)),
     hp: g.player.hp,
     supplies: g.supplies,
@@ -92,7 +97,7 @@ export function restoreRun(g, raw, legacyRaw) {
     return null;
   }
   if (
-    ![1, 2, 3].includes(saved?.version) ||
+    ![1, 2, 3].includes(saved?.version) || // tuning-ok: the run save format versions this codec reads
     !saved.pistol ||
     typeof saved.pistol !== "object" ||
     !Number.isFinite(saved.hp) ||
@@ -104,7 +109,7 @@ export function restoreRun(g, raw, legacyRaw) {
   if (
     saved.version < 3
       ? saved.supplies?.version !== 1 || !isSuppliesState(saved.supplies)
-      : saved.supplies?.version !== 2 || !extended || !isSuppliesState(saved.supplies, g.lootRules)
+      : saved.supplies?.version !== 2 || !extended || !isSuppliesState(saved.supplies, g.lootRules) // tuning-ok: supplies ledger version of a v3 save
   )
     return null;
   const supplies = saved.version < 3 && extended ? upgradeSupplies(saved.supplies, g.lootRules) : saved.supplies;
@@ -112,7 +117,9 @@ export function restoreRun(g, raw, legacyRaw) {
   const vest = saved.version === 1 && !("vest" in saved) ? createVestState() : saved.version >= 2 ? saved.vest : null;
   if (
     !isVestState(vest) ||
-    (vest.equipped && legacyIssuedCount(supplies) < 2 && !collectedGearSource(supplies, g.lootRules, vest.itemId))
+    (vest.equipped &&
+      legacyIssuedCount(supplies) < 2 && // tuning-ok: the legacy ledger has two gear drops
+      !collectedGearSource(supplies, g.lootRules, vest.itemId))
   )
     return null;
   const animalCycle = Object.hasOwn(saved, "animalCycle") ? saved.animalCycle : "A";
@@ -194,20 +201,18 @@ export function collectNearbySupplies(g, save) {
       g.events.push({ type: "supply-pickup", ...result.award });
       g.message =
         result.award.kind === "rounds"
-          ? `Scavenged ${result.award.amount} spare rounds.`
-          : `Dressing restored ${Math.ceil(result.award.amount)} health.`;
-      g.messageUntil = g.time + 3;
+          ? sessionText("run.supplyRounds", { amount: result.award.amount })
+          : sessionText("run.supplyDressing", { amount: Math.ceil(result.award.amount) });
+      g.messageUntil = g.time + NOTICES.supplyPickupSeconds;
     } else if (["pistol-required", "reserve-full", "health-full"].includes(result.reason)) {
       const notice = drop.id + result.reason;
       if (g.supplyNotice === notice && g.time < g.supplyNoticeUntil) continue;
       g.supplyNotice = notice;
-      g.supplyNoticeUntil = g.time + 4;
-      g.message = {
-        "pistol-required": "Collect the pistol first. Rounds kept.",
-        "reserve-full": "Spare rounds full. Supply kept.",
-        "health-full": "Health full. Dressing kept.",
-      }[result.reason];
-      g.messageUntil = g.time + 2;
+      g.supplyNoticeUntil = g.time + NOTICES.supplyNoticeRepeatSeconds;
+      g.message = sessionText(
+        { "pistol-required": "run.pistolRequired", "reserve-full": "run.reserveFull", "health-full": "run.healthFull" }[result.reason],
+      );
+      g.messageUntil = g.time + NOTICES.supplyRefusalSeconds;
     }
   }
 }
@@ -227,6 +232,6 @@ export function collectNearbyVest(g, save) {
   if (!result.equipped || !save({ ...g, vest: result.state })) return;
   g.vest = result.state;
   g.events.push({ type: "vest-pickup", actor: g.player, itemId: result.state.itemId });
-  g.message = "Worn vest equipped · 10% protection from unblocked hits.";
-  g.messageUntil = g.time + 4;
+  g.message = sessionText("run.vestEquipped", { percent: Math.round(VEST_RULES.reduction * 100) });
+  g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
 }

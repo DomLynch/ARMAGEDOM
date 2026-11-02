@@ -1,0 +1,18 @@
+{
+  "support": {
+    "hollow-scavenger": ["resident-knife", "knife", "hollow-scavenger", ["slash", "stab", "heavy"]],
+    "original-rat": ["rat-native-bite", "teeth", "original-rat", ["attack", "attackLow"]],
+    "original-dog": ["dog-native-bite", "teeth", "original-dog", ["attack"]],
+    "original-roach": ["roach-native-bite", "teeth", "original-roach", ["attack"]],
+    "low-hover-drone": ["drone-selector", "bolt", null, []],
+    "original-wolf": ["wolf-native-bite", "teeth", "original-wolf", ["attack"]],
+    "giant-salamander": ["salamander-native-bite", "teeth", "giant-salamander", ["attack"]]
+  },
+  "reach": {
+    "original-wolf": 2.375,
+    "original-rat": 1.050307904880233,
+    "original-dog": 1.635623468495986,
+    "original-roach": 1.6063268331546576,
+    "giant-salamander": 3.1078573708270647
+  }
+}

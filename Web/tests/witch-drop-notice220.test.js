@@ -3,7 +3,7 @@ import {fixture} from './helpers/rifle-fixture.js';
 import {validateAreaMetadata} from '../src/engine/area-content.js';
 import {stageProgressionDeath} from '../src/engine/progression-runtime.js';import {issueSupply} from '../src/supplies.js';
 import {createBossEquipmentView} from '../src/engine/boss-equipment-view.js';
-const raw=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),registry=fixture().world.registry,data=validateAreaMetadata(raw,registry),extraWorld={bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData,markedData:data.markedData},key='armagedom:marked-run:v18',notice='Ember Projector dropped. Approach to collect.';
+const raw=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))),registry=fixture().world.registry,data=validateAreaMetadata(raw,registry),extraWorld={bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData,markedData:data.markedData},key='armagedom:marked-run:v18',notice='Ember Projector dropped.';
 function fresh(records=new Map(),areaId='westminster'){const f=fixture({records,areaId,extraWorld});f.restore();return f;}
 // Reuse the existing reward test's genuine Core/death-intent path. This is a
 // controlled component fixture, not a claim of earning another browser kill.
@@ -12,7 +12,7 @@ function death(f,field='emberProjector'){
  g.supplies=issueSupply(g.supplies,{areaId:f.world.areaId,placementKey:e.placementKey,position:e.pos,hp:0,rules:g.lootRules,cycle:g.animalCycle}).state;stageProgressionDeath(g,e,'knife',e.maxHP);g.corpses.push(e);
 }
 test('actual committed Witch drop names the weapon once without collecting, equipping or granting fuel',()=>{
- const f=fresh(),g=f.g,fuel=structuredClone(g.flameFuel);g.message='before';death(f);assert.notEqual(g.message,notice);assert(f.p.persistRun(g));assert.equal(g.message,notice);assert.equal(g.messageUntil,g.time+4);assert.equal(g.bossEquipment.emberProjector.status,'pending');assert.deepEqual(g.flameFuel,fuel);assert.equal(g.flame.equipped,false);
+ const f=fresh(),g=f.g,fuel=structuredClone(g.flameFuel);g.message='before';death(f);assert.notEqual(g.message,notice);assert(f.p.persistRun(g));assert.equal(g.message,notice);assert.equal(g.messageUntil,g.time+8,'hold raised 4 -> 8 s: Dom missed the 4 s toast on LIVE 246');assert.equal(g.bossEquipment.emberProjector.status,'pending');assert.deepEqual(g.flameFuel,fuel);assert.equal(g.flame.equipped,false);
  const event=g.events.find(e=>e.type==='boss-equipment-drop');assert.equal(event.itemId,'ember-flamethrower-v1');assert.equal(JSON.parse(f.records.get(key)).bossEquipment.emberProjector.status,'pending');
  const until=g.messageUntil;g.time+=1;assert(f.p.persistRun(g));assert.equal(g.messageUntil,until,'ordinary save ticks never refresh the toast');g.message='other message';assert(f.p.persistRun(g));assert.equal(g.message,'other message');
 });

@@ -1,25 +1,25 @@
 import { DRONE_RULES, droneHoverHeight } from "./drone-mechanics.js";
+import { GAME_DATA } from "./engine/game-data.js";
 import * as T from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 // One original shared foundation; metres/render-space. Presentation owns no damage,
 // AI/pathfinding, reward, save, projectile or actor-scale authority.
 export const DRONE_VISUAL_SCALE = 2;
+// The row's values live in data/appearance.json `droneSupport`; this adds the hover height and radius from creatures.json.
+const SUPPORT = GAME_DATA.appearance.droneSupport;
 export const DRONE_SUPPORT = Object.freeze({
-  id: "low-hover-watcher",
+  id: SUPPORT.id,
   procedural: true,
   rig: null,
   clips: [],
-  states: Object.freeze(["idle", "patrol", "alert", "attack", "death"]),
+  states: SUPPORT.states,
   hoverHeight: DRONE_RULES.hoverHeight,
-  bodyBand: Object.freeze([
-    DRONE_RULES.hoverHeight - 0.21 * DRONE_VISUAL_SCALE,
-    DRONE_RULES.hoverHeight + 0.19 * DRONE_VISUAL_SCALE,
-  ]),
+  bodyBand: Object.freeze(SUPPORT.bodyBandOffsets.map((offset) => DRONE_RULES.hoverHeight + offset * DRONE_VISUAL_SCALE)),
   movementRadius: DRONE_RULES.radius,
-  attackWarningSeconds: 0.6,
-  deathSeconds: 0.8,
-  finisher: "native-weapon-cosmetic",
-  melee: "Requires Combat actual blade/body validation; no immunity or headshot claim",
+  attackWarningSeconds: SUPPORT.attackWarningSeconds,
+  deathSeconds: SUPPORT.deathSeconds,
+  finisher: SUPPORT.finisher,
+  melee: SUPPORT.melee,
 });
 // Commander art profile only. Keep the watcher default and gameplay support unchanged.
 export const HUMAN_SILVER_DRONE_APPEARANCE = "human-brushed-silver";
@@ -182,7 +182,7 @@ export function createLowHoverDroneLibrary({ appearance = "watcher" } = {}) {
       if (disposed || !scene?.isScene || ![position.x, position.z, heading, groundY].every(Number.isFinite))
         throw Error("Valid drone scene/render-space coordinates required");
       const root = new T.Group();
-      root.name = commander ? "ARM Commander compact quadcopter" : "ARM low-hover watcher drone";
+      root.name = commander ? "ARM Commander compact quadcopter" : "ARM low-hover watcher drone"; // text-ok: debug scene label, never shown
       root.scale.setScalar(visualScale);
       const privateFrame = frameMat.clone(),
         privateBlade = bladeMat.clone();

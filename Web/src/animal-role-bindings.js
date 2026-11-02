@@ -1,9 +1,10 @@
 import { creatureCatalogue } from "./engine/creature-catalogue.js";
+import { rigCapability } from "./rig-capabilities.js";
 import { resolveResidentIntent } from "./creature-behaviour-intents.js";
 import { resolveCreatureBehaviour } from "./creature-behaviour-presets.js";
 // Exact existing079 catalogue assignments; no species-wide activation or clocks.
 const bindings = creatureCatalogue.roles;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 export function resolveBoundAnimalRole(e, { areaId, animalCycle, behaviourCapabilities = [] } = {}) {
   if (
     !["A", "B"].includes(animalCycle) ||
@@ -50,7 +51,7 @@ export function nativeAttackCompletion(s, { reason, time, alive, hurt = false } 
     s.action !== "bite" ||
     !(
       nativeBites.has(s.clip) ||
-      (s.clip === "Bite" && ["giant-salamander", "original-wolf"].includes(s.def?.foundationRef))
+      (s.clip === "Bite" && rigCapability(s.def?.foundationRef, "nativeSkeleton"))
     ) ||
     !Number.isFinite(s.start) ||
     !Number.isFinite(s.end) ||

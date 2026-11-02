@@ -33,6 +33,11 @@ import * as codec from "./run-state.js";
 import { collectSupply, hasExtendedLoot, collectGearSupply, GEAR_ITEMS } from "../supplies.js";
 import { collectVest, VEST_RULES, grantVest } from "../vest.js";
 import { collectPistol, equipPistol, grantPistol } from "../pistol.js";
+import { GAME_DATA } from "./game-data.js";
+import { webText } from "./web-text.js";
+import { RESPAWN_SAVE_KEY, applyRespawnRecord, emptyRespawnRecord, encodeRespawn } from "./respawn.js";
+
+const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
 
 // One session writer; render/input code supplies live-run access and fresh construction.
 export function createRunPersistence({ getRun, setRun, createFreshRun, storage }) {
@@ -119,7 +124,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
         getRun,
         data: g.world.expeditionData,
         registry: g.world.registry,
-        saveVersion: g.world.bossData ? 6 : 5,
+        saveVersion: g.world.bossData ? 6 : 5, // tuning-ok: the run save format versions with and without boss data
         previousPlacementIds: g.world.bossData
           ? Object.values(options.placements)
               .flat()
@@ -344,7 +349,7 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       try {
         const raw = args[1] == null ? null : JSON.parse(args[1]);
         if (
-          raw?.version <= 7 &&
+          raw?.version <= 7 && // tuning-ok: the last save version written before the death-weapon credit policy
           (raw.progression?.awards ?? []).some((row) => deathWeaponDescriptor(row.weaponId)?.creditPolicy === "none")
         )
           return null;
@@ -462,8 +467,8 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
     }
   }
   function unavailable(g) {
-    g.message = "Run saving unavailable. Supplies kept.";
-    g.messageUntil = g.time + 5;
+    g.message = webText("runCore.savingUnavailable.supplies");
+    g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
   }
   function dispatchPistol(g, command, canAct) {
     if (
@@ -488,8 +493,8 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
     try {
       const result = core.dispatch(command);
       if (!result.ok && result.code === "storage-unavailable") {
-        g.message = "Saving unavailable. Contract and equipment kept.";
-        g.messageUntil = g.time + 5;
+        g.message = webText("runCore.savingUnavailable.contract");
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -503,8 +508,8 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       const result = core.dispatch(command);
       if (result.ok && g.world.uniqueRewardData) syncMeleeEquipment(g);
       if (!result.ok && result.code === "storage-unavailable") {
-        g.message = "Saving unavailable. Equipment kept.";
-        g.messageUntil = g.time + 5;
+        g.message = webText("runCore.savingUnavailable.equipment");
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -581,8 +586,8 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
         if (result.events.some((e) => e.type === "rifle-reloaded" || e.type === "rifle-selected"))
           clock.reloadingUntil = 0;
       } else if (result.code === "storage-unavailable") {
-        g.message = "Saving unavailable. Rifle and ammunition kept.";
-        g.messageUntil = g.time + 5;
+        g.message = webText("runCore.savingUnavailable.rifle");
+        g.messageUntil = g.time + NOTICES.storageUnavailableSeconds;
       }
       return result;
     } finally {
@@ -690,6 +695,25 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       bossEquipmentScope = null;
     }
   }
+  // The hostile kill times live in their own small advisory record, never in the run envelope the server validates.
+  function flushRespawn(g) {
+    if (!g.respawn?.dirty || !selectedStorage) return;
+    g.respawn.dirty = false;
+    try {
+      selectedStorage.setItem(RESPAWN_SAVE_KEY, encodeRespawn(g));
+    } catch {
+      /* Advisory only: a failed write leaves those kills permanent. */
+    }
+  }
+  function clearRespawn() {
+    try {
+      // Only when a record exists, so a run that never killed anything writes nothing extra.
+      if (selectedStorage?.getItem(RESPAWN_SAVE_KEY) != null)
+        selectedStorage.setItem(RESPAWN_SAVE_KEY, emptyRespawnRecord());
+    } catch {
+      /* Advisory only. */
+    }
+  }
   function persistRun(g) {
     if (g !== getRun() || g.runSaveInvalid) return false;
     const result = core.dispatch({ type: "save" });
@@ -702,36 +726,45 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
           event.itemId === g.world.bossEquipmentData?.emberProjector?.itemId &&
           g.bossEquipment?.emberProjector?.status === "pending"
         ) {
-          g.message = g.world.bossEquipmentData.emberProjector.name + " dropped. Approach to collect.";
-          g.messageUntil = g.time + 4;
+          g.message = webText("runCore.bossDrop", { name: g.world.bossEquipmentData.emberProjector.name });
+          g.messageUntil = g.time + NOTICES.bossDropSeconds;
         }
       }
+    if (result.ok) flushRespawn(g);
     return result.ok;
   }
   function restoreSavedRun(g) {
     const result = core.dispatch({ type: "restore" });
+    if (result.ok && selectedStorage) {
+      try {
+        applyRespawnRecord(g, selectedStorage.getItem(RESPAWN_SAVE_KEY));
+      } catch {
+        /* Advisory only. */
+      }
+    }
     if (!result.ok) {
       g.runSaveInvalid = true;
       if (result.code === "invalid-save") {
         g.supplies = null;
         g.player.hp = 0;
         g.finished = true;
-        g.message = expedition()
-          ? "Saved run invalid. Original kept; recover it before retrying."
-          : "Saved run invalid. Retry to start fresh.";
-        g.messageUntil = 5;
+        g.message = webText("runCore.savedRunUnreadable");
+        g.messageUntil = NOTICES.resetPromptSeconds;
       } else {
-        g.message = "Run saving unavailable. Supplies kept.";
-        g.messageUntil = 5;
+        g.message = webText("runCore.savingUnavailable.supplies");
+        g.messageUntil = NOTICES.storageUnavailableSeconds;
       }
     }
     persistRun(g);
   }
   function resetRun() {
-    return core.dispatch({ type: "reset" });
+    const result = core.dispatch({ type: "reset" });
+    if (result.ok) clearRespawn();
+    return result;
   }
   function retry() {
     const result = core.dispatch({ type: "retry" });
+    if (result.ok) clearRespawn();
     if (result.ok && getRun().world.uniqueRewardData) syncMeleeEquipment(getRun());
     return result.ok;
   }
@@ -758,13 +791,13 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
             if (event.type !== "supply-pickup") continue;
             g.message =
               event.kind === "westminster-start-pistol-v1"
-                ? "Pistol collected and equipped."
+                ? webText("runCore.pickup.pistol")
                 : event.kind === "westminster-worn-vest-v1"
-                  ? "Worn vest equipped · 10% protection."
+                  ? webText("runCore.pickup.vest", { percent: Math.round(VEST_RULES.reduction * 100) })
                   : event.kind === "rounds"
-                    ? `Scavenged ${event.amount} spare rounds.`
-                    : `Dressing restored ${Math.ceil(event.amount)} health.`;
-            g.messageUntil = g.time + 3;
+                    ? webText("runCore.pickup.rounds", { amount: event.amount })
+                    : webText("runCore.pickup.dressing", { amount: Math.ceil(event.amount) });
+            g.messageUntil = g.time + NOTICES.supplyPickupSeconds;
           }
         } else if (result.code === "storage-unavailable") {
           unavailable(g);
@@ -786,13 +819,9 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
             const notice = drop.id + reason;
             if (g.supplyNotice === notice && g.time < g.supplyNoticeUntil) continue;
             g.supplyNotice = notice;
-            g.supplyNoticeUntil = g.time + 4;
-            g.message = {
-              "pistol-required": "Collect the pistol first. Rounds kept.",
-              "reserve-full": "Spare rounds full. Supply kept.",
-              "health-full": "Health full. Dressing kept.",
-            }[reason];
-            g.messageUntil = g.time + 2;
+            g.supplyNoticeUntil = g.time + NOTICES.supplyNoticeRepeatSeconds;
+            g.message = webText(`runCore.refusal.${reason}`);
+            g.messageUntil = g.time + NOTICES.supplyRefusalSeconds;
           }
         }
       }
@@ -808,8 +837,8 @@ export function createRunPersistence({ getRun, setRun, createFreshRun, storage }
       return;
     }
     for (const event of result.events) g.events.push({ ...event, actor: g.player });
-    g.message = "Worn vest equipped · 10% protection from unblocked hits.";
-    g.messageUntil = g.time + 4;
+    g.message = webText("runCore.vestEquipped", { percent: Math.round(VEST_RULES.reduction * 100) });
+    g.messageUntil = g.time + NOTICES.vestEquippedSeconds;
   }
   return {
     dispatchMarked,

@@ -3,6 +3,18 @@ import { ownsEmberReward } from "./boss-equipment-data.js";
 import { weaponTileIcon } from "./weapon-tile-icons.js";
 import { lockerStored } from "./locker-core.js";
 import { MELEE_VARIANTS } from "../melee-equipment.js";
+import { WEAPON_TILES as TILES } from "./weapon-tiles-data.js";
+import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./game-data-combat-text.js";
+import { isGoldenItem, goldenTileMarks } from "./golden-weapons.js";
+const GEAR_TEXT = GAME_DATA.combatText.gear; // data/combatText.json
+const { pageSize: PAGE, pageWidthPx: STEP } = TILES;
+// A weapon with nothing loaded and nothing in reserve says so instead of showing "0/8 · 0".
+const dry = (magazine, reserve) => !magazine && !reserve;
+const ammoText = (magazine, capacity, reserve) =>
+  fillText(GEAR_TEXT.ammoCount, { magazine: magazine ?? 0, capacity, reserve: reserve ?? 0 });
+const fuelText = (units, capacity) => `${Math.ceil((units / capacity) * 100)}${GEAR_TEXT.fuelSuffix}`;
+const rounds = (magazine, capacity, reserve) => (dry(magazine, reserve) ? GEAR_TEXT.ammoEmpty : ammoText(magazine, capacity, reserve));
 // Presentation only: every selection still uses its existing Gear control/writer.
 export function carriedWeaponTiles(g) {
   if (!g?.world) return [];
@@ -22,8 +34,8 @@ export function carriedWeaponTiles(g) {
             ? "westminster-start-pistol-v1"
             : (g.expedition?.selectedPistolVariant ?? "westminster-start-pistol-v1")
           : (g.uniqueReward?.selectedMeleeVariant ?? "knife");
-  const add = (id, name, control, owned, ammo = "Melee") => {
-    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo });
+  const add = (id, name, control, owned, ammo = GEAR_TEXT.ammoMelee, empty = false) => {
+    if (owned && !lockerStored(g, id)) rows.push({ id, name, control, active: id === active, ammo, empty });
   };
   for (const id of ["knife", g.world.uniqueRewardData?.itemId].filter(Boolean)) {
     const p = MELEE_VARIANTS[id];
@@ -37,7 +49,8 @@ export function carriedWeaponTiles(g) {
       p.name,
       "variant-" + id,
       g.pistol?.collected && (id === "westminster-start-pistol-v1" || g.expedition?.status === "claimed"),
-      `${g.pistol?.magazine ?? 0}/6 · ${g.pistol?.reserve ?? 0}`,
+      rounds(g.pistol?.magazine, TILES.pistolCapacity, g.pistol?.reserve),
+      dry(g.pistol?.magazine, g.pistol?.reserve),
     );
   const rifle = g.world.rifleData;
   if (rifle)
@@ -46,29 +59,41 @@ export function carriedWeaponTiles(g) {
       rifle.name,
       "rifle-equip",
       g.rifle?.status === "owned",
-      `${g.rifle?.magazine ?? 0}/${rifle.rules.capacity} · ${g.rifle?.reserve ?? 0}`,
+      rounds(g.rifle?.magazine, rifle.rules.capacity, g.rifle?.reserve),
+      dry(g.rifle?.magazine, g.rifle?.reserve),
     );
   add(
     flameId,
-    "Ember Projector",
+    GEAR_TEXT.emberProjector,
     emberOwned ? "boss-equip-emberProjector" : "flame-equip",
     g.flameFuel?.collected || emberOwned,
-    `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / (g.world.flameData?.capacity ?? 1000)) * 100)}% fuel`,
+    g.flameFuel?.fuelUnits > 0
+      ? fuelText(g.flameFuel.fuelUnits, g.world.flameData?.capacity ?? 1000)
+      : GEAR_TEXT.ammoEmpty,
+    !(g.flameFuel?.fuelUnits > 0),
   );
   for (const [field, p] of Object.entries(g.world.bossEquipmentData ?? {})) {
     if (p.family === "flamethrowers") continue;
     const state = boss[field],
+      empty =
+        p.family === "blades"
+          ? false
+          : p.family === "pistols"
+            ? dry(g.pistol?.magazine, g.pistol?.reserve)
+            : field === "grenade"
+              ? !state?.magazine
+              : dry(state?.magazine, state?.reserve),
       ammo =
         p.family === "flamethrowers"
-          ? `${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% fuel`
+          ? fuelText(g.flameFuel?.fuelUnits ?? 0, 1000)
           : p.family === "blades"
-            ? "Melee"
+            ? GEAR_TEXT.ammoMelee
             : p.family === "pistols"
-              ? `${g.pistol?.magazine ?? 0}/6 · ${g.pistol?.reserve ?? 0}`
+              ? ammoText(g.pistol?.magazine, TILES.pistolCapacity, g.pistol?.reserve)
               : field === "grenade"
-                ? `${state?.magazine ?? 0} charges`
-                : `${state?.magazine ?? 0}/${p.rules.capacity} · ${state?.reserve ?? 0}`;
-    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", ammo);
+                ? fillText(GEAR_TEXT.charges, { count: state?.magazine ?? 0 })
+                : ammoText(state?.magazine, p.rules.capacity, state?.reserve);
+    add(p.itemId, p.name, "boss-equip-" + field, state?.status === "owned", empty ? GEAR_TEXT.ammoEmpty : ammo, empty);
   }
   if (g.world.reaperData && ownsReaper(g) && !lockerStored(g, REAPER_ITEM_ID))
     rows.push({
@@ -78,10 +103,13 @@ export function carriedWeaponTiles(g) {
       active: reaperSelected(g),
       owned: true,
       companion: true,
-      ammo: reaperSelected(g) ? "Deployed" : "Recall / Deploy",
+      empty: false,
+      ammo: reaperSelected(g) ? GEAR_TEXT.ammoDeployed : GEAR_TEXT.recallDeploy,
     });
   return rows;
 }
+// The strip shows PAGE tiles at a time, so the page holding the equipped weapon is where the strip must rest.
+export const activeTilePage = (rows) => Math.max(0, Math.floor(rows.findIndex((r) => r.active && !r.companion) / PAGE));
 // A cancelled or dragged gesture cannot become an equip click.
 export function tileGesture() {
   let start = null,
@@ -93,7 +121,7 @@ export function tileGesture() {
       blocked = false;
     },
     move(e) {
-      if (start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) blocked = true;
+      if (start?.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) > TILES.tapSlopPx) blocked = true;
     },
     end(e) {
       if (start?.id === e.pointerId) start = null;
@@ -109,6 +137,34 @@ export function tileGesture() {
     },
   };
 }
+// A weapon picked up for the first time makes the tiles flash for a few seconds, with a "switch" chevron beside them.
+// "Seen" weapon ids live in their own localStorage key (like the first-time hints), never in the run save, and the
+// first update only records what is already carried, so loading a save never flashes.
+export const TILE_FLASH_KEY = "armagedom.weaponTileFlash.v1";
+export const TILE_FLASH_SECONDS = TILES.flashSeconds;
+export function createTileFlash(storage = globalThis.localStorage) {
+  const seen = new Set();
+  try {
+    const stored = JSON.parse(storage?.getItem(TILE_FLASH_KEY) ?? "[]");
+    if (Array.isArray(stored)) for (const id of stored) if (typeof id === "string") seen.add(id);
+  } catch {
+    /* Unreadable storage only means a flash may repeat. */
+  }
+  let known = null;
+  // Returns true when a carried weapon is new this session and has never flashed.
+  return (ids) => {
+    const fresh = known ? ids.filter((id) => !known.has(id) && !seen.has(id)) : [];
+    known = new Set(ids);
+    if (!fresh.length) return false;
+    for (const id of fresh) seen.add(id);
+    try {
+      storage?.setItem(TILE_FLASH_KEY, JSON.stringify([...seen]));
+    } catch {
+      /* The flash simply shows again next time. */
+    }
+    return true;
+  };
+}
 export function createWeaponTiles(s, select) {
   const root = document.getElementById("weapon-tiles"),
     track = document.getElementById("weapon-tiles-track"),
@@ -120,7 +176,10 @@ export function createWeaponTiles(s, select) {
   const gesture = tileGesture(),
     listeners = [],
     buttons = new Map();
-  let order = "",
+  const newWeapon = createTileFlash();
+  let flashUntil = 0,
+    order = "",
+    followed = null,
     selecting = false,
     disposed = false;
   const listen = (node, type, fn, options) => {
@@ -141,6 +200,12 @@ export function createWeaponTiles(s, select) {
     const row = carriedWeaponTiles(s.game).find((r) => r.id === button.dataset.weaponId);
     if (!row || (row.active && !row.companion)) return;
     const control = document.getElementById(row.control);
+    if (row.empty && control?.disabled) {
+      // The Gear control refuses an empty weapon; say so instead of ignoring the tap.
+      s.game.message = fillText(GEAR_TEXT.empty, { name: row.name });
+      s.game.messageUntil = s.game.time + TILES.emptyMessageSeconds;
+      return;
+    }
     if (!control || control.disabled) return;
     selecting = true;
     try {
@@ -152,12 +217,12 @@ export function createWeaponTiles(s, select) {
   });
   function hint() {
     const count = buttons.size,
-      last = Math.max(0, Math.ceil(count / 2) - 1),
-      page = Math.max(0, Math.min(last, Math.round(track.scrollLeft / 110))),
-      extra = count > 2;
+      last = Math.max(0, Math.ceil(count / PAGE) - 1),
+      page = Math.max(0, Math.min(last, Math.round(track.scrollLeft / STEP))),
+      extra = count > PAGE;
     root.dataset.page = String(page);
     root.dataset.pages = String(last + 1);
-    position.textContent = `${page + 1} / ${last + 1}`;
+    position.textContent = fillText(GEAR_TEXT.pageOf, { page: page + 1, total: last + 1 });
     for (const [button, disabled] of [
       [prev, page === 0],
       [nextButton, page === last],
@@ -169,10 +234,10 @@ export function createWeaponTiles(s, select) {
   }
   function browse(delta) {
     if (root.hidden || s.paused || s.traveling || s.contextLost || !s.loaded) return;
-    const last = Math.max(0, Math.ceil(buttons.size / 2) - 1),
-      page = Math.round(track.scrollLeft / 110),
+    const last = Math.max(0, Math.ceil(buttons.size / PAGE) - 1),
+      page = Math.round(track.scrollLeft / STEP),
       target = Math.max(0, Math.min(last, page + delta));
-    track.scrollTo({ left: target * 110, behavior: "smooth" });
+    track.scrollTo({ left: target * STEP, behavior: "smooth" });
   }
   listen(prev, "click", () => browse(-1));
   listen(nextButton, "click", () => browse(1));
@@ -186,16 +251,22 @@ export function createWeaponTiles(s, select) {
     const g = s.game;
     root.hidden =
       !g || !s.loaded || s.paused || s.traveling || s.contextLost || g.finished || g.runSaveInvalid || g.player.hp <= 0;
-    if (root.hidden) return;
+    if (root.hidden) {
+      followed = null; // a hidden strip loses its scroll position; rest on the equipped page when it shows again
+      return;
+    }
     const rows = carriedWeaponTiles(g),
       next = rows.map((r) => r.id).join("|");
+    const now = globalThis.performance?.now?.() ?? 0;
+    if (newWeapon(rows.map((r) => r.id))) flashUntil = now + TILE_FLASH_SECONDS * 1000;
+    root.classList?.toggle("flash", now < flashUntil);
     if (next !== order) {
-      const oldPage = Math.round(track.scrollLeft / 110);
+      const oldPage = Math.round(track.scrollLeft / STEP);
       track.replaceChildren();
       buttons.clear();
       let page;
       for (const [index, row] of rows.entries()) {
-        if (index % 2 === 0) {
+        if (index % PAGE === 0) {
           page = document.createElement("div");
           page.className = "weapon-page";
           track.append(page);
@@ -204,30 +275,53 @@ export function createWeaponTiles(s, select) {
         b.type = "button";
         b.dataset.weaponId = row.id;
         const name = document.createElement("span"),
-          ammo = document.createElement("small");
+          ammo = document.createElement("small"),
+          slot = document.createElement("i"); // the 1-6 key number; style.css shows it only on desktop
         const icon = weaponTileIcon(row.id);
         name.textContent = icon.caption;
         b.style.setProperty("--weapon-icon", icon.mask);
         b.dataset.iconFamily = icon.family;
-        b.append(name, ammo);
+        b.append(name, ammo, slot);
         page.append(b);
         buttons.set(row.id, b);
       }
-      track.scrollLeft = Math.min(oldPage, Math.max(0, Math.ceil(rows.length / 2) - 1)) * 110;
+      track.scrollLeft = Math.min(oldPage, Math.max(0, Math.ceil(rows.length / PAGE) - 1)) * STEP;
       order = next;
     }
+    // Follow the equipped weapon: an auto-equipping pickup, a restore, a death or a key switch can leave the equipped tile on
+    // another page. Browsing with the arrows is left alone until the equipped weapon or the tile list changes again.
+    const activeKey = next + ">" + (rows.find((r) => r.active && !r.companion)?.id ?? "");
+    if (activeKey !== followed) {
+      followed = activeKey;
+      track.scrollLeft = activeTilePage(rows) * STEP;
+    }
+    let slotNumber = 0;
     for (const row of rows) {
       const b = buttons.get(row.id),
         control = document.getElementById(row.control);
-      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled);
+      // The weapon key number: the nth carried weapon, the Reaper companion not counted (same order as the 1-6 keys).
+      const slot = b.querySelector("i");
+      if (slot) slot.textContent = row.companion ? "" : String(++slotNumber);
+      // An empty tile stays tappable so the tap can explain why it will not equip.
+      const tellsEmpty = row.empty && !row.active && !selecting && !!control?.disabled;
+      b.disabled = (row.companion || !row.active) && (selecting || !control || control.disabled) && !tellsEmpty;
       b.setAttribute("aria-pressed", String(row.active));
-      b.setAttribute("aria-label", `${row.name} · ${row.ammo}${row.active ? " · equipped" : " · tap to equip"}`);
+      b.setAttribute(
+        "aria-label",
+        fillText(GEAR_TEXT.tileLabel, { name: row.name, ammo: row.ammo }) + (row.active ? GEAR_TEXT.equippedSuffix : GEAR_TEXT.tapToEquip),
+      );
+      // A golden gun's tile gets a gold frame and a star (style.css [data-golden]); the words are data/goldenWeapons.json.
+      if (isGoldenItem(g, row.id)) {
+        const marks = goldenTileMarks();
+        b.dataset.golden = marks.marker;
+        b.setAttribute("aria-label", `${b.getAttribute("aria-label")} (${marks.label})`);
+      } else delete b.dataset.golden;
       const ammo = b.querySelector("small");
-      ammo.hidden = row.ammo === "Melee";
-      ammo.textContent = ammo.hidden ? "" : row.ammo.replace("% fuel", "%");
+      ammo.hidden = row.ammo === GEAR_TEXT.ammoMelee;
+      ammo.textContent = ammo.hidden ? "" : row.ammo.replace(GEAR_TEXT.fuelSuffix, "%");
     }
     const active = rows.find((r) => r.active);
-    current.textContent = active ? `${active.name} · ${active.ammo}` : "Weapon selection";
+    current.textContent = active ? fillText(GEAR_TEXT.tileLabel, { name: active.name, ammo: active.ammo }) : GEAR_TEXT.weaponSelection;
     hint();
   }
   return {

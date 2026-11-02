@@ -1,11 +1,17 @@
 import { lockerStored } from "./locker-core.js";
 import { bossExitGate } from "./area-bosses.js";
+import { huntTarget } from "./route-guidance.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
-import { expeditionEligible, selectedPistolProfile } from "./expedition-core.js";
+import { expeditionEligible, selectedPistolProfile, contractEnabled } from "./expedition-core.js";
 import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { createHeadLabelPositioner } from "./boss-label.js";
 import { createVestBagView } from "../vest-view.js";
 import { areaDisplayName as areaName } from "../area-registry.js";
+import { EXPEDITION_HUD } from "./expedition-hud-data.js";
+import { sessionText as text } from "./session-text.js";
+import { PISTOL_RULES } from "../pistol.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+import { runObjective } from "./apocalypse-run.js";
 export function selectedAtlasRoute(registry, from, to) {
   const route = [];
   if (!to || from === to) return route;
@@ -19,22 +25,25 @@ export function selectedAtlasRoute(registry, from, to) {
   }
   return route;
 }
+const mark = (on, key) => (on ? text(`expedition.${key}`) : ""); // an atlas mark or aria suffix, or nothing
 const paint = (element, value) => {
   if (element.textContent !== value) element.textContent = value;
 };
 // Long schematic links use the gaps between cards, so crossing an unrelated
 // area never looks like a connection to it. Endpoints remain the real graph.
 export function atlasConnectionPoints(a, b) {
-  const start = { x: a.column * 100 + 50, y: a.row * 100 + 50 },
-    end = { x: b.column * 100 + 50, y: b.row * 100 + 50 };
+  const { cell, gutter, columns, rows, lanes } = EXPEDITION_HUD.atlas,
+    half = cell / 2, // tuning-ok: the centre of a card
+    start = { x: a.column * cell + half, y: a.row * cell + half },
+    end = { x: b.column * cell + half, y: b.row * cell + half };
   if (a.row === b.row && Math.abs(a.column - b.column) > 1) {
-    const y = a.row === 0 ? 0 : a.row === 2 ? 300 : 100;
+    const y = a.row === 0 ? 0 : a.row === rows - 1 ? rows * cell : cell;
     return [start, { x: start.x, y }, { x: end.x, y }, end];
   }
   if (a.column === b.column && Math.abs(a.row - b.row) > 1) {
-    const x = a.column === 0 ? -3 : a.column === 2 ? 303 : 100,
-      near = start.y < end.y ? 100 : 200,
-      far = start.y < end.y ? 200 : 100;
+    const x = a.column === 0 ? -gutter : a.column === columns - 1 ? columns * cell + gutter : cell,
+      near = start.y < end.y ? lanes[0] : lanes[1],
+      far = start.y < end.y ? lanes[1] : lanes[0];
     return [start, { x: start.x, y: near }, { x, y: near }, { x, y: far }, { x: end.x, y: far }, end];
   }
   return [start, end];
@@ -44,40 +53,69 @@ const nearbyAction = (g, data) =>
   g.expedition?.status === "available" && expeditionEligible(g, "recover", data)
     ? "recover"
     : stageAction[g.expedition?.status];
-const labels = { accept: "Accept contract", recover: "Recover supply case", claim: "Complete contract & claim reward" };
+const labels = {
+  accept: text("expedition.actionAccept"),
+  recover: text("expedition.actionRecover"),
+  claim: text("expedition.actionClaim"),
+};
 export function journalPresentation(g, data, allowed = true) {
   const status = g.expedition?.status,
     action = stageAction[status],
     eligible = !!(action && allowed && expeditionEligible(g, action, data)),
-    gate = bossExitGate(g),
-    next =
-      {
-        available: "Optional · accept at the Westminster stash, or recover the case in East.",
-        accepted: "Next: recover the supply case in East. Fighting Hale is optional.",
-        recovered: eligible
-          ? "At the Westminster stash · claim your reward."
-          : "Case recovered · return to the Westminster stash.",
-        claimed: "Reward claimed once · choose your earned weapon in Gear.",
-      }[status] ?? "";
+    gate = bossExitGate(g);
+  if (!contractEnabled(data))
+    return { eligible: false, showAction: false, next: gate && !gate.allowed ? gate.message : "" };
+  const next =
+    {
+      available: text("expedition.journalAvailable"),
+      accepted: text("expedition.journalAccepted"),
+      recovered: text(eligible ? "expedition.journalRecoveredReady" : "expedition.journalRecovered"),
+      claimed: text("expedition.journalClaimed"),
+    }[status] ?? "";
   return {
     eligible,
     showAction: status === "claimed" || eligible,
     next: gate && !gate.allowed ? `${gate.message}\n${next}` : next,
   };
 }
+// The HUD text for the objective. While the route arrow names the current kill (salamander, then Ember Matron) its line is
+// the only one shown; the objective itself is unchanged and the standing gate line returns when the hunt chain is not active.
+export const hudObjectiveLine = (g, progression) => (huntTarget(g) ? "" : (progression?.objective ?? ""));
+// Outside Westminster: one line per area (sessionText areaObjective); once the area's boss is dead, the way home.
+function areaObjectiveLine(g) {
+  const id = g.world.areaId;
+  if (!Object.hasOwn(GAME_DATA.sessionText.areaObjective, id)) return "";
+  const hasBoss = g.world.bossData?.placements?.some((row) => row.areaId === id),
+    bossAlive = g.enemies?.some((e) => e.hp > 0 && e.bossProfile);
+  // "Boss down" only after this area's boss was seen alive: a boss that spawns late must not flash it on entry.
+  // Session-only set of area ids (never saved or sent), so a cleared area keeps its line after visiting another.
+  g.bossSeenAliveIn ??= new Set();
+  if (bossAlive) g.bossSeenAliveIn.add(id);
+  return hasBoss && g.enemies && !bossAlive && g.bossSeenAliveIn.has(id) ? text("expedition.bossDown") : text(`areaObjective.${id}`);
+}
 export function progressionObjective(g) {
-  if (g.world.areaId !== "westminster")
-    return { target: null, objective: "Explore the area. Use the map to plan your next route." };
-  const gate = bossExitGate(g, "east");
+  const run = runObjective(g); // a run in progress replaces the area's own line with the stage's
+  if (run) return { target: null, objective: run };
+  if (g.world.areaId !== "westminster") return { target: null, objective: areaObjectiveLine(g) };
+  const gate = bossExitGate(g, "central-hub");
   return gate && !gate.allowed
     ? { target: "westminster", objective: gate.message }
-    : { target: "east", objective: "Reach East." };
+    : { target: "central-hub", objective: text("expedition.reachEast") };
 }
+// The stolen supply case is a prop in East only while the contract is on.
+export const supplyCaseShown = (data, areaId, status) =>
+  contractEnabled(data) && areaId === data.contract.case.areaId && ["available", "accepted"].includes(status);
 export function expeditionObjective(g) {
   if (g.world.safehouseData) return progressionObjective(g).target;
   const c = g.world.expeditionData?.contract,
     s = g.expedition?.status;
-  return !c ? null : s === "accepted" ? c.case.areaId : s === "claimed" ? null : c.giver.areaId;
+  return !c || !contractEnabled(g.world.expeditionData)
+    ? null
+    : s === "accepted"
+      ? c.case.areaId
+      : s === "claimed"
+        ? null
+        : c.giver.areaId;
 }
 // The existing menu, scene and interaction button remain owners. No second input/clock loop.
 export function createExpeditionView(s, dispatch) {
@@ -112,13 +150,11 @@ export function createExpeditionView(s, dispatch) {
     const result = dispatch(g, command, allowed());
     if (result.ok) {
       g.events.push(...result.events);
-      if (command.type === "expedition") {
-        g.message = {
-          accept: "Contract accepted. Find the stolen case in East.",
-          recover: "Case recovered. Return to the Westminster stash.",
-          claim: "Reward earned. Choose " + (g.world.reaperData?.name ?? "Watchman’s Pistol") + " in Gear.",
-        }[command.action];
-        g.messageUntil = g.time + 4;
+      // Switching to a pistol says so, like the knife tile does ("Pistol equipped."), for a few seconds.
+      const name = command.type === "selectVariant" ? catalogue?.variants?.[command.variantId]?.name : null;
+      if (name) {
+        g.message = fillText(GAME_DATA.combatText.gear.equipped, { name });
+        g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
       }
     }
     update();
@@ -135,13 +171,22 @@ export function createExpeditionView(s, dispatch) {
     el("contract-title").textContent = data.contract.title;
     const base = data.variants[PISTOL_ITEM_ID],
       reward = data.variants[data.contract.rewardVariantId];
+    const percent = Math.round((reward.damage / base.damage - 1) * 100);
     el("contract-description").textContent = s.world.reaperData
-      ? `${data.contract.summary} Reward: ${s.world.reaperData.name}, an autonomous companion alongside your held weapon.`
-      : `${data.contract.summary} Reward: ${reward.name}, ${reward.damage} base damage (+${Math.round((reward.damage / base.damage - 1) * 100)}%; starting pistol ${base.damage}); reload ${reward.reload.toFixed(1)}s (starting pistol ${base.reload.toFixed(1)}s).`;
+      ? text("expedition.descriptionCompanion", { summary: data.contract.summary, name: s.world.reaperData.name })
+      : text("expedition.descriptionWeapon", {
+          summary: data.contract.summary,
+          name: reward.name,
+          damage: reward.damage,
+          percent,
+          baseDamage: base.damage,
+          reload: reward.reload.toFixed(1),
+          baseReload: base.reload.toFixed(1),
+        });
     if (el("contract-reward"))
       el("contract-reward").textContent = s.world.reaperData
-        ? `Reward: ${s.world.reaperData.name} · autonomous companion`
-        : `Reward: ${reward.name} · +${Math.round((reward.damage / base.damage - 1) * 100)}% base damage · ${reward.reload.toFixed(1)}s reload.`;
+        ? text("expedition.rewardCompanion", { name: s.world.reaperData.name })
+        : text("expedition.rewardWeapon", { name: reward.name, percent, reload: reward.reload.toFixed(1) });
     for (const [id, row] of Object.entries(data.variants)) {
       if (s.world.reaperData && id === data.contract.rewardVariantId) continue;
       const button = document.createElement("button");
@@ -168,7 +213,7 @@ export function createExpeditionView(s, dispatch) {
       }
     el("atlas-map").setAttribute(
       "aria-label",
-      `${registry.ids.length} areas. Select a destination to show only its route. Tile positions are schematic.`,
+      text("expedition.atlasMap", { count: registry.ids.length }),
     );
     for (const id of registry.ids) {
       const button = document.createElement("button"),
@@ -202,16 +247,6 @@ export function createExpeditionView(s, dispatch) {
       if (action) execute({ type: "expedition", action });
     });
   }
-  function label(element, position, height, text) {
-    const p = s.world.toRender(position, height).project(s.camera),
-      visible = Math.abs(p.x) < 1 && Math.abs(p.y) < 1 && p.z >= -1 && p.z <= 1;
-    element.hidden = !visible;
-    if (!visible) return;
-    element.textContent = text;
-    const portrait = innerWidth < innerHeight;
-    element.style.left = `${Math.max(95, Math.min(innerWidth - 95, ((p.x + 1) * innerWidth) / 2))}px`;
-    element.style.top = `${Math.max(portrait ? 185 : 150, Math.min(innerHeight - 110, ((1 - p.y) * innerHeight) / 2))}px`;
-  }
   function interact() {
     const g = s.game;
     if (!g || !allowed() || s.paused) return false;
@@ -226,22 +261,30 @@ export function createExpeditionView(s, dispatch) {
     }
     return false;
   }
+  // The one objective line of the area (Westminster tutorial, or sessionText areaObjective elsewhere). It does not need the contract data,
+  // which only some areas carry, so it paints before the data check.
+  function paintObjective(g) {
+    const line = el("expedition-objective");
+    line.hidden = !g || !allowed() || g.player.hp <= 0;
+    paint(line, g ? hudObjectiveLine(g, progressionObjective(g)) : "");
+  }
   function update() {
     if (disposed) return;
     const g = s.game,
       data = s.world?.expeditionData;
+    paintObjective(g);
     if (!g || !data) {
       panel.hidden = true;
       return;
     }
     if (!catalogue) build(data);
     el("retry").disabled = el("again").disabled = !!g.runSaveInvalid;
+    el("retry").title = el("again").title = g.runSaveInvalid ? text("expedition.resetHint") : "";
     const state = g.expedition;
     if (!state) {
       panel.hidden = true;
       return;
     }
-    const progression = g.world.safehouseData ? progressionObjective(g) : null;
     const c = data.contract,
       status = state.status,
       objective = expeditionObjective(g),
@@ -252,7 +295,7 @@ export function createExpeditionView(s, dispatch) {
     const journal = journalPresentation(g, data, allowed());
     paint(el("contract-status"), journal.next);
     el("contract-action").hidden = !journal.showAction;
-    paint(el("contract-action"), status === "claimed" ? "View Gear" : labels[action]);
+    paint(el("contract-action"), status === "claimed" ? text("expedition.viewGear") : labels[action]);
     el("contract-action").disabled = status !== "claimed" && !eligible;
     const known = new Set([...(state.visitedIds ?? []), g.world.areaId, ...(objective ? [objective] : [])]);
     if (pin && !known.has(pin)) pin = null;
@@ -267,14 +310,26 @@ export function createExpeditionView(s, dispatch) {
       paint(
         button,
         visible
-          ? `${current ? "● " : ""}${areaName(id)}${visited ? " ✓" : ""}${target ? " ⚑" : ""}${pin === id ? " · PIN" : ""}`
-          : "? Undiscovered",
+          ? [
+              mark(current, "nodeCurrent"),
+              areaName(id),
+              mark(visited, "nodeVisited"),
+              mark(target, "nodeObjective"),
+              mark(pin === id, "nodePinned"),
+            ].join("")
+          : text("expedition.nodeUndiscovered"),
       );
       button.setAttribute(
         "aria-label",
         visible
-          ? `${areaName(id)}${current ? ", current area" : ""}${visited ? ", visited" : ""}${target ? ", objective" : ""}${pin === id ? ", pinned" : ""}`
-          : "Undiscovered area",
+          ? [
+              areaName(id),
+              mark(current, "labelCurrent"),
+              mark(visited, "labelVisited"),
+              mark(target, "labelObjective"),
+              mark(pin === id, "labelPinned"),
+            ].join("")
+          : text("expedition.labelUndiscovered"),
       );
     }
     const selectedRoute = selectedAtlasRoute(g.world.registry, g.world.areaId, pin),
@@ -288,9 +343,10 @@ export function createExpeditionView(s, dispatch) {
       gate = next ? bossExitGate(g, next.to) : null,
       route = pin
         ? next
-          ? `Pinned ${areaName(pin)} · next exit: ${areaName(next.to)}${gate && !gate.allowed ? " · " + gate.message : ""}`
-          : `Pinned ${areaName(pin)} · you are here.`
-        : "Choose a known destination to show its route. Tile positions are schematic. ● Current · ✓ Visited · ⚑ Objective";
+          ? text("expedition.routeNext", { area: areaName(pin), next: areaName(next.to) }) +
+            (gate && !gate.allowed ? text("expedition.routeGate", { gate: gate.message }) : "")
+          : text("expedition.routeHere", { area: areaName(pin) })
+        : text("expedition.routeChoose");
     paint(el("atlas-route"), route);
     el("atlas-objective").disabled = !objective;
     const profile = selectedPistolProfile(g),
@@ -299,7 +355,18 @@ export function createExpeditionView(s, dispatch) {
         : (data.variants[state.selectedPistolVariant]?.name ?? data.variants[PISTOL_ITEM_ID].name);
     paint(
       el("equipment-state"),
-      `${g.flame?.equipped ? "Stored pistol" : g.pistol.equipped ? "Equipped pistol" : "Holstered pistol"}: ${name} · damage ${+effectiveWeaponDamage(g, PISTOL_ITEM_ID, profile.damage).toFixed(1)} · reload ${profile.reload.toFixed(1)}s · ${g.pistol.magazine}/6 loaded, ${g.pistol.reserve} reserve.${g.pistol.collected ? "" : " Collect the pistol at the stash to use your retained variant."}`,
+      text("expedition.equipmentState", {
+        stance: text(
+          g.flame?.equipped ? "expedition.pistolStored" : g.pistol.equipped ? "expedition.pistolEquipped" : "expedition.pistolHolstered",
+        ),
+        name,
+        damage: +effectiveWeaponDamage(g, PISTOL_ITEM_ID, profile.damage).toFixed(1),
+        reload: profile.reload.toFixed(1),
+        magazine: g.pistol.magazine,
+        capacity: PISTOL_RULES.capacity,
+        reserve: g.pistol.reserve,
+        hint: g.pistol.collected ? "" : text("expedition.equipmentCollect"),
+      }),
     );
     for (const [id, button] of choices) {
       const row = data.variants[id],
@@ -317,8 +384,17 @@ export function createExpeditionView(s, dispatch) {
       paint(
         button,
         lockerStored(g, id)
-          ? `Stored · ${row.name}`
-          : `${(g.world.reaperData ? id === PISTOL_ITEM_ID : state.selectedPistolVariant === id) && g.pistol.equipped && !g.flame?.equipped ? "Equipped" : owned ? "Equip" : "Locked"} · ${row.name}`,
+          ? text("expedition.variantStored", { name: row.name })
+          : text("expedition.variantChoice", {
+              state: text(
+                (g.world.reaperData ? id === PISTOL_ITEM_ID : state.selectedPistolVariant === id) && g.pistol.equipped && !g.flame?.equipped
+                  ? "expedition.stateEquipped"
+                  : owned
+                    ? "expedition.stateEquip"
+                    : "expedition.stateLocked",
+              ),
+              name: row.name,
+            }),
       );
     }
     if (el("pistol-comparison"))
@@ -328,31 +404,19 @@ export function createExpeditionView(s, dispatch) {
           .filter(([id]) => !g.world.reaperData || id === PISTOL_ITEM_ID)
           .map(
             ([, row]) =>
-              `${row.name}: ${+effectiveWeaponDamage(g, PISTOL_ITEM_ID, row.damage).toFixed(1)} damage · ${row.reload.toFixed(1)}s reload`,
+              text("expedition.comparisonRow", {
+                name: row.name,
+                damage: +effectiveWeaponDamage(g, PISTOL_ITEM_ID, row.damage).toFixed(1),
+                reload: row.reload.toFixed(1),
+              }),
           )
           .join(" / "),
       );
-    const objectiveLine = el("expedition-objective");
-    objectiveLine.hidden = !allowed() || g.player.hp <= 0;
-    paint(
-      objectiveLine,
-      (progression
-        ? progression.objective
-        : status === "available"
-          ? "Optional contract · Westminster stash"
-          : status === "accepted"
-            ? "Stolen Supplies · recover in East"
-            : status === "recovered"
-              ? "Carrying case · return to Westminster"
-              : g.world.reaperData
-                ? "Reaper Drone earned · Gear in menu"
-                : "Watchman’s Pistol earned · Gear in menu") + (pin ? "\n" + route : ""),
-    );
-    const caseVisible = allowed() && g.world.areaId === c.case.areaId && ["available", "accepted"].includes(status);
+    const caseVisible = allowed() && supplyCaseShown(data, g.world.areaId, status);
     if (caseVisible && !caseView) {
       caseView = createVestBagView();
-      caseView.root.name = "Stolen supply case";
-      caseView.root.scale.setScalar(1.35);
+      caseView.root.name = "Stolen supply case"; // text-ok: scene-graph node name, never shown
+      caseView.root.scale.setScalar(EXPEDITION_HUD.caseScale);
       s.scene.add(caseView.root);
     }
     if (caseView) {
@@ -368,7 +432,7 @@ export function createExpeditionView(s, dispatch) {
       allowed() &&
       g.world.areaId === c.guard.areaId &&
       guard &&
-      Math.hypot(guard.pos.x - g.player.pos.x, guard.pos.z - g.player.pos.z) < 10
+      Math.hypot(guard.pos.x - g.player.pos.x, guard.pos.z - g.player.pos.z) < EXPEDITION_HUD.guardLabelDistance
     ) {
       guardLabel.hidden = false;
       paint(guardLabel, c.guard.name);
@@ -414,7 +478,7 @@ export function createExpeditionView(s, dispatch) {
     if ((!action && !claimed) || !expeditionEligible(g, claimed ? "claim" : action, catalogue)) return null;
     return {
       id: "expedition-" + (claimed ? "gear" : action),
-      label: claimed ? "View earned gear" : labels[action],
+      label: claimed ? text("expedition.viewEarnedGear") : labels[action],
       position: action === "recover" ? catalogue.contract.case.position : catalogue.contract.giver.position,
       run: interact,
     };

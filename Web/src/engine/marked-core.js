@@ -1,9 +1,15 @@
 import { closedData } from "./progression-state.js";
-import { freshMarked, validMarked, copyMarked, markedShopEligible } from "./marked.js";
+import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { dropCorpseBag, gearOf } from "./corpse-run.js";
 export const MARKED_SAVE_KEY = "armagedom:marked-run:v18";
-const same = (a, b) => a.version === b.version && a.carried === b.carried && a.bank === b.bank && a.bounty === b.bounty;
+const same = (a, b) =>
+  a.version === b.version &&
+  a.carried === b.carried &&
+  a.bank === b.bank &&
+  a.bounty === b.bounty &&
+  cleanGolden(a.golden).join() === cleanGolden(b.golden).join();
 const fail = (code) => ({ ok: false, code, events: [] });
 // One passive envelope over Hub17. Existing progression owns kill credit and
 // existing inventory codecs own ammo/HP; all sides commit through Core once.
@@ -50,7 +56,8 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       if (!g || !validMarked(state(g), rules().maxMoney)) return fail("invalid-save");
       const before = copyMarked(state(g)),
         oldAwards = new Set((g.progression?.awards ?? []).map((a) => a.placementKey)),
-        action = command.type === "save" ? getAction(g) : null;
+        action = command.type === "save" ? getAction(g) : null,
+        fell = { areaId: g.world?.areaId, x: g.player?.pos?.x, z: g.player?.pos?.z }; // where a death in this command happened
       if (
         action &&
         (!canDispatch(g) ||
@@ -100,7 +107,7 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
                 ),
                 amount = boss ? config.bossCash : config.cashPerKill;
               money.carried = Math.min(config.maxMoney, money.carried + amount);
-              money.bounty = Math.min(config.maxMoney, money.bounty + amount);
+              if (config.bounty !== false) money.bounty = Math.min(config.maxMoney, money.bounty + amount);
               earned += amount;
             }
           if (action) {
@@ -143,6 +150,14 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       if (result.ok && committed) {
         const current = getRun();
         current.marked = copyMarked(committed.marked);
+        // Retry swaps in a fresh run whose clock starts again: the bag outlives the dead run with its remaining scavenger time.
+        if (command.type === "retry" && g.corpseBag)
+          current.corpseBag = { ...g.corpseBag, expiresAt: current.time + g.corpseBag.expiresAt - g.time };
+        // The cash a DEATH took out of the record, and the weapon in hand, go into a session-only body bag: cash moved, never copied.
+        // Retry while alive drops no bag (its cash is zeroed as it always was), so Retry is never a way to park cash or a weapon.
+        // Where the player fell was read before any travel.
+        if (g.player.hp <= 0 || committed.player.hp <= 0)
+          dropCorpseBag(current, before.carried - current.marked.carried, g.corpseFell ?? fell, gearOf(g));
         if (action || command.type === "retry") {
           current.player.hp = committed.player.hp;
           current.pistol = committed.pistol;

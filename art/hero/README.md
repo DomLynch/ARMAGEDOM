@@ -64,5 +64,5 @@ quota-consuming workloads under a zero-spend constraint. No paid GPU job fallbac
   AAA-quality topology, mocap or perfect joints. Fingers/underarm deformation and
   the simple sword remain refinement candidates. User judges the 9/10 visual target.
 
-Reusable workflow: [unity-blender-cpu-art skill](/Users/domininclynch/.codex/skills/unity-blender-cpu-art/SKILL.md),
+Reusable workflow: [unity-blender-cpu-art skill](~/.codex/skills/unity-blender-cpu-art/SKILL.md),
 with a supporting reference for original heroes, guarded reconstruction and PBR import.

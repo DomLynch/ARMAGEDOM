@@ -1,0 +1,106 @@
+{
+ "rifle": {
+  "large": {
+   "display": {
+    "scale": [
+     0.237894696,
+     0.237894696,
+     0.237894696
+    ],
+    "position": [
+     0,
+     0.262894696,
+     0
+    ],
+    "rotation": 1.5707963267948966
+   }
+  },
+  "claim": {
+   "message": "Bridge Rifle collected.",
+   "until": 14
+  },
+  "small": {
+   "display": {
+    "scale": [
+     1,
+     1,
+     1
+    ],
+    "position": [
+     0,
+     0.125000001,
+     0
+    ],
+    "rotation": 1.5707963267948966
+   }
+  },
+  "loadFailed": {
+   "message": "Rifle loading unavailable. Selection and ammunition kept; retry in Gear.",
+   "until": 25
+  }
+ },
+ "unique": {
+  "large": {
+   "scale": [
+    0.199692071,
+    0.199692071,
+    0.199692071
+   ],
+   "position": [
+    0,
+    0.074923018,
+    0
+   ]
+  },
+  "small": {
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "position": [
+    0,
+    0.125000001,
+    0
+   ]
+  },
+  "reach": [
+   [
+    1.2,
+    true
+   ],
+   [
+    1.29999,
+    true
+   ],
+   [
+    1.3,
+    true
+   ],
+   [
+    1.300000005,
+    true
+   ],
+   [
+    1.30000001,
+    true
+   ],
+   [
+    1.3000000200000001,
+    false
+   ],
+   [
+    1.31,
+    false
+   ]
+  ],
+  "claim": {
+   "message": "Pitborn Cleaver collected.",
+   "until": 5
+  },
+  "loadFailed": {
+   "message": "Cleaver loading unavailable. Pending drop kept; retry in Gear.",
+   "until": 55
+  }
+ }
+}

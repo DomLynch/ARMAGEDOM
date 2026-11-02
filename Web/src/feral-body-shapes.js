@@ -1,11 +1,12 @@
 // Feral-compatible torso shapes. Apply after accepted feral before private materials.
-export const FERAL_BODY_SHAPES = Object.freeze(
-  [
-    { id: "dog-gaunt-hound", width: 0.62 },
-    { id: "dog-stocky-yard", width: 1.6 },
-  ].map(Object.freeze),
-);
+// The recipes (id, torso width factor) live in Web/src/data/creatures.json `feralBodyShapes`.
+import { GAME_DATA } from "./engine/game-data.js";
+export const FERAL_BODY_SHAPES = GAME_DATA.creatures.feralBodyShapes;
 const TORSO = new Set(["pelvis", "spine", "chest"]);
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
+// The torso skin-weight taper band is appearance.json `feralTorsoMask`.
+const MASK = GAME_DATA.appearance.feralTorsoMask;
+const COAT_NAME = GAME_DATA.appearance.meshNames.feralCoat;
 export function createFeralBodyShapeLibrary() {
   const cache = new WeakMap(),
     owned = new Set();
@@ -18,7 +19,7 @@ export function createFeralBodyShapeLibrary() {
       if (!recipe) throw Error("Unknown feral body shape " + id);
       const meshes = [];
       model.traverse((m) => {
-        if (m.isSkinnedMesh && m.material?.name === "Weathered brindle coat") meshes.push(m);
+        if (m.isSkinnedMesh && m.material?.name === COAT_NAME) meshes.push(m);
       });
       if (meshes.length !== 1 || !meshes[0].material.vertexColors || !meshes[0].geometry.attributes.color)
         throw Error("Accepted feral geometry required first");
@@ -33,9 +34,9 @@ export function createFeralBodyShapeLibrary() {
           w = g.attributes.skinWeight;
         for (let i = 0; i < p.count; i++) {
           let influence = 0;
-          for (let k = 0; k < 4; k++)
+          for (let k = 0; k < INFLUENCES; k++)
             if (TORSO.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) influence += w.getComponent(i, k);
-          const mask = Math.max(0, Math.min(1, (influence - 0.9) / 0.1));
+          const mask = Math.max(0, Math.min(1, (influence - MASK.from) / MASK.range));
           p.setX(i, p.getX(i) * (1 + (recipe.width - 1) * mask));
         }
         g.computeVertexNormals();

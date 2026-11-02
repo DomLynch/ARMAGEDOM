@@ -1,37 +1,44 @@
 import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-export const MARKED_DEFAULTS = freeze({
-  version: 1,
-  cashPerKill: 100,
-  bossCash: 200,
-  maxMoney: 1000000000,
-  hunterBounty: 300,
-  maxHunters: 1,
-  hostileBudget: 6,
-  minSpawnDistance: 8,
-  warningSeconds: 2,
-  spawnCooldown: 30,
-  arrivalDelay: 6,
-  hunterHealth: 80,
-  hunterSpeed: 3.2,
-  shop: { pistol: { price: 100, amount: 6 }, rifle: { price: 150, amount: 4 }, dressing: { price: 100, amount: 25 } },
-});
+// The values live only in area-content.json `marked`. This is the hard ceiling on any money field (a limit, not a default).
+export const MAX_MONEY_CEILING = 1e9; // tuning-ok: a hard validation ceiling on any money field, a limit and not a default
 export function validateMarkedData(input, registry = publicAreaRegistry) {
   if (input === undefined) return null;
-  closed(input, Object.keys(MARKED_DEFAULTS), ["projection", "projections"]);
-  for (const key of Object.keys(MARKED_DEFAULTS).filter((k) => k !== "shop"))
-    if (!Number.isFinite(input[key]) || input[key] <= 0) throw TypeError("Invalid Marked rule");
+  // The closed set of rule names the validator accepts (the schema, not data).
+  const MARKED_KEYS = [
+    "version",
+    "cashPerKill",
+    "bossCash",
+    "maxMoney",
+    "hunterBounty",
+    "maxHunters",
+    "minSpawnDistance",
+    "warningSeconds",
+    "spawnCooldown",
+    "arrivalDelay",
+    "respawnDelay",
+    "hunterHealth",
+    "hunterSpeed",
+    "shop",
+  ];
+  closed(input, MARKED_KEYS, ["projection", "projections", "hunters", "bounty"]);
+  for (const k of ["hunters", "bounty"])
+    if (input[k] !== undefined && typeof input[k] !== "boolean") throw TypeError("Invalid Marked switch");
+  // hunterBounty is the bounty needed before a hunter comes; 0 means none is needed (hunters always on). Every other rule is positive.
+  for (const key of MARKED_KEYS.filter((k) => k !== "shop"))
+    if (!Number.isFinite(input[key]) || input[key] < 0 || (input[key] === 0 && key !== "hunterBounty"))
+      throw TypeError("Invalid Marked rule");
   if (
     input.version !== 1 ||
     input.maxHunters !== 1 ||
-    input.hostileBudget !== 6 ||
-    input.maxMoney > 1e9 ||
+    input.maxMoney > MAX_MONEY_CEILING ||
     !Number.isSafeInteger(input.maxMoney) ||
     input.minSpawnDistance < 8 ||
     input.warningSeconds < 2 ||
     input.spawnCooldown < 30 ||
     input.arrivalDelay < 6 ||
+    input.respawnDelay < 30 ||
     input.hunterHealth > 120 ||
     input.hunterSpeed > 4
   )
@@ -91,10 +98,14 @@ export function validateMarkedData(input, registry = publicAreaRegistry) {
   }
   return freeze(structuredClone(input));
 }
+// The bounty views read this, so a save that still carries a bounty shows none while the bounty is off; the save bytes are untouched.
+export const effectiveBounty = (g) => (g.world?.markedData?.bounty === false ? 0 : (g.marked?.bounty ?? 0));
 export const freshMarked = () => ({ version: 1, carried: 0, bank: 0, bounty: 0 });
-export function validMarked(s, max = MARKED_DEFAULTS.maxMoney) {
+export function validMarked(s, max = MAX_MONEY_CEILING) {
   try {
-    closed(s, ["version", "carried", "bank", "bounty"]);
+    // `golden` is optional and written by a later release (golden weapons). Whatever it holds never makes the save corrupt (a corrupt
+    // Marked block makes Retry/Reset erase the run): copyMarked below keeps only well-formed, de-duplicated weapon keys.
+    closed(s, ["version", "carried", "bank", "bounty"], ["golden"]);
     return (
       s.version === 1 &&
       ["carried", "bank", "bounty"].every((k) => Number.isSafeInteger(s[k]) && s[k] >= 0 && s[k] <= max)
@@ -103,9 +114,14 @@ export function validMarked(s, max = MARKED_DEFAULTS.maxMoney) {
     return false;
   }
 }
+// The golden weapon keys worth keeping: lowercase id strings, each once, in order. Junk, wrong types and duplicates are dropped.
+export const cleanGolden = (x) =>
+  Array.isArray(x) ? [...new Set(x.filter((k) => typeof k === "string" && /^[a-z][a-z0-9-]*$/.test(k)))] : [];
 export function copyMarked(s) {
   if (!validMarked(s)) throw TypeError("Invalid Marked state");
-  return { ...s };
+  const { golden, ...rest } = s,
+    kept = cleanGolden(golden);
+  return kept.length ? { ...rest, golden: kept } : rest;
 }
 export function markedShopEligible(g, id) {
   const row = g.world?.markedData?.shop[id];

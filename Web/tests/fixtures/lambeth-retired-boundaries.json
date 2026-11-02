@@ -1,0 +1,69 @@
+{
+  "note": "Lambeth road-boundary rails that belonged to the retired Lambeth>Elephant and Castle and Lambeth>Area 8 exits; kept to cover the barrier mesh (the middle rail was dropped when the lamp-post pocket made its road edge walkable; the north rail's edge index moved from 20 to 24)",
+  "rows": [
+    {
+      "id": "upper-road-boundary",
+      "kind": "boundary",
+      "to": "elephant-and-castle",
+      "path": [
+        {
+          "x": 0.505,
+          "y": 0.205
+        },
+        {
+          "x": 0.47,
+          "y": 0.17
+        },
+        {
+          "x": 0.4,
+          "y": 0.12
+        },
+        {
+          "x": 0.27,
+          "y": 0.065
+        }
+      ],
+      "edge": 2,
+      "segment": [
+        {
+          "x": 0.496,
+          "y": 0.155
+        },
+        {
+          "x": 0.544,
+          "y": 0.195
+        }
+      ]
+    },
+    {
+      "id": "north-road-boundary",
+      "kind": "boundary",
+      "to": "elephant-and-castle",
+      "path": [
+        {
+          "x": 0.155,
+          "y": 0.085
+        },
+        {
+          "x": 0.18,
+          "y": 0.075
+        },
+        {
+          "x": 0.25,
+          "y": 0.065
+        }
+      ],
+      "edge": 24,
+      "segment": [
+        {
+          "x": 0.121,
+          "y": 0.108
+        },
+        {
+          "x": 0.1255,
+          "y": 0.054
+        }
+      ]
+    }
+  ]
+}

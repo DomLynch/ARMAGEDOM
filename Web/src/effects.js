@@ -3,16 +3,48 @@ import { touchTargetCue } from "./engine/touch-target.js";
 import { bossWeaponCue } from "./engine/boss-weapon-runtime.js";
 import { goreProfile, finisherPresentationId } from "./engine/finisher-data.js";
 import { createFlameEffect } from "./engine/flame-effect.js";
+import { createBurnPresentation } from "./engine/burn-presentation.js";
 import { createSeverBloodEffect } from "./engine/sever-blood-effect.js";
 import { createFinisherImpactGate } from "./finisher-impact-profile.js";
 import { createDroneLaserBolts } from "./drone-laser.js";
+import { createArcBolts } from "./engine/arc-bolt-view.js";
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { createCombatImpact } from "./combat-impact.js";
-import { createDonorAudio } from "./donor-audio.js";
+import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js";
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
 import { addPickupGlow } from "./pickup-glow.js";
-const colors = { slash: 0xe3e9ec, stab: 0xe3e9ec, heavy: 0xffa64c, special: 0xe8bc65 };
+import { createDropMarker } from "./engine/drop-marker.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { rigCapability } from "./rig-capabilities.js";
+import { webText } from "./engine/web-text.js";
+// Web/src/data/visual.json `effects`: hex strings, read as numbers once.
+const hexNumber = (hex) => Number(`0x${hex}`);
+// Pools, colours and finisher droplet motion: visual.json `effects.feedback`.
+const FEEL = GAME_DATA.visual.effects.feedback,
+  POOL = FEEL.pools,
+  DROP = FEEL.finisherDrop,
+  BURST = FEEL.burst,
+  RETICLE = FEEL.reticle,
+  LINE = FEEL.line,
+  FRAME = FEEL.frame,
+  EVENT = FEEL.events,
+  CUE = FEEL.cue;
+const colors = Object.fromEntries(
+  Object.entries(GAME_DATA.visual.effects.swingColours).map(([name, hex]) => [name, hexNumber(hex)]),
+);
+// Where an effect aims at a target of the given rig, from visual.json `effects.targetHeights`. `drone`, `scale` and `cue` are what a
+// row's drone / scaled / cue entries resolve to (drone and scale are functions, only called when the row needs them).
+const TARGET_HEIGHTS = GAME_DATA.visual.effects.targetHeights;
+function targetHeight(site, rig, { drone, scale, cue, fallback }) {
+  const rows = TARGET_HEIGHTS[site],
+    row = Object.hasOwn(rows, rig) ? rows[rig] : rows.default;
+  if ("fixed" in row) return row.fixed;
+  if (row.drone) return drone();
+  if (row.cue) return cue;
+  if ("scaled" in row) return row.scaled * scale();
+  return fallback;
+}
 export function createEffects(
   scene,
   world,
@@ -43,11 +75,24 @@ export function createEffects(
   const shots = [],
     transient = [],
     loot = new Map(),
-    gem = new THREE.OctahedronGeometry(0.21),
-    lootMaterials = [0xdca64d, 0x48b9c5, 0x70c66e].map((color) => new THREE.MeshBasicMaterial({ color }));
+    gem = new THREE.OctahedronGeometry(FEEL.lootGemRadius),
+    lootMaterials = GAME_DATA.visual.effects.lootColours.map(
+      (hex) => new THREE.MeshBasicMaterial({ color: hexNumber(hex) }),
+    );
   const droneLasers = createDroneLaserBolts({ scene, world, camera: world.camera });
+  // Built on the first arc shot, so scenes that never fire the Arc Gun carry none of its pooled lines.
+  let arcBolts = null;
+  const arcView = () =>
+    (arcBolts ??= createArcBolts({
+      scene,
+      data: GAME_DATA.visual.arcGun,
+      camera: world.camera,
+      viewportHeight: () => viewportHeight,
+    }));
+  let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
-  let confirmation = null;
+  let confirmation = null,
+    poolDirty = true; // the instance buffers hold something the GPU has not been told is gone yet (see tickPool)
   let requestedMode = "high",
     motionReduced = !!reducedMotion();
   const impact = createCombatImpact({ mode: requestedMode, reducedMotion: motionReduced });
@@ -57,14 +102,14 @@ export function createEffects(
     flashLife = 0,
     lastEquipped = false,
     basicRecoil = 0,
-    viewportWidth = globalThis.innerWidth ?? 852,
-    viewportHeight = globalThis.innerHeight ?? 393;
+    viewportWidth = globalThis.innerWidth ?? FEEL.viewportFallback.width,
+    viewportHeight = globalThis.innerHeight ?? FEEL.viewportFallback.height;
   const pool = new THREE.Group();
-  pool.name = "Combat feedback pool";
+  pool.name = "Combat feedback pool"; // text-ok: scene-graph object name, never shown
   scene.add(pool);
   const unit = new THREE.BoxGeometry(1, 1, 1),
-    particleMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: true, depthWrite: false }),
-    particleMesh = new THREE.InstancedMesh(unit, particleMaterial, 48),
+    particleMaterial = new THREE.MeshBasicMaterial({ color: "white", depthTest: true, depthWrite: false }),
+    particleMesh = new THREE.InstancedMesh(unit, particleMaterial, POOL.particles),
     pose = new THREE.Object3D(),
     particleColour = new THREE.Color(),
     particleUp = new THREE.Vector3(0, 0, 1),
@@ -72,7 +117,7 @@ export function createEffects(
     particleCamera = new THREE.Quaternion(),
     particleCameraInverse = new THREE.Quaternion(),
     particleSpin = new THREE.Quaternion();
-  const dropletMask = new THREE.InstancedBufferAttribute(new Float32Array(48), 1);
+  const dropletMask = new THREE.InstancedBufferAttribute(new Float32Array(POOL.particles), 1);
   unit.setAttribute("goreDrop", dropletMask);
   particleMaterial.onBeforeCompile = (shader) => {
     shader.vertexShader =
@@ -88,7 +133,7 @@ export function createEffects(
     );
   };
   particleMaterial.customProgramCacheKey = () => "scoped-gore-drop-v1";
-  particleMesh.name = "Combat pooled particles";
+  particleMesh.name = "Combat pooled particles"; // text-ok: scene-graph object name, never shown
   particleMesh.renderOrder = 1;
   /* Same draw, after opaque actors0/masks-90; depth test retained. */ particleMesh.frustumCulled = false;
   particleMesh.visible = false;
@@ -96,6 +141,7 @@ export function createEffects(
   const flameEffect = world.flameData
       ? createFlameEffect({ THREE, scene, world, getSource: getFlameSource, getView, reducedMotion })
       : null,
+    burn = createBurnPresentation({ THREE, scene, world, getView, reducedMotion }),
     severBlood = createSeverBloodEffect({ THREE, scene, world }),
     finisherGate = createFinisherImpactGate(),
     finisherBursts = new Map(),
@@ -127,7 +173,7 @@ export function createEffects(
             source: { position: { x: p.x, y: p.y, z: -p.z }, direction: { x: d.x, y: d.y, z: -d.z } },
             origin: e.pos,
             contact: e.bossProfile.weapon,
-            widthScale: e.rig === "boss-westminster-witch" ? 2 : 1,
+            widthScale: e.rig === "boss-westminster-witch" ? FEEL.flameWidthScale.witch : 1,
           };
         },
       })
@@ -143,7 +189,7 @@ export function createEffects(
     getEmission: (g) => {
       const e = g.enemies.find(
         (e) =>
-          e.rig === "giant-salamander" &&
+          rigCapability(e.rig, "breathEmitter") &&
           e.hp > 0 &&
           e.bossWeapon?.phase === "active" &&
           g.time >= e.recoverUntil &&
@@ -151,10 +197,12 @@ export function createEffects(
       );
       if (!e) return null;
       const source = salamanderMouthSource(getView(e), e, salamanderPoint);
-      return source ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: 2 } : null;
+      return source
+        ? { source, origin: e.pos, contact: SALAMANDER_BREATH, widthScale: FEEL.flameWidthScale.salamander }
+        : null;
     },
   });
-  const particles = Array.from({ length: 48 }, () => ({
+  const particles = Array.from({ length: POOL.particles }, () => ({
     life: 0,
     total: 1,
     x: 0,
@@ -165,33 +213,41 @@ export function createEffects(
     vz: 0,
     size: 0,
   }));
-  const tracers = Array.from({ length: 16 }, () => {
+  const tracers = Array.from({ length: POOL.tracers }, () => {
     const geometry = new THREE.BufferGeometry().setAttribute(
         "position",
-        new THREE.Float32BufferAttribute(new Float32Array(6), 3),
+        new THREE.Float32BufferAttribute(new Float32Array(6), 3), // tuning-ok: a line segment is two points of three coordinates
       ),
-      material = new THREE.LineBasicMaterial({ color: 0xf5d498, transparent: true, opacity: 0.8, depthWrite: false }),
+      material = new THREE.LineBasicMaterial({
+        color: hexNumber(FEEL.tracer.colour),
+        transparent: true,
+        opacity: FEEL.tracer.opacity,
+        depthWrite: false,
+      }),
       mesh = new THREE.Line(geometry, material);
-    mesh.name = "Combat pooled tracer";
+    mesh.name = "Combat pooled tracer"; // text-ok: scene-graph object name, never shown
     mesh.visible = false;
     mesh.frustumCulled = false;
     pool.add(mesh);
     return { mesh, life: 0 };
   });
-  const muzzleFlash = new THREE.Mesh(unit, new THREE.MeshBasicMaterial({ color: 0xffedb0, depthWrite: false }));
-  muzzleFlash.name = "Combat muzzle flash";
+  const muzzleFlash = new THREE.Mesh(
+    unit,
+    new THREE.MeshBasicMaterial({ color: hexNumber(FEEL.muzzleFlashColour), depthWrite: false }),
+  );
+  muzzleFlash.name = "Combat muzzle flash"; // text-ok: scene-graph object name, never shown
   muzzleFlash.visible = false;
   pool.add(muzzleFlash);
   function nextParticle() {
-    for (let n = 0; n < 48; n++) {
-      const p = particles[particleIndex++ % 48];
+    for (let n = 0; n < POOL.particles; n++) {
+      const p = particles[particleIndex++ % POOL.particles];
       if (!p.finisherOwner) return p;
     }
     return null;
   }
   function nextTracer() {
-    for (let n = 0; n < 16; n++) {
-      const t = tracers[tracerIndex++ % 16];
+    for (let n = 0; n < POOL.tracers; n++) {
+      const t = tracers[tracerIndex++ % POOL.tracers];
       if (!t.finisherOwner) return t;
     }
     return null;
@@ -291,11 +347,13 @@ export function createEffects(
           const angle =
               effect.gore?.mode === "radial"
                 ? ((i / allocated.length) * effect.gore.spreadDegrees * Math.PI) / 180
-                : ((i / (allocated.length - 1) - 0.5) *
+                : ((i / (allocated.length - 1) - 0.5) * // tuning-ok: 0.5 centres the fan on the impact direction
                     (effect.gore?.spreadDegrees ?? effect.spreadDegrees) *
                     Math.PI) /
                   180,
-            speed = effect.speed * (0.6 + (0.4 * ((i * 7) % allocated.length)) / allocated.length);
+            speed =
+              effect.speed *
+              (DROP.speedBase + (DROP.speedSpread * ((i * DROP.speedStride) % allocated.length)) / allocated.length);
           Object.assign(p, {
             finisherOwner: view,
             impactVictimId: null,
@@ -310,8 +368,8 @@ export function createEffects(
             z: effect.origin.z,
             vx: (d.x * Math.cos(angle) - d.z * Math.sin(angle)) * speed,
             vy: effect.gore
-              ? effect.gore.verticalSpeed + effect.speed * 0.1 * (i % 3)
-              : effect.speed * (0.3 + 0.1 * (i % 3)),
+              ? effect.gore.verticalSpeed + effect.speed * DROP.liftShare * (i % DROP.liftCycle)
+              : effect.speed * (DROP.baseLift + DROP.liftShare * (i % DROP.liftCycle)),
             vz: (d.x * Math.sin(angle) + d.z * Math.cos(angle)) * speed,
             size: effect.dropSize,
           });
@@ -322,14 +380,15 @@ export function createEffects(
             leading = i < c.leadingCount,
             j = leading ? i : i - c.leadingCount,
             count = leading ? c.leadingCount : allocated.length - c.leadingCount,
-            fraction = count > 1 ? j / (count - 1) : 0.5,
+            fraction = count > 1 ? j / (count - 1) : 0.5, // tuning-ok: a lone droplet sits at the middle of the fan
             spread = (effect.gore.spreadDegrees * Math.PI) / 180,
             angle =
-              (effect.gore.mode === "radial" ? (j / count) * spread : (fraction - 0.5) * spread) +
-              (effect.gore.mode === "fan" ? Math.PI / 2 : 0),
-            speed = effect.speed * (leading ? 1 : 0.75),
+              (effect.gore.mode === "radial" ? (j / count) * spread : (fraction - 0.5) * spread) + // tuning-ok: 0.5 centres the fan
+              (effect.gore.mode === "fan" ? Math.PI / 2 : 0), // tuning-ok: a fan opens a quarter turn (pi / 2) off the direction
+            speed = effect.speed * (leading ? 1 : DROP.tailSpeedShare),
             range = c.extent[0] + (c.extent[1] - c.extent[0]) * fraction,
-            band = leading ? c.leadingSize : c.tailSize;
+            band = leading ? c.leadingSize : c.tailSize,
+            half = Math.ceil(count / 2); // tuning-ok: the first half of the droplets use the first delay, the rest the second
           Object.assign(p, {
             finisherOwner: view,
             goreComposition: true,
@@ -337,12 +396,10 @@ export function createEffects(
             spawned: false,
             finisherAnchor: effect.anchor,
             travelled: 0,
-            travelLimit: range * (leading ? 1 : 0.65),
+            travelLimit: range * (leading ? 1 : DROP.tailTravelShare),
             holdSeconds: leading ? (c.holdSeconds ?? 0) : 0,
             impactVictimId: null,
-            delay: leading
-              ? (c.leadingDelays?.[j < Math.ceil(count / 2) ? 0 : 1] ?? 0)
-              : c.tailDelays[j < Math.ceil(count / 2) ? 0 : 1],
+            delay: leading ? (c.leadingDelays?.[j < half ? 0 : 1] ?? 0) : c.tailDelays[j < half ? 0 : 1],
             palette:
               effect.palette[
                 leading ? (c.leadingPaletteIndices?.[j] ?? i % effect.palette.length) : i % effect.palette.length
@@ -355,7 +412,7 @@ export function createEffects(
             y: effect.origin.y,
             z: effect.origin.z,
             vx: (d.x * Math.cos(angle) - d.z * Math.sin(angle)) * speed,
-            vy: effect.gore.verticalSpeed + (c.holdSeconds ? 0 : effect.speed * 0.1 * (i % 3)),
+            vy: effect.gore.verticalSpeed + (c.holdSeconds ? 0 : effect.speed * DROP.liftShare * (i % DROP.liftCycle)),
             vz: (d.x * Math.sin(angle) + d.z * Math.cos(angle)) * speed,
             size: band[0] + (band[1] - band[0]) * fraction,
           });
@@ -410,7 +467,12 @@ export function createEffects(
     if (world.camera) world.camera.getWorldQuaternion(particleCamera);
     else particleCamera.identity();
     particleCameraInverse.copy(particleCamera).invert();
-    for (let i = 0; i < 48; i++) {
+    // An empty pool is walked and uploaded once more after its last particle ends (to park every instance), then left alone: this runs
+    // several times a frame and each pass used to re-send the whole instance buffer.
+    const poolLive = particles.some((p) => p.life > 0 || p.delay > 0),
+      poolIdle = !poolLive && !poolDirty;
+    poolDirty = poolLive;
+    for (let i = 0; i < (poolIdle ? 0 : POOL.particles); i++) {
       const p = particles[i];
       pose.quaternion.identity();
       dropletMask.setX(i, p.stretch ? 1 : 0);
@@ -441,12 +503,12 @@ export function createEffects(
         p.x += p.vx * horizontalDt;
         p.y += p.vy * dt;
         p.z += p.vz * horizontalDt;
-        p.vy -= (p.gravity ?? 8) * dt;
+        p.vy -= (p.gravity ?? FEEL.particle.gravity) * dt;
         if (p.groundClip && p.y <= 0) p.life = 0;
         pose.position.set(p.x, p.y, p.z);
         const visibleMass =
           p.goreComposition && p.holdSeconds > 0
-            ? Math.min(1, p.life / Math.max(0.001, p.total - p.holdSeconds))
+            ? Math.min(1, p.life / Math.max(FEEL.particle.minLife, p.total - p.holdSeconds))
             : p.life / p.total;
         if (p.stretch) {
           pose.scale.set(
@@ -462,20 +524,24 @@ export function createEffects(
           particleSpin.setFromAxisAngle(particleUp, angle);
           pose.quaternion.copy(particleCamera).multiply(particleSpin);
         } else pose.scale.setScalar(p.size * visibleMass);
-        particleColour.setHex(p.palette ?? 0xffca85).multiplyScalar(0.6 + 0.4 * visibleMass);
+        particleColour
+          .setHex(p.palette ?? hexNumber(FEEL.particle.palette))
+          .multiplyScalar(FEEL.particle.dimBase + FEEL.particle.dimSpan * visibleMass);
         particleMesh.setColorAt(i, particleColour);
       } else pose.scale.setScalar(0);
       pose.updateMatrix();
       particleMesh.setMatrixAt(i, pose.matrix);
     }
     particleMesh.visible = particles.some((p) => p.life > 0);
-    particleMesh.instanceMatrix.needsUpdate = true;
-    dropletMask.needsUpdate = true;
-    if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
+    if (!poolIdle) {
+      particleMesh.instanceMatrix.needsUpdate = true;
+      dropletMask.needsUpdate = true;
+      if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
+    }
     for (const t of tracers) {
       t.life = Math.max(0, t.life - dt);
       t.mesh.visible = t.life > 0;
-      t.mesh.material.opacity = 0.8 * Math.min(1, t.life / (t.total ?? 0.065));
+      t.mesh.material.opacity = FEEL.tracer.opacity * Math.min(1, t.life / (t.total ?? FEEL.tracer.defaultSeconds));
     }
     flashLife = Math.max(0, flashLife - dt);
     muzzleFlash.visible = flashLife > 0;
@@ -497,93 +563,116 @@ export function createEffects(
       b = a.clone().add(new THREE.Vector3(d.x, 0, -d.z));
     a.project(world.camera);
     b.project(world.camera);
-    return { x: ((b.x - a.x) * viewportWidth) / 2, y: ((a.y - b.y) * viewportHeight) / 2 };
+    return { x: ((b.x - a.x) * viewportWidth) / 2, y: ((a.y - b.y) * viewportHeight) / 2 }; // tuning-ok: NDC spans 2 over the screen
   }
   function burst(event, killed, time) {
     const p = event.position ?? event.actor.pos,
       d = event.impactDirection ?? { x: 0, z: 1 },
-      count = feedback.mode === "off" ? 1 : feedback.mode === "low" ? 3 : killed ? 12 : 8,
+      count =
+        feedback.mode === "off"
+          ? BURST.counts.off
+          : feedback.mode === "low"
+            ? BURST.counts.low
+            : killed
+              ? BURST.counts.killed
+              : BURST.counts.hit,
+      life =
+        feedback.mode === "off" ? BURST.lifeSeconds.off : killed ? BURST.lifeSeconds.killed : BURST.lifeSeconds.hit,
       size = event.actor.mobSize ?? 1;
     for (let i = 0; i < count; i++) {
       const v = nextParticle(),
-        a = (i / count) * Math.PI * 2;
+        a = (i / count) * Math.PI * 2; // tuning-ok: a full turn is 2 * pi
       if (!v) break;
       Object.assign(v, {
         stretch: null,
         impactVictimId: event.actor.id,
-        palette: 0xffca85,
-        gravity: 8,
+        palette: hexNumber(FEEL.particle.palette),
+        gravity: FEEL.particle.gravity,
         groundClip: false,
-        life: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
-        total: feedback.mode === "off" ? 0.12 : killed ? 0.42 : 0.3,
+        life,
+        total: life,
         x: p.x,
-        y:
-          event.actor.rig === "original-wolf"
-            ? 1.625
-            : event.actor.rig === "low-hover-drone"
-              ? droneY(event.actor, time)
-              : (event.actor.rig === "original-rat"
-                  ? 0.18
-                  : event.actor.rig === "original-dog"
-                    ? 0.35
-                    : event.actor.rig === "original-roach"
-                      ? 0.08
-                      : 1.1) * (getView(event.actor)?.root.scale.y ?? size),
+        y: targetHeight("burst", event.actor.rig, {
+          drone: () => droneY(event.actor, time),
+          scale: () => getView(event.actor)?.root.scale.y ?? size,
+        }),
         z: -p.z,
-        vx: Math.cos(a) * 1.8 + d.x,
-        vy: 1.3 + (i % 3) * 0.7,
-        vz: Math.sin(a) * 1.8 - d.z,
-        size: (feedback.mode === "off" ? 0.14 : feedback.mode === "low" ? 0.055 : killed ? 0.16 : 0.12) * size,
+        vx: Math.cos(a) * BURST.spread + d.x,
+        vy: BURST.liftBase + (i % BURST.liftCycle) * BURST.liftStep,
+        vz: Math.sin(a) * BURST.spread - d.z,
+        size:
+          (feedback.mode === "off"
+            ? BURST.sizes.off
+            : feedback.mode === "low"
+              ? BURST.sizes.low
+              : killed
+                ? BURST.sizes.killed
+                : BURST.sizes.hit) * size,
       });
     }
   }
   const pickup = new THREE.Group(),
     reticle = new THREE.Group();
-  pickup.name = "Starting pistol pickup";
-  reticle.name = "Pistol aim marker";
+  pickup.name = "Starting pistol pickup"; // text-ok: scene-graph object name, never shown
+  reticle.name = "Pistol aim marker"; // text-ok: scene-graph object name, never shown
   const pickupContours = [];
   if (pistolAsset) {
     const gun = pistolAsset.scene.clone(true),
       surfaces = [];
-    gun.rotation.set(Math.PI / 2, 0, 0.45);
-    gun.position.y = 0.15;
-    gun.scale.setScalar(1.8);
+    gun.rotation.set(Math.PI / 2, 0, FEEL.pickupGun.tilt); // tuning-ok: pi / 2 lays the gun flat, a quarter turn
+    gun.position.y = FEEL.pickupGun.height;
+    gun.scale.setScalar(FEEL.pickupGun.scale);
     gun.traverse((o) => {
       const materials = Array.isArray(o.material) ? o.material : [o.material];
       if (o.isMesh && !o.isSkinnedMesh && materials.every((m) => m?.isMeshStandardMaterial)) surfaces.push(o);
     });
-    for (const mesh of surfaces) pickupContours.push(addPickupGlow(mesh));
+    for (const mesh of surfaces) {
+      const contour = addPickupGlow(mesh);
+      // The HUD's pale gold.
+      contour.halo.material.uniforms.color.value.set(hexNumber(FEEL.pickupGun.contourColour));
+      pickupContours.push(contour);
+    }
     pickup.add(gun);
   }
+  const pickupMarker = createDropMarker(webText("effects.pistolDropLabel"));
+  pickup.add(pickupMarker.group);
   const bracketGeometry = (padding) => {
     const vertices = [];
     const rect = (x, y, w, h) => {
-      const l = x - w / 2,
-        r = x + w / 2,
-        b = y - h / 2,
-        t = y + h / 2;
+      const l = x - w / 2, // tuning-ok: half the width either side of the centre
+        r = x + w / 2, // tuning-ok: half the width either side of the centre
+        b = y - h / 2, // tuning-ok: half the height either side of the centre
+        t = y + h / 2; // tuning-ok: half the height either side of the centre
       vertices.push(l, b, 0, r, b, 0, r, t, 0, l, b, 0, r, t, 0, l, t, 0);
     };
-    rect(0, 0, 0.42 + padding, 0.055 + padding);
-    rect(0, 0, 0.055 + padding, 0.42 + padding);
+    const {
+      barLength: bar,
+      barThickness: thick,
+      cornerNear: near,
+      cornerFar: far,
+      cornerLength: long,
+      cornerThickness: lip,
+    } = RETICLE;
+    rect(0, 0, bar + padding, thick + padding);
+    rect(0, 0, thick + padding, bar + padding);
     for (const x of [-1, 1])
       for (const y of [-1, 1]) {
-        rect(x * 0.39, y * 0.5, 0.22 + padding, 0.045 + padding);
-        rect(x * 0.5, y * 0.39, 0.045 + padding, 0.22 + padding);
+        rect(x * near, y * far, long + padding, lip + padding);
+        rect(x * far, y * near, lip + padding, long + padding);
       }
-    return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+    return new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3)); // tuning-ok: x, y, z
   };
-  const outlineGeometry = bracketGeometry(0.06),
+  const outlineGeometry = bracketGeometry(RETICLE.outlinePad),
     cueGeometry = bracketGeometry(0),
     outlineMaterial = new THREE.MeshBasicMaterial({
-      color: 0x161b1d,
+      color: hexNumber(RETICLE.outlineColour),
       transparent: true,
       depthWrite: false,
       depthTest: false,
       toneMapped: false,
     }),
     cueMaterial = new THREE.MeshBasicMaterial({
-      color: 0xf2eee4,
+      color: hexNumber(RETICLE.cueColour),
       transparent: true,
       depthWrite: false,
       depthTest: false,
@@ -593,27 +682,27 @@ export function createEffects(
     brackets = new THREE.Mesh(cueGeometry, cueMaterial),
     accentGeometry = new THREE.BufferGeometry().setAttribute(
       "position",
-      new THREE.Float32BufferAttribute([-0.13, 0.1, 0, 0, -0.1, 0, 0.13, 0.1, 0], 3),
+      new THREE.Float32BufferAttribute(RETICLE.accentTriangle, 3), // tuning-ok: x, y, z per vertex
     ),
     accentMaterial = new THREE.MeshBasicMaterial({
-      color: 0xdca64d,
+      color: hexNumber(RETICLE.accentColour),
       depthWrite: false,
       depthTest: false,
       toneMapped: false,
     }),
     accent = new THREE.Mesh(accentGeometry, accentMaterial);
-  outline.renderOrder = 101;
-  brackets.renderOrder = 102;
-  accent.renderOrder = 103;
-  accent.position.y = 0.76;
+  outline.renderOrder = RETICLE.renderOrders.outline;
+  brackets.renderOrder = RETICLE.renderOrders.cue;
+  accent.renderOrder = RETICLE.renderOrders.accent;
+  accent.position.y = RETICLE.accentY;
   reticle.add(outline, brackets, accent);
   pickup.visible = reticle.visible = false;
   scene.add(pickup, reticle);
 
-  function line(center, dir, radius, arc, color, expires, height = 0.08, stroke = false) {
-    const ring = arc >= 359,
+  function line(center, dir, radius, arc, color, expires, height = LINE.defaultHeight, stroke = false) {
+    const ring = arc >= LINE.ringArcDegrees,
       points = [],
-      steps = 36,
+      steps = LINE.steps,
       angle = Math.atan2(dir.x, -dir.z);
     if (!ring && !stroke) points.push(new THREE.Vector3(0, height, 0));
     for (let i = 0; i <= steps; i++) {
@@ -623,7 +712,7 @@ export function createEffects(
     if (!ring && !stroke) points.push(new THREE.Vector3(0, height, 0));
     const mesh = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9, depthWrite: false }),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: LINE.opacity, depthWrite: false }),
     );
     mesh.position.copy(world.toRender(center));
     scene.add(mesh);
@@ -653,7 +742,7 @@ export function createEffects(
         clearFinisherBursts();
         clearFeedback();
       }
-      const visualDt = Math.min(0.05, Math.max(0, Number.isFinite(dt) ? dt : 0));
+      const visualDt = Math.min(FRAME.maxStep, Math.max(0, Number.isFinite(dt) ? dt : 0));
       feedback = impact.update(visualDt, { paused });
       if (!paused) {
         poolTime += visualDt;
@@ -661,8 +750,8 @@ export function createEffects(
         for (const expired of finisherGate.expire(poolTime))
           for (const [token, burst] of finisherBursts) if (burst.effect === expired) releaseFinisher(token);
         const elapsed = visualDt;
-        basicRecoil *= Math.exp(-elapsed * 12);
-        if (basicRecoil < 0.001) basicRecoil = 0;
+        basicRecoil *= Math.exp(-elapsed * FRAME.recoilDecay);
+        if (basicRecoil < FRAME.recoilSettle) basicRecoil = 0;
         tickPool(elapsed);
       }
     },
@@ -673,8 +762,8 @@ export function createEffects(
         bossFlame: bossFlame?.snapshot() ?? null,
         salamanderFlame: salamanderFlame.snapshot(),
         requestedMode,
-        particleCapacity: 48,
-        tracerCapacity: 16,
+        particleCapacity: POOL.particles,
+        tracerCapacity: POOL.tracers,
         activeParticles: particles.filter((p) => p.life > 0 && !(p.delay > 0)).length,
         activeTracers: tracers.filter((t) => t.life > 0).length,
         finisherImpact: finisherSnapshot(),
@@ -700,7 +789,7 @@ export function createEffects(
       reticle.userData.ready = false;
     },
     pistolRecoil(game) {
-      return active(game) ? (feedback.mode === "off" ? basicRecoil * 0.2 : feedback.shot) : 0;
+      return active(game) ? (feedback.mode === "off" ? basicRecoil * FRAME.offRecoilShare : feedback.shot) : 0;
     },
     render(renderer, camera, game, height, width = height * (camera.aspect ?? 1)) {
       const visible = game.player.hp > 0 && !game.finished && !reducedMotion(),
@@ -709,7 +798,8 @@ export function createEffects(
       if (!(height > 0) || (!x && !y)) return renderer.render(scene, camera);
       projection.copy(camera.projectionMatrix);
       inverse.copy(camera.projectionMatrixInverse);
-      camera.projectionMatrix.premultiply(shift.makeTranslation((2 * x) / Math.max(1, width), (-2 * y) / height, 0));
+      // tuning-ok: pixels to normalised device coordinates, which span 2 across the screen (y is flipped)
+      camera.projectionMatrix.premultiply(shift.makeTranslation((2 * x) / Math.max(1, width), (-2 * y) / height, 0)); // tuning-ok: NDC spans 2
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
       try {
         return renderer.render(scene, camera);
@@ -724,26 +814,16 @@ export function createEffects(
         const actor = event.actor,
           donor = game.pilot === "donor-knife";
         if (event.type === "railgun-shot") {
-          const t = nextTracer();
-          if (t) {
-            const a = event.origin,
-              b = event.end,
-              p = t.mesh.geometry.attributes.position;
-            p.setXYZ(0, a.x, a.y, a.z);
-            p.setXYZ(1, b.x, b.y, b.z);
-            p.needsUpdate = true;
-            t.total = 0.16;
-            t.life = 0.16;
-            t.mesh.material.color.setHex(0xffcb72);
-            t.mesh.material.depthTest = true;
-            muzzleFlash.position.set(a.x, a.y, a.z);
-            muzzleFlash.scale.set(0.25, 0.25, 0.35);
-            flashLife = 0.06;
-          }
+          const a = event.origin;
+          muzzleFlash.position.set(a.x, a.y, a.z);
+          muzzleFlash.scale.set(...EVENT.railgun.flashScale);
+          flashLife = EVENT.railgun.flashSeconds;
         }
+        if (event.type === "arc-chain") arcView().fire(event.links, game.time);
+        if (event.type === "arc-stun") arcView().stun(event.actor, game.time + event.seconds, game.time);
 
         if (event.type === "boss-ranged-warning") {
-          line(actor.pos, event.dir, event.range, event.arc, 0xffbd62, event.until);
+          line(actor.pos, event.dir, event.range, event.arc, hexNumber(EVENT.warningColour), event.until);
           transient.at(-1).bossGunWarning = actor.id;
         }
         if (event.type === "boss-shotgun-shot")
@@ -759,7 +839,16 @@ export function createEffects(
         }
         if (event.type === "holster") this.clearPistolFeedback();
         if (event.type === "enemy-attack" && actor.swing)
-          line(actor.pos, event.dir, event.range, event.arc, actor.kind === 3 ? 0xf9a83b : 0xe45735, actor.swing.hitAt);
+          line(
+            actor.pos,
+            event.dir,
+            event.range,
+            event.arc,
+            hexNumber(
+              actor.kind === EVENT.attackColours.specialKind ? EVENT.attackColours.special : EVENT.attackColours.other,
+            ),
+            actor.swing.hitAt,
+          );
         if (event.type === "hit" && donor && !event.blocked && event.amount > 0) {
           const killed = dead.has(actor.id);
           impact.event({ type: killed ? "death" : "hit", ...direction(event), pistol: event.weapon === "pistol" });
@@ -769,20 +858,12 @@ export function createEffects(
             confirmation = {
               recipeId: actor.finisher?.recipeId,
               position: { ...(event.position ?? actor.pos) },
-              height:
-                actor.rig === "original-wolf"
-                  ? 1.625
-                  : actor.rig === "low-hover-drone"
-                    ? droneY(actor, game.time)
-                    : (actor.rig === "original-rat"
-                        ? 0.18
-                        : actor.rig === "original-dog"
-                          ? 0.35
-                          : actor.rig === "original-roach"
-                            ? 0.08
-                            : 2) * (getView(actor)?.root.scale.y ?? actor.mobSize ?? 1),
+              height: targetHeight("confirm", actor.rig, {
+                drone: () => droneY(actor, game.time),
+                scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
+              }),
               killed,
-              life: 0.2,
+              life: EVENT.confirmationSeconds,
             };
         }
         if (event.type === "strike") {
@@ -798,49 +879,58 @@ export function createEffects(
               ["rat_bite", "roach_bite"].includes(event.moveId) && actor.contactGoalReach
                 ? actor.contactGoalReach
                 : ["rat_bite", "roach_bite"].includes(event.moveId)
-                  ? 0.6
+                  ? EVENT.lowLine.biteReach
                   : event.moveId === "dog_bite"
-                    ? (actor.contactGoalReach ?? 0.9)
-                    : 1.2,
+                    ? (actor.contactGoalReach ?? EVENT.lowLine.dogBiteReach)
+                    : EVENT.lowLine.otherReach,
               90,
               colors.slash,
-              game.time + 0.12,
+              game.time + EVENT.lineSeconds,
               ["dog_bite", "roach_bite"].includes(event.moveId) && actor.contactGoalReach
-                ? (actor.swing?.calfGoal?.y ?? (event.moveId === "roach_bite" ? 0.159 : 1.05))
+                ? (actor.swing?.calfGoal?.y ??
+                    (event.moveId === "roach_bite" ? EVENT.lowLine.roachBiteHeight : EVENT.lowLine.dogBiteHeight))
                 : ["dog_low", "drone_low"].includes(event.moveId) && actor.swing?.clip === "DogMidSlash"
-                  ? 0.7 * (getView(actor)?.root.scale.y ?? 1.6729625)
-                  : 0.15,
+                  ? EVENT.lowLine.midSlashShare * (getView(actor)?.root.scale.y ?? EVENT.lowLine.midSlashScaleFallback)
+                  : EVENT.lowLine.height,
               true,
             );
           else if (donor && event.action === "special")
             line(
               actor.pos,
               event.dir,
-              1.3 * (actor.combatScale ?? 1.265),
+              EVENT.special.reach * (actor.combatScale ?? EVENT.special.combatScaleFallback),
               90,
               colors.special,
-              game.time + 0.12,
-              1.1 * size,
+              game.time + EVENT.lineSeconds,
+              EVENT.special.height * size,
               true,
             );
           else if (event.action === "stab") {
-            const a = world.toRender(actor.pos, 1.1 * size),
-              b = a.clone().add(new THREE.Vector3(event.dir.x * 1.8 * size, 0, -event.dir.z * 1.8 * size));
+            const a = world.toRender(actor.pos, EVENT.stab.height * size),
+              b = a
+                .clone()
+                .add(
+                  new THREE.Vector3(event.dir.x * EVENT.stab.length * size, 0, -event.dir.z * EVENT.stab.length * size),
+                );
             const mesh = new THREE.Line(
               new THREE.BufferGeometry().setFromPoints([a, b]),
-              new THREE.LineBasicMaterial({ color: colors.stab, transparent: true, opacity: 0.85 }),
+              new THREE.LineBasicMaterial({ color: colors.stab, transparent: true, opacity: EVENT.stab.opacity }),
             );
             scene.add(mesh);
-            transient.push({ mesh, expires: game.time + 0.12 });
+            transient.push({ mesh, expires: game.time + EVENT.lineSeconds });
           } else
             line(
               actor.pos,
               event.dir,
-              event.action === "special" ? 4.2 : event.action === "heavy" ? 1.8 * size : 1.5 * size,
-              event.action === "special" ? 360 : 120,
+              event.action === "special"
+                ? EVENT.melee.specialReach
+                : event.action === "heavy"
+                  ? EVENT.melee.heavyReach * size
+                  : EVENT.melee.slashReach * size,
+              event.action === "special" ? 360 : EVENT.melee.arc,
               colors[event.action],
-              game.time + 0.12,
-              1.1 * size,
+              game.time + EVENT.lineSeconds,
+              EVENT.melee.height * size,
               true,
             );
         }
@@ -855,15 +945,29 @@ export function createEffects(
           line(
             donor ? (event.position ?? actor.pos) : actor.pos,
             actor.facing,
-            1.05,
-            donor && event.type !== "guard-break" ? 120 : 360,
-            event.type === "parry" ? 0x76d4df : event.type === "block" ? 0xc4a665 : 0xe95737,
-            game.time + 0.18,
+            EVENT.defence.reach,
+            donor && event.type !== "guard-break" ? EVENT.defence.arc : 360,
+            hexNumber(
+              event.type === "parry"
+                ? EVENT.defence.colours.parry
+                : event.type === "block"
+                  ? EVENT.defence.colours.block
+                  : EVENT.defence.colours.break,
+            ),
+            game.time + EVENT.defence.seconds,
           );
       }
       tickPool(0);
     },
-    update(game, { paused = false, visibleIds, viewportHeight: height = 393, viewportWidth: width = 852 } = {}) {
+    update(
+      game,
+      {
+        paused = false,
+        visibleIds,
+        viewportHeight: height = FEEL.viewportFallback.height,
+        viewportWidth: width = FEEL.viewportFallback.width,
+      } = {},
+    ) {
       viewportHeight = height;
       viewportWidth = width;
       syncFinisherBursts(game);
@@ -892,32 +996,31 @@ export function createEffects(
             ? new THREE.Vector3(shot.npcSource.x, shot.npcSource.y, shot.npcSource.z)
             : muzzle
               ? muzzle.getWorldPosition(new THREE.Vector3())
-              : world.toRender(shot.origin, 1.05),
+              : world.toRender(shot.origin, FEEL.shot.originHeight),
           victim = [...game.enemies, ...(game.corpses ?? [])].find((e) => e.id === shot.targetId),
           b = world.toRender(
             shot.end,
-            victim?.rig === "original-wolf"
-              ? 1.625
-              : victim?.rig === "low-hover-drone"
-                ? droneY(victim, game.time)
-                : ["original-rat", "original-dog", "original-roach", "giant-salamander"].includes(victim?.rig)
-                  ? (victim.rig === "original-dog" ? 0.35 : victim.rig === "original-roach" ? 0.08 : 0.18) *
-                    (getView(victim)?.root.scale.y ?? 1)
-                  : a.y,
+            targetHeight("tracer", victim?.rig, {
+              drone: () => droneY(victim, game.time),
+              scale: () => getView(victim)?.root.scale.y ?? 1,
+              fallback: a.y,
+            }),
           ),
           t = nextTracer();
         if (!t) continue;
         const p = t.mesh.geometry.attributes.position;
-        t.total = 0.065;
-        t.mesh.material.color.setHex(0xf5d498);
+        const flash = feedback.mode === "high" ? FEEL.shot.flash.high : FEEL.shot.flash.low;
+        // A weapon's own row can set the tracer colour and life (the Light Machine Gun's hose of bullets); the rest use FEEL.tracer.
+        t.total = shot.tracerSeconds ?? FEEL.tracer.defaultSeconds;
+        t.mesh.material.color.setHex(hexNumber(shot.tracerColour ?? FEEL.tracer.colour));
         t.mesh.material.depthTest = true;
         p.setXYZ(0, a.x, a.y, a.z);
         p.setXYZ(1, b.x, b.y, b.z);
         p.needsUpdate = true;
-        t.life = 0.065;
+        t.life = t.total;
         muzzleFlash.position.copy(a);
-        muzzleFlash.scale.set(...(feedback.mode === "high" ? [0.4, 0.35, 0.43] : [0.25, 0.22, 0.27]));
-        flashLife = feedback.mode === "high" ? 0.06 : 0.045;
+        muzzleFlash.scale.set(...flash.scale);
+        flashLife = flash.seconds;
       }
       tickPool(0);
       shots.length = 0;
@@ -927,10 +1030,13 @@ export function createEffects(
           const p = world.toRender(confirmation.position, confirmation.height);
           if (world.camera) p.project(world.camera);
           const lift = confirmation.killed ? (goreProfile(confirmation.recipeId)?.burst?.markerLiftPx ?? 0) : 0,
-            markerX = lift ? Math.max(36, Math.min(width - 36, ((p.x + 1) * width) / 2)) : ((p.x + 1) * width) / 2,
+            m = FEEL.hitMarker,
+            screenX = ((p.x + 1) * width) / 2, // tuning-ok: NDC spans 2 over the screen
+            screenY = ((1 - p.y) * height) / 2, // tuning-ok: NDC spans 2 over the screen
+            markerX = lift ? Math.max(m.sideMargin, Math.min(width - m.sideMargin, screenX)) : screenX,
             markerY = lift
-              ? Math.max(Math.min(220, height * 0.32), Math.min(height * 0.7, ((1 - p.y) * height) / 2 - lift))
-              : ((1 - p.y) * height) / 2;
+              ? Math.max(Math.min(m.topMax, height * m.topShare), Math.min(height * m.bottomShare, screenY - lift))
+              : screenY;
           hitMarker.style.transform = `translate(${markerX}px,${markerY}px) translate(-50%,-50%)`;
           hitMarker.textContent = feedback.mode === "high" ? (confirmation.killed ? "DOWN" : "HIT") : "×";
         }
@@ -941,6 +1047,13 @@ export function createEffects(
       pickup.visible = !!pistol && !pistol.collected && world.areaId === pistol.pickupAreaId && !game.finished;
       if (pickup.visible) {
         pickup.position.copy(world.toRender(pistol.pickupPos));
+        // The starting pistol is the first thing a new player must find: its outline breathes until picked up.
+        // The outline is a fixed screen-pixel stroke, so a phone-width screen gets a thicker one to read at that size.
+        const pulse = FEEL.pickupPulse,
+          strokeScale =
+            (pulse.base + pulse.swing * Math.sin(game.time * pulse.rate)) *
+            (width <= pulse.phoneWidth ? pulse.phoneScale : 1);
+        for (const contour of pickupContours) contour.halo.userData.strokeScale = strokeScale;
       }
       const weaponCue = pistolCue(game, { paused, visibleIds }) ?? bossWeaponCue(game, { paused, visibleIds }),
         selectionCue = touchTargetCue(game, { paused, visibleIds }),
@@ -964,24 +1077,18 @@ export function createEffects(
         const actor = target ? game.enemies.find((e) => e.id === cue.targetId) : null,
           height =
             actor && !cue.ground && !cue.heightLocked
-              ? ["giant-salamander", "original-wolf"].includes(actor.rig)
-                ? cue.height
-                : actor.rig === "low-hover-drone"
-                  ? droneY(actor, game.time)
-                  : (actor.rig === "original-rat"
-                      ? 0.18
-                      : actor.rig === "original-dog"
-                        ? 0.35
-                        : actor.rig === "original-roach"
-                          ? 0.08
-                          : 1.15) * (getView(actor)?.root.scale.y ?? actor.mobSize ?? 1)
+              ? targetHeight("reticle", actor.rig, {
+                  drone: () => droneY(actor, game.time),
+                  scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
+                  cue: cue.height,
+                })
               : cue.height;
         reticle.position.copy(world.toRender(cue.position, height));
         if (camera) {
           reticle.quaternion.copy(camera.quaternion);
           cueProjection.copy(reticle.position).project(camera);
-          const maxX = 1 - 52 / Math.max(53, viewportWidth),
-            maxY = 1 - 52 / Math.max(53, viewportHeight),
+          const maxX = 1 - CUE.edgeMargin / Math.max(CUE.minViewport, viewportWidth),
+            maxY = 1 - CUE.edgeMargin / Math.max(CUE.minViewport, viewportHeight),
             edge =
               Math.abs(cueProjection.x) > maxX || Math.abs(cueProjection.y) > maxY || Math.abs(cueProjection.z) > 1;
           reticle.userData.edge = edge;
@@ -991,18 +1098,18 @@ export function createEffects(
                 .set(
                   Math.max(-maxX, Math.min(maxX, cueProjection.x)),
                   Math.max(-maxY, Math.min(maxY, cueProjection.y)),
-                  Math.max(-0.99, Math.min(0.99, cueProjection.z)),
+                  Math.max(-CUE.clampZ, Math.min(CUE.clampZ, cueProjection.z)),
                 )
                 .unproject(camera),
             );
           const depth = reticle.position.distanceTo(camera.position),
-            pixels = target ? 24 : 16;
+            pixels = target ? CUE.pixels.target : CUE.pixels.ground;
           reticle.scale.setScalar(
-            (2 * pixels * depth) / (Math.max(1, viewportHeight) * camera.projectionMatrix.elements[5]),
+            (2 * pixels * depth) / (Math.max(1, viewportHeight) * camera.projectionMatrix.elements[5]), // tuning-ok: NDC spans 2
           );
-        } else reticle.scale.setScalar(target ? 0.6 : 0.2);
-        cueMaterial.opacity = cue.ready ? (target ? 0.95 : 0.75) : 0.65;
-        outlineMaterial.opacity = 0.9;
+        } else reticle.scale.setScalar(target ? CUE.fallbackScale.target : CUE.fallbackScale.ground);
+        cueMaterial.opacity = cue.ready ? (target ? CUE.opacity.readyTarget : CUE.opacity.ready) : CUE.opacity.notReady;
+        outlineMaterial.opacity = CUE.outlineOpacity;
         accent.visible = target || !!reticle.userData.edge;
       } else {
         reticle.userData.targetId = null;
@@ -1024,7 +1131,7 @@ export function createEffects(
             scene.add(mesh);
           }
           mesh.position.copy(world.toRender(item.pos, item.height ?? height));
-          if (geometry === gem) mesh.rotation.y = game.time * 1.5;
+          if (geometry === gem) mesh.rotation.y = game.time * FEEL.loot.spinRate;
         }
       };
       if (!paused)
@@ -1045,7 +1152,7 @@ export function createEffects(
               e.bossWeapon.direction,
               w.range,
               w.coneDegrees,
-              0xffbd62,
+              hexNumber(EVENT.warningColour),
               (e.bossWeapon.startTick + w.windupTicks) / 60,
             );
             transient.at(-1).bossWarning = e.id;
@@ -1053,10 +1160,14 @@ export function createEffects(
       bossFlame?.update(game, { paused });
       salamanderFlame.update(game, { paused });
       flameEffect?.update(game, { paused });
+      burn.update(game, { paused });
       droneLasers.sync(game.bolts, game.time);
-      sync(game.loot, loot, gem, (l) => lootMaterials[l.kind], 0.3);
+      if (!paused) arcBolts?.update(game.time, Math.max(0, game.time - arcClock));
+      arcClock = game.time;
+      sync(game.loot, loot, gem, (l) => lootMaterials[l.kind], FEEL.loot.height);
     },
     reset() {
+      burn.reset();
       flameEffect?.reset();
       bossFlame?.reset();
       salamanderFlame.reset();
@@ -1067,6 +1178,7 @@ export function createEffects(
       for (const e of transient) erase(e);
       transient.length = 0;
       droneLasers.reset();
+      arcBolts?.reset();
       for (const map of [loot]) {
         for (const mesh of map.values()) scene.remove(mesh);
         map.clear();
@@ -1076,12 +1188,14 @@ export function createEffects(
       this.reset();
       severBlood.dispose();
       flameEffect?.dispose();
+      burn.dispose();
       bossFlame?.dispose();
       salamanderFlame.dispose();
       finisherGate.dispose();
       delete pool.userData.finisherImpact;
       scene.remove(pickup, reticle);
       for (const contour of pickupContours) contour.dispose();
+      pickupMarker.dispose();
       outlineGeometry.dispose();
       cueGeometry.dispose();
       accentGeometry.dispose();
@@ -1098,6 +1212,7 @@ export function createEffects(
       }
       scene.remove(pool);
       droneLasers.dispose();
+      arcBolts?.dispose();
       gem.dispose();
       for (const m of lootMaterials) m.dispose();
     },
@@ -1110,6 +1225,7 @@ export function createAudio(options = {}) {
     enabled = true;
   return {
     async unlock() {
+      requestPlaybackAudioSession();
       context ??= new (window.AudioContext || window.webkitAudioContext)();
       await context.resume();
     },
@@ -1122,27 +1238,21 @@ export function createAudio(options = {}) {
     play(events) {
       if (!enabled || context?.state !== "running") return;
       for (const e of events) {
-        const frequencies = {
-          attack: 180,
-          hit: 95,
-          parry: 660,
-          block: 260,
-          dodge: 120,
-          loot: 880,
-          death: 55,
-          wave: 330,
-        };
-        const frequency = frequencies[e.type];
+        const tone = FEEL.audio,
+          frequency = tone.frequencies[e.type];
         if (!frequency) continue;
         const oscillator = context.createOscillator(),
           gain = context.createGain(),
           start = context.currentTime,
-          duration = e.type === "death" ? 0.25 : 0.08;
-        oscillator.type = e.type === "loot" || e.type === "parry" ? "sine" : "triangle";
+          duration = e.type === "death" ? tone.seconds.death : tone.seconds.other;
+        oscillator.type = tone.sineEvents.includes(e.type) ? "sine" : "triangle";
         oscillator.frequency.setValueAtTime(frequency, start);
-        oscillator.frequency.exponentialRampToValueAtTime(Math.max(30, frequency * 0.55), start + duration);
-        gain.gain.setValueAtTime(0.035, start);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        oscillator.frequency.exponentialRampToValueAtTime(
+          Math.max(tone.minFrequency, frequency * tone.rampShare),
+          start + duration,
+        );
+        gain.gain.setValueAtTime(tone.gain, start);
+        gain.gain.exponentialRampToValueAtTime(tone.gainEnd, start + duration);
         oscillator.connect(gain);
         gain.connect(context.destination);
         oscillator.start(start);

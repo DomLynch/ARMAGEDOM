@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "engine": {
+    "voiceCapacity": 16,
+    "outputGain": 0.65,
+    "floorGain": 0.0001,
+    "attackSeconds": 0.002,
+    "stopPadSeconds": 0.01,
+    "lowModeFactor": 0.4,
+    "noiseBufferSeconds": 0.16
+  },
+  "saw": { "frequency": 185, "gain": 0.035, "gainOff": 0.015 },
+  "railgunHum": { "gain": 0.025, "fromHz": 90, "toHz": 360 },
+  "cueGains": { "sever": 0.5, "hit": 0.3, "whooshHeavy": 0.18, "whooshLight": 0.12, "roll": 0.12 },
+  "hit": {
+    "off": {
+      "lethal": { "from": 1450, "to": 550, "seconds": 0.09, "gain": 0.062, "type": "sine" },
+      "normal": { "from": 1000, "to": 800, "seconds": 0.035, "gain": 0.062, "type": "sine" }
+    },
+    "lethal": {
+      "tone": { "from": 160, "to": 55, "seconds": 0.14, "gain": 0.16 },
+      "noise": { "seconds": 0.085, "gain": 0.1, "cutoff": 1700 },
+      "ring": { "from": 1000, "to": 1500, "seconds": 0.09, "gain": 0.065, "type": "sine" }
+    },
+    "normal": {
+      "tone": { "from": 280, "to": 130, "seconds": 0.065, "gain": 0.16 },
+      "noise": { "seconds": 0.03, "gain": 0.1, "cutoff": 1700 }
+    }
+  },
+  "railgunShot": {
+    "crack": { "from": 1100, "to": 65, "seconds": 0.18, "gain": 0.16, "type": "sawtooth" },
+    "thump": { "from": 660, "to": 110, "seconds": 0.2, "gain": 0.08 },
+    "noise": { "seconds": 0.06, "gain": 0.12, "cutoff": 1800 }
+  },
+  "shot": {
+    "fallback": {
+      "from": 220,
+      "to": 48,
+      "seconds": 0.11,
+      "gain": 0.22,
+      "noiseSeconds": 0.065,
+      "noiseGain": 0.15,
+      "cutoff": 900
+    },
+    "off": { "from": 240, "to": 55, "seconds": 0.08, "gain": 0.085 }
+  },
+  "rocketLaunch": {
+    "tone": { "from": 160, "to": 55, "seconds": 0.12, "gain": 0.22 },
+    "noise": { "seconds": 0.09, "gain": 0.18, "cutoff": 850 }
+  },
+  "grenadeOff": { "seconds": 0.1, "gain": 0.06 },
+  "pickup": { "from": 660, "to": 880, "seconds": 0.16, "gain": 0.025, "type": "sine" }
+}

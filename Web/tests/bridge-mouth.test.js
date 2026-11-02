@@ -1,7 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {createGeometry} from '../src/world-geometry.js';import {createBridgeSteering,bodyLineClear} from '../src/bridge-steering.js';
 import {createGame,stepGame} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';
-import {WESTMINSTER_ATMOSPHERE} from '../src/atmosphere-westminster.js';import {atmosphereForArea} from '../src/atmosphere-areas.js';
+import {atmosphereForArea,AREA_ATMOSPHERE} from '../src/atmosphere-areas.js';
+const WESTMINSTER_ATMOSPHERE=AREA_ATMOSPHERE.westminster;
 const layout=JSON.parse(fs.readFileSync(new URL('../public/world/westminster/layout.json',import.meta.url))),geometry=createGeometry(layout);
 test('cleared pocket and enlarged mouth have legal player and resident-body room',()=>{
  assert(!layout.blockers.some(b=>b.name==='Bridge mouth sandbag base'));

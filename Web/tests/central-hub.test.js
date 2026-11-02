@@ -20,24 +20,21 @@ const registry=createAreaRegistry({manifest}),data=validateAreaMetadata(raw,regi
 const seed=fs.readFileSync(new URL('./fixtures/hub195-source194-v16.json',import.meta.url),'utf8');
 const make=(records=new Map([[RAILGUN_SAVE_KEY,seed]]))=>{const f=fixture({areaId:'central-hub',records,extraWorld:{bossEquipmentData:data.bossEquipmentData,safehouseData:data.safehouseData,reaperData:data.reaperData}});f.restore();assert(!f.g.runSaveInvalid);return f;};
 
-test('hub gates reject unvisited, absent authoritative boss reward, missing boss profiles and invalid save before allowing exits',()=>{
+test('hub exits east, south and area7 are open whatever the visit, boss reward or save state',()=>{
  const g={world:{areaId:'central-hub',registry,bossData:data.bossData,bossEquipmentData:data.bossEquipmentData},expedition:{visitedIds:[]},bossEquipment:{}};
  assert.equal(bossExitGate(g,'westminster'),null);
- for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,false,id);
- g.expedition.visitedIds=['south','east','area7'];assert.equal(bossExitGate(g,'east').allowed,false);
- g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'east').allowed,false);
- g.bossEquipment.emberProjector={status:'owned'};g.world.bossEquipmentData={};assert.equal(bossExitGate(g,'east').allowed,false);
- g.world.bossEquipmentData=data.bossEquipmentData;g.runSaveInvalid=true;for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,false);
- g.runSaveInvalid=false;for(const status of ['pending','owned','legacy-dead']){g.bossEquipment.emberProjector={status};for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id).allowed,true,id);}
- // Existing receipt aliases are validated by the sole Core codec, not invented here.
- g.expedition.visitedIds=[];assert.match(bossExitGate(g,'east').message,/Discover/);
- for(const id of ['westminster','south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
- g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'east').allowed,false,'original gate remains');
+ // 28 Oct: the three hub exits are open; no visit, boss reward or save state gates them.
+ for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.bossEquipment.emberProjector={status:'unseen'};for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.world.bossEquipmentData={};g.runSaveInvalid=true;for(const id of ['south','east','area7'])assert.equal(bossExitGate(g,id),null,id);
+ g.world.bossEquipmentData=data.bossEquipmentData;g.runSaveInvalid=false;
+ for(const id of ['south','east','area7']){g.world.areaId=id;assert.equal(bossExitGate(g,'central-hub'),null,'inbound return stays open');}
+ g.world.areaId='westminster';g.bossEquipment.emberProjector={status:'unseen'};assert.equal(bossExitGate(g,'central-hub'),null,'the Westminster exits are ungated (Dom, 31 Oct)');
 });
 
-test('registry rejects forged visit predicates and manifest omission of a real gate',()=>{
+test('registry rejects forged visit predicates and a manifest gate the areas data does not have',()=>{
  const areas=structuredClone(areaDefinitions);areas.at(-1).exits[1].requiresVisited='yes';assert.throws(()=>createAreaRegistry({areas}),/visit requirement/);
- const changed=structuredClone(manifest);delete changed.links.find(e=>e.from==='central-hub'&&e.to==='south').requiresVisited;assert.throws(()=>createAreaRegistry({manifest:changed}),/adjacency/);
+ const changed=structuredClone(manifest);changed.links.find(e=>e.from==='central-hub'&&e.to==='south').requiresVisited=true;assert.throws(()=>createAreaRegistry({manifest:changed}),/adjacency/);
 });
 
 test('all actual new mouth paths fit full player capsules, target arrivals are legal and never land in their return triggers',()=>{
@@ -48,14 +45,14 @@ test('all actual new mouth paths fit full player capsules, target arrivals are l
  assert.deepEqual(Object.keys(data.expedition.atlas).sort(),registry.ids.slice().sort());assert.deepEqual(data.expedition.atlas['central-hub'],{column:1,row:1});
 });
 
-test('actual loader discovers ninth area lazily and reuses old Westminster safety data across entry and return',async t=>{
+test('actual loader discovers ninth area lazily and keeps the one Central Hub safety site across entry and return',async t=>{
  const old=globalThis.fetch,requests=[];globalThis.fetch=async url=>{const p=new URL(url).pathname.slice(1);requests.push(p);return{ok:true,json:async()=>read('../public/'+p)};};t.after(()=>globalThis.fetch=old);
  class Loader{async loadAsync(){return new T.Texture({width:1672,height:941});}}
  const w=await createWorld({THREE:{...T,TextureLoader:Loader},scene:new T.Scene(),camera:new T.PerspectiveCamera(),baseUrl:'https://fixture.invalid/'});t.after(()=>w.dispose());
- assert.equal(w.areaId,'westminster');assert.equal(safehouseSite(w).areaId,'westminster');assert(!requests.includes('world/central-hub/layout.json'));
- await w.prepareArea('central-hub');const site=w.safehouseData.additionalSites[0];assert(site.wholeArea);assert(Object.isFrozen(site));
+ assert.equal(w.areaId,'westminster');assert.equal(safehouseSite(w),null,'Westminster has no safehouse');assert(!requests.includes('world/central-hub/layout.json'));
+ await w.prepareArea('central-hub');const site=w.safehouseData;assert.equal(site.areaId,'central-hub');assert(site.wholeArea);assert(Object.isFrozen(site));
  await w.loadArea('central-hub',{x:.075,y:.45});assert.equal(safehouseSite(w),site);assert.equal(w.areaId,'central-hub');assert.equal(w.residentPlacements['central-hub'].length,0);
- await w.loadArea('westminster',{x:.38,y:.92});assert.equal(safehouseSite(w).areaId,'westminster');
+ await w.loadArea('westminster',{x:.38,y:.92});assert.equal(safehouseSite(w),null);
 });
 
 test('hub has zero hostiles and existing safety blocks hits, weapons, delayed projectiles and companion payment while allowing walking',()=>{

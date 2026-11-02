@@ -1,6 +1,9 @@
 import { resolveResidentIntent } from "./creature-behaviour-intents.js";
+import { rigText } from "./rig-capabilities.js";
+import { GAME_DATA } from "./engine/game-data.js";
 const nest = resolveResidentIntent("roach-nest-guard", { behaviourCapabilities: ["home", "lineOfSight"] });
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+const HOME_ARRIVED = GAME_DATA.creatures.roachTerritory.homeArrivedMetres; // metres from home at which a returning roach counts as home
+import { point } from "./engine/shared-checks.js";
 // Only one approved role/registered recipe; no actor writes, movement or timers.
 export function resolveRoachNestGuard(e, { areaId, animalCycle } = {}) {
   if (
@@ -8,7 +11,7 @@ export function resolveRoachNestGuard(e, { areaId, animalCycle } = {}) {
     areaId !== "east" ||
     e?.placementKey !== "east-roamer-2" ||
     e.animalRecipe !== "roach-nest-guard" ||
-    e.rig !== "original-roach" ||
+    rigText(e.rig, "species") !== "roach" ||
     (e.areaId ?? areaId) !== areaId ||
     !Number.isFinite(e.hp) ||
     e.hp <= 0 ||
@@ -35,6 +38,6 @@ export function territoryHomeStep(p, o) {
     alerted = false;
     returning = true;
   }
-  if (returning && o.homeDistance <= 0.2) returning = false;
+  if (returning && o.homeDistance <= HOME_ARRIVED) returning = false;
   return result(returning ? (o.returnPathClear === false ? "hold" : "return") : "native");
 }

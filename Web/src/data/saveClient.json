@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "minSaveIntervalMs": 5000,
+  "staleSeqRetries": 2,
+  "characterName": "Survivor",
+  "bootSyncWaitMs": 3000,
+  "bucketBurst": 6,
+  "bucketRefillMs": 5000,
+  "bucketReserve": 2,
+  "retryFloorMs": 250,
+  "keepaliveMaxBytes": 60000,
+  "claimBurst": 4,
+  "claimRefillMs": 5000,
+  "claimRetries": 6,
+  "claimSecondMs": 1000
+}

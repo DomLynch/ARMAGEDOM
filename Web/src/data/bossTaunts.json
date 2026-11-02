@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "note": "Boss taunts: short text lines on the HUD message line, per boss (keyed by the boss display name in public/world/area-content.json). Kinds: spawn (first within spawnRange of the player), aggro (the boss turns on the player), hurt (health at or below hurtShare, once), death (after the boss is defeated). A line is shown only when no game message is live (never over 'Switched to X.'), at most one per minGapSeconds, held up to waitSeconds for the line to clear; higher kinds replace a waiting lower one. maxChars keeps a line on the HUD line. Off switch: ?taunts=0.",
+  "flagParam": "taunts",
+  "offValue": "0",
+  "defaultOn": true,
+  "maxChars": 60,
+  "spawnRange": 14,
+  "hurtShare": 0.5,
+  "minGapSeconds": 12,
+  "waitSeconds": 8,
+  "showSeconds": 4,
+  "kindPriority": { "spawn": 1, "aggro": 2, "hurt": 3, "death": 4 },
+  "bosses": {
+    "Lambeth Surgeon": {
+      "spawn": ["Hold still. Everything is cheaper that way.", "Another patient with no paperwork."],
+      "aggro": ["Don't flinch. I charge by the cut.", "Table's ready. You're early."],
+      "hurt": ["That's a clean wound. I'll leave it open.", "You bleed like all the others."],
+      "death": ["No anaesthetic. Sorry.", "Nobody signed me out."]
+    },
+    "Borough Butcher": {
+      "spawn": ["Market's closed. Meat's not.", "Wipe your feet. I just washed the floor."],
+      "aggro": ["Fresh stock walking in on its own.", "Hands on the counter."],
+      "hurt": ["You'll fetch less than I hoped.", "Keep swinging. I've seen worse cuts."],
+      "death": ["Weigh me. I'm paid up.", "Last order. Take it."]
+    },
+    "Bridge Warden": {
+      "spawn": ["Toll's due. Cash or blood.", "Nobody crosses without my say."],
+      "aggro": ["Turn back or go in the river.", "Rules haven't changed. You're trespassing."],
+      "hurt": ["I've held this bridge through worse.", "You'll pay double for that."],
+      "death": ["Bridge is yours. Good luck with it.", "Somebody else can mind the gate."]
+    },
+    "Ember Matron": {
+      "spawn": ["Warm yourself. You look frozen.", "The grid went dark. The fire stayed."],
+      "aggro": ["Come closer, love. It's cold out.", "Everything burns eventually."],
+      "hurt": ["That stung. Now I'm cross.", "You'll smell of smoke for a week."],
+      "death": ["Let it burn out. I'm done.", "Fuel's gone. So am I."]
+    },
+    "Southbank Stalker": {
+      "spawn": ["I've been behind you since the tunnel.", "Quiet now. Sound carries here."],
+      "aggro": ["Found you. Took long enough.", "Run. It makes the walk worth it."],
+      "hurt": ["Lucky. Don't count on it twice.", "I only need you to slip once."],
+      "death": ["Didn't hear you coming.", "You were quieter than me. Once."]
+    },
+    "Station Breaker": {
+      "spawn": ["This platform is closed. Permanently.", "No trains. No law. Just me."],
+      "aggro": ["I break things. You're next on the list.", "End of the line."],
+      "hurt": ["Armour's dented. So what.", "Hit me again. See what it costs you."],
+      "death": ["Service terminated.", "Lock the doors on your way out."]
+    },
+    "Borough Marshal": {
+      "spawn": ["Curfew's in force. Drop your weapon.", "By the old statute, you're under arrest."],
+      "aggro": ["Last warning. There isn't another.", "Hands where I can see them."],
+      "hurt": ["Resisting. Noted for the record.", "I've taken harder hits than that."],
+      "death": ["Order's gone. Make what you will of it.", "Write it up. Somebody should."]
+    }
+  }
+}

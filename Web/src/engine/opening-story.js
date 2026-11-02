@@ -5,8 +5,8 @@ export const validStory = (s) =>
   typeof s.commsRead === "boolean" &&
   Number.isInteger(s.bountyStage) &&
   s.bountyStage >= 0 &&
-  s.bountyStage <= 2 &&
-  (s.bountyStage < 2 || s.commsRead);
+  s.bountyStage <= 2 && // tuning-ok: stage 2 is the last bounty stage
+  (s.bountyStage < 2 || s.commsRead); // tuning-ok: reaching stage 2 needs the comms read
 // Historical save validation and local equipment-ledger compatibility only.
 export const matronDefeated = (g) =>
   ["pending", "owned", "legacy-dead"].includes(g.bossEquipment?.emberProjector?.status);

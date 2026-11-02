@@ -1,4 +1,12 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+// The budgets and the floor tolerance are data/finisherData.json `grounding`.
+const GROUND = GAME_DATA.finisher.grounding;
+// The cached skin-input row of one vertex: position (3), skinIndex (4) and skinWeight (4) as consecutive floats.
+const INPUT_STRIDE = 11; // tuning-ok: 3 position + 4 index + 4 weight floats
+const INDEX_AT = 3; // tuning-ok: skinIndex follows the 3 position floats
+const WEIGHT_AT = 7; // tuning-ok: skinWeight follows the 3 position and 4 index floats
+const SKIN_INFLUENCES = 4; // tuning-ok: bone influences per skinned vertex (glTF skinIndex/skinWeight are vec4)
 const attributeIds = new WeakMap();
 let nextAttributeId = 1;
 const vertexIds = new WeakMap();
@@ -29,7 +37,7 @@ function poseSkinSampler(node, vertexCount, reuseInputs) {
     weights = new T.Vector4(),
     base = new T.Vector3(),
     weighted = new T.Vector3();
-  const inputs = reuseInputs ? new Float64Array(vertexCount * 11) : null,
+  const inputs = reuseInputs ? new Float64Array(vertexCount * INPUT_STRIDE) : null,
     filled = reuseInputs ? new Uint8Array(vertexCount) : null;
   let signature = null,
     cacheInputs = false,
@@ -85,11 +93,11 @@ function poseSkinSampler(node, vertexCount, reuseInputs) {
     update: refresh,
     vertex(id, target, slot) {
       if (!nativeSkin) return node.getVertexPosition(id, target);
-      const offset = slot * 11;
+      const offset = slot * INPUT_STRIDE;
       if (cacheInputs && filled[slot]) {
         base.fromArray(inputs, offset);
-        indices.fromArray(inputs, offset + 3);
-        weights.fromArray(inputs, offset + 7);
+        indices.fromArray(inputs, offset + INDEX_AT);
+        weights.fromArray(inputs, offset + WEIGHT_AT);
       } else {
         T.Mesh.prototype.getVertexPosition.call(node, id, target);
         indices.fromBufferAttribute(node.geometry.attributes.skinIndex, id);
@@ -97,13 +105,13 @@ function poseSkinSampler(node, vertexCount, reuseInputs) {
         base.copy(target).applyMatrix4(node.bindMatrix);
         if (cacheInputs) {
           base.toArray(inputs, offset);
-          indices.toArray(inputs, offset + 3);
-          weights.toArray(inputs, offset + 7);
+          indices.toArray(inputs, offset + INDEX_AT);
+          weights.toArray(inputs, offset + WEIGHT_AT);
           filled[slot] = 1;
         }
       }
       target.set(0, 0, 0);
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < SKIN_INFLUENCES; i++) {
         const weight = weights.getComponent(i);
         if (weight !== 0)
           target.addScaledVector(weighted.copy(base).applyMatrix4(matrices[indices.getComponent(i)]), weight);
@@ -124,7 +132,18 @@ export function prepareVictimGrounding(options) {
 }
 // Dormant rigs can prepare the identical table between frames. Returning the
 // iterator early restores their pose through the same cleanup as normal loading.
-export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120, maxVertices = 150000, cache = null }) {
+// `rigEpoch` changes whenever something else wrote the rig's pose since the last step (the deferred-preparation
+// pump resets and restores it around every slice). The mixer only writes a bone when the clip value changed since
+// its own last write, so after such a change it is rebuilt, which makes the next pose write every animated bone.
+export function* prepareVictimGroundingSteps({
+  model,
+  root,
+  clip,
+  samples = GROUND.samples,
+  maxVertices = GROUND.maxVertices,
+  cache = null,
+  rigEpoch = () => 0,
+}) {
   if (!clip || !(clip.duration > 0) || !Number.isSafeInteger(samples) || samples < 1)
     throw Error("Invalid victim grounding clip");
   const transforms = [],
@@ -155,7 +174,7 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         count = index?.count ?? position.count;
       for (let i = 0; i < count; i++) {
         unique.add(index ? index.getX(i) : i);
-        if ((i & 255) === 0 && performance.now() - indexSince >= 4) {
+        if ((i & GROUND.indexYieldMask) === 0 && performance.now() - indexSince >= GROUND.sliceMs) {
           yield "victim-index";
           indexSince = performance.now();
         }
@@ -222,21 +241,35 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
   }
   // The cap is across ALL draws, including repeated references, and temporary.
   // Larger callers retain native input reads rather than allocating beyond it.
-  const reuseInputs = vertices <= 150000;
+  const reuseInputs = vertices <= GROUND.maxVertices;
   for (const draw of draws) if (!draw.cached) draw.sampler = poseSkinSampler(draw.node, draw.ids.length, reuseInputs);
   const table = new Float32Array(samples + 1),
-    mixer = new T.AnimationMixer(model),
     point = new T.Vector3(),
     inverse = new T.Matrix4();
-  let worstFloor = Infinity;
+  let worstFloor = Infinity,
+    mixer = null,
+    action = null,
+    seenEpoch = null;
+  const bindMixer = () => {
+    if (mixer) {
+      mixer.stopAllAction();
+      mixer.uncacheRoot(model);
+    }
+    mixer = new T.AnimationMixer(model);
+    action = mixer.clipAction(clip);
+    action.play();
+    action.paused = true;
+    seenEpoch = rigEpoch();
+  };
   let since = performance.now(),
     prepMilliseconds = 0;
   try {
-    const action = mixer.clipAction(clip);
-    action.play();
-    action.paused = true;
-    for (let i = 0; i <= samples; i++) {
-      action.time = Math.min(0.999999, i / samples) * clip.duration;
+    bindMixer();
+    // Poses the rig at sample i. The rig may be driven elsewhere between steps (a live resident animates, or the
+    // caller restores another pose), so this runs again after every resume, before any vertex is read.
+    const poseAt = (i) => {
+      if (rigEpoch() !== seenEpoch) bindMixer();
+      action.time = Math.min(GROUND.phaseMax, i / samples) * clip.duration;
       mixer.update(0);
       root.updateWorldMatrix(true, false);
       root.updateMatrixWorld(true);
@@ -244,6 +277,16 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         if (n.skeleton) n.skeleton.update();
       });
       inverse.copy(root.matrixWorld).invert();
+    };
+    for (let i = 0; i <= samples; i++) {
+      poseAt(i);
+      // Posing the rig is itself 6-10 ms; the vertex reads below start a fresh step.
+      if (performance.now() - since >= GROUND.sliceMs) {
+        prepMilliseconds += performance.now() - since;
+        yield "victim-pose";
+        since = performance.now();
+        poseAt(i);
+      }
       let floor = Infinity;
       let reads = 0;
       for (const draw of draws) {
@@ -257,10 +300,11 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
               .applyMatrix4(inverse);
             if (!Number.isFinite(point.y)) throw Error("Nonfinite victim floor");
             localFloor = Math.min(localFloor, point.y);
-            if ((++reads & 127) === 0 && performance.now() - since >= 4) {
+            if ((++reads & GROUND.readYieldMask) === 0 && performance.now() - since >= GROUND.sliceMs) {
               prepMilliseconds += performance.now() - since;
               yield "victim-floor";
               since = performance.now();
+              poseAt(i);
               draw.sampler?.update();
             }
           }
@@ -269,8 +313,8 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
         floor = Math.min(floor, localFloor);
       }
       worstFloor = Math.min(worstFloor, floor);
-      table[i] = Math.max(0, 0.004 - floor);
-      if (performance.now() - since >= 4) {
+      table[i] = Math.max(0, GROUND.floorTolerance - floor);
+      if (performance.now() - since >= GROUND.sliceMs) {
         prepMilliseconds += performance.now() - since;
         yield "victim-pose";
         since = performance.now();
@@ -278,8 +322,8 @@ export function* prepareVictimGroundingSteps({ model, root, clip, samples = 120,
     }
   } finally {
     for (const draw of draws) draw.sampler = null;
-    mixer.stopAllAction();
-    mixer.uncacheRoot(model);
+    mixer?.stopAllAction();
+    mixer?.uncacheRoot(model);
     for (const [n, p, q, s] of transforms) {
       n.position.copy(p);
       n.quaternion.copy(q);

@@ -17,7 +17,7 @@ export function createBoneSaw() {
   part(new T.BoxGeometry(0.17, 0.22, 0.13), body, 0, 0.3, 0);
   part(new T.CylinderGeometry(0.065, 0.065, 0.2, 10), steel, 0, 0.3, 0).rotation.z = Math.PI / 2;
   const blade = new T.Group();
-  blade.name = "Bone Saw reciprocating blade";
+  blade.name = "Bone Saw reciprocating blade"; // text-ok: three.js group name, never shown
   root.add(blade);
   const mesh = new T.Mesh(new T.BoxGeometry(0.065, 0.47, 0.018), steel);
   mesh.position.y = 0.62;
@@ -50,14 +50,21 @@ export function animateBoneSaw(root, time, active) {
   if (blade) blade.position.y = active ? Math.sin(time * 170) * 0.016 : 0;
 }
 
-export function boneSawContact(blade, views, target) {
+export function boneSawContact(blade, views, target, { ground = true } = {}) {
   if (!blade?.userData.saw) return false;
+  // A body can sit below the hand-height blade (a lowStrike animal, or the stooped crooked Hollow whose
+  // head is under the blade line); the saw has no low pose, so its blade also reaches the ground beneath
+  // each blade point. `ground: false` keeps the plain hand-height trace (the Surgeon's saw on the player).
   const a = new T.Vector3(),
-    b = new T.Vector3();
+    b = new T.Vector3(),
+    floor = new T.Vector3();
   for (const x of [-0.035, 0, 0.035]) {
     blade.localToWorld(a.set(x, 0.4, 0));
     blade.localToWorld(b.set(x, 0.9, 0));
     if (traceGrenadeSurface(views, [target], a, b)) return true;
+    if (ground)
+      for (const point of [a, b])
+        if (traceGrenadeSurface(views, [target], point, floor.set(point.x, 0, point.z))) return true;
   }
   return false;
 }

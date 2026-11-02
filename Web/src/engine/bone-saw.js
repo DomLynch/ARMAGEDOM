@@ -1,15 +1,6 @@
 // Transient continuous melee; original receipt, damage and world authorities stay owners.
-export const BONE_SAW_RULES = Object.freeze({
-  interval: 0.2,
-  damage: 5,
-  range: 1.55,
-  coneDegrees: 38,
-  moveScale: 0.4,
-  staminaPerSecond: 10,
-  staggerAfter: 3,
-  staggerSeconds: 0.16,
-  staggerRecovery: 1.4,
-});
+import { GAME_DATA } from "./game-data.js";
+export const BONE_SAW_RULES = GAME_DATA.weapons.bossEquipment.boneSawRules;
 export const BONE_SAW_ITEM_ID = "surgeons-knife-v1";
 export function boneSawEquipped(g) {
   const p = g.world?.bossEquipmentData?.surgicalKnife,
@@ -188,13 +179,13 @@ export function stepSurgeonSaw(g, e, dt, { patrol, move, receive, contact } = {}
             block: true,
             parry: false,
             moveId: "bone-saw",
-            def: { stagger: 0.12, chip: 0.1, staminaDamage: amount },
+            def: { stagger: BONE_SAW_RULES.hitStagger, chip: BONE_SAW_RULES.hitChip, staminaDamage: amount },
           }),
       });
   }
   if (phase.phase === "recovery" && t >= phase.until) {
     e.sawPhase = null;
-    e.ready = t + 0.1;
+    e.ready = t + BONE_SAW_RULES.recoveryReadySeconds;
   }
   return true;
 }

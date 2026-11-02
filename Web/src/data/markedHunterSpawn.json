@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "bodyRadius": 0.4,
+  "safehouseRadius": 0.43,
+  "gateGap": 2,
+  "enemyGap": 0.65,
+  "gateDefaultCoordinate": 0.5,
+  "messageSeconds": 4
+}

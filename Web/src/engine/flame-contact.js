@@ -1,4 +1,8 @@
 import { combatTargetHeight } from "../pistol-targeting.js";
+import { GAME_DATA } from "./game-data.js";
+// weapons.json targeting.shot: the body ellipsoid shared with the pistol ray test.
+const BODY = GAME_DATA.weapons.targeting.shot;
+const sq = (x) => x * x;
 const finite = (p) => p && ["x", "y", "z"].every((k) => Number.isFinite(p[k]));
 // The normal registered body collision envelope intersects the emitted cone.
 // No target score, hit probability, damaging burn or species-specific controller.
@@ -37,8 +41,8 @@ export function flameTouches({ source, target, time, profile, lineClear, playerP
     !Number.isFinite(playerPosition?.z)
   )
     return false;
-  const horizontal = Math.max(0.05, target.radius),
-    vertical = Math.max(0.1, height * 0.65),
+  const horizontal = Math.max(BODY.bodyMinRadius, target.radius),
+    vertical = Math.max(BODY.bodyMinHalfHeight, height * BODY.bodyHeightRatio),
     radial = { x: v.x - along * axis.x, y: v.y - along * axis.y, z: v.z - along * axis.z },
     distance = Math.hypot(radial.x, radial.y, radial.z),
     support =
@@ -48,9 +52,9 @@ export function flameTouches({ source, target, time, profile, lineClear, playerP
     // At point blank the nozzle may be inside the ordinary body envelope.
     // Require an actual FORWARD ray/ellipsoid intersection; a body wholly
     // behind the muzzle still cannot be hit, even when it is the locked target.
-    const a = (axis.x / horizontal) ** 2 + (axis.y / vertical) ** 2 + (axis.z / horizontal) ** 2,
-      b = -((v.x * axis.x) / horizontal ** 2 + (v.y * axis.y) / vertical ** 2 + (v.z * axis.z) / horizontal ** 2),
-      c = (v.x / horizontal) ** 2 + (v.y / vertical) ** 2 + (v.z / horizontal) ** 2 - 1,
+    const a = sq(axis.x / horizontal) + sq(axis.y / vertical) + sq(axis.z / horizontal),
+      b = -((v.x * axis.x) / sq(horizontal) + (v.y * axis.y) / sq(vertical) + (v.z * axis.z) / sq(horizontal)),
+      c = sq(v.x / horizontal) + sq(v.y / vertical) + sq(v.z / horizontal) - 1,
       disc = b * b - a * c;
     if (disc < 0 || (-b + Math.sqrt(disc)) / a <= 0 || (-b - Math.sqrt(disc)) / a > profile.range) return false;
   } else if (

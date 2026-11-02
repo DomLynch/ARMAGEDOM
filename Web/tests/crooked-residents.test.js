@@ -9,7 +9,7 @@ const selected=g=>g.enemies.filter(e=>hollowLocomotionFor(e)).map(e=>e.placement
 test('Crooked presentation selects a stable minority without changing resident data',async()=>{
  const g=fresh(),west=g.enemies.slice();
  assert.deepEqual(selected(g),['westminster-roamer-3','westminster-roamer-5']);
- for(const [area,count,keys] of [['westminster',6,['westminster-roamer-3','westminster-roamer-5']],['east',9,['east-roamer-3','east-roamer-6']],['south',9,['south-roamer-4','south-roamer-7']]]){
+ for(const [area,count,keys] of [['westminster',8,['westminster-roamer-3','westminster-roamer-5']],['east',12,['east-roamer-3','east-roamer-6']],['south',12,['south-roamer-4','south-roamer-7']]]){
   if(area!==g.world.areaId)await travelTo(g,{areaId:area});
   assert.equal(g.enemies.length,count);assert.deepEqual(selected(g),keys);
   assert.deepEqual(g.enemies.map(e=>({key:e.placementKey,pos:e.pos,patrol:e.patrol,hp:e.hp})),AREA_MOB_SPAWNS[area].map(p=>({key:p.key,pos:p.pos,patrol:p.patrol,hp:p.key==='east-roamer-2'?120:40})));

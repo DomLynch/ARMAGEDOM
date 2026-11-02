@@ -1,0 +1,279 @@
+{
+ "south": {
+  "rows": 1,
+  "markers": [
+   [
+    "Central Safehouse side entrance",
+    [
+     -18.293743537,
+     0.045,
+     -47.225360406
+    ],
+    [
+     [
+      "Mesh",
+      {
+       "innerRadius": 0.48,
+       "outerRadius": 0.62,
+       "thetaSegments": 32,
+       "phiSegments": 1,
+       "thetaStart": 0,
+       "thetaLength": 6.283185307179586
+      },
+      14662233,
+      [
+       -1.570796327,
+       0,
+       0
+      ],
+      [
+       1,
+       1,
+       1
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ],
+     [
+      "Sprite",
+      null,
+      16777215,
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       3.6,
+       0.9,
+       1
+      ],
+      [
+       0,
+       1.65,
+       0
+      ]
+     ]
+    ]
+   ]
+  ],
+  "canvas": "81b505b7e2f5ea109a55cf3cdbabe6dbb91741a332a9021eae37e4aef8ad168d",
+  "hints": [
+   [
+    "↗ CENTRAL SAFEHOUSE · 8m",
+    [
+     2,
+     0,
+     7.626144164336406,
+     {
+      "x": -18.293743536698624,
+      "z": 47.22536040579308
+     }
+    ]
+   ],
+   [
+    "↑ CENTRAL SAFEHOUSE · 8m",
+    [
+     2,
+     0,
+     7.626144164336406,
+     {
+      "x": -18.293743536698624,
+      "z": 47.22536040579308
+     }
+    ]
+   ]
+  ],
+  "reach": "b9b71618295cf81dfbc5c60a109371f78aa48e89f1ffa48f01d8ae32072f03d6",
+  "edge": "c0795d800ece34bd7a5972013cd8d6385e9c067f7f4bde3dc3db5e8ccbd5dd65",
+  "cues": [
+   [
+    "exit",
+    7.626144164,
+    "↑ CENTRAL SAFEHOUSE · 8m"
+   ],
+   [
+    "exit",
+    7.626144164,
+    "↑ CENTRAL SAFEHOUSE · 8m"
+   ],
+   [
+    "pistol",
+    0.31,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "pistol",
+    1,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "exit",
+    7.626144164
+   ],
+   [
+    "exit",
+    7.626144164
+   ],
+   [
+    "hunt",
+    1.51
+   ],
+   [
+    "hunt",
+    3
+   ],
+   [
+    null,
+    null
+   ],
+   [
+    null,
+    null
+   ]
+  ]
+ },
+ "area7": {
+  "rows": 1,
+  "markers": [
+   [
+    "Central Safehouse side entrance",
+    [
+     10.388284341,
+     0.045,
+     9.274760792
+    ],
+    [
+     [
+      "Mesh",
+      {
+       "innerRadius": 0.48,
+       "outerRadius": 0.62,
+       "thetaSegments": 32,
+       "phiSegments": 1,
+       "thetaStart": 0,
+       "thetaLength": 6.283185307179586
+      },
+      14662233,
+      [
+       -1.570796327,
+       0,
+       0
+      ],
+      [
+       1,
+       1,
+       1
+      ],
+      [
+       0,
+       0,
+       0
+      ]
+     ],
+     [
+      "Sprite",
+      null,
+      16777215,
+      [
+       0,
+       0,
+       0
+      ],
+      [
+       3.6,
+       0.9,
+       1
+      ],
+      [
+       0,
+       1.65,
+       0
+      ]
+     ]
+    ]
+   ]
+  ],
+  "canvas": "81b505b7e2f5ea109a55cf3cdbabe6dbb91741a332a9021eae37e4aef8ad168d",
+  "hints": [
+   [
+    "↘ CENTRAL SAFEHOUSE · 4m",
+    [
+     3,
+     0.20381005688801548,
+     3.665600387554746,
+     {
+      "x": 10.388284341026779,
+      "z": -9.274760791862128
+     }
+    ]
+   ],
+   [
+    "↓ CENTRAL SAFEHOUSE · 4m",
+    [
+     3,
+     0.20381005688801548,
+     3.665600387554746,
+     {
+      "x": 10.388284341026779,
+      "z": -9.274760791862128
+     }
+    ]
+   ]
+  ],
+  "reach": "46952ca20200da2680d3ef29ff61c4983805362397a0c5fc044a2c5b2bf561b8",
+  "edge": "036511bf0033934ef99b5d55a27c9b3048bcab2c16d8e6192fd505cb2bd250e5",
+  "cues": [
+   [
+    "exit",
+    3.665600388,
+    "↓ CENTRAL SAFEHOUSE · 4m"
+   ],
+   [
+    "exit",
+    3.665600388,
+    "↓ CENTRAL SAFEHOUSE · 4m"
+   ],
+   [
+    "pistol",
+    0.31,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "pistol",
+    1,
+    "→ PISTOL · 1m"
+   ],
+   [
+    "exit",
+    3.665600388
+   ],
+   [
+    "exit",
+    3.665600388
+   ],
+   [
+    "hunt",
+    1.51
+   ],
+   [
+    "hunt",
+    3
+   ],
+   [
+    null,
+    null
+   ],
+   [
+    "area7-hub-entry",
+    5.213906674
+   ]
+  ]
+ },
+ "lambeth": {
+  "rows": 0
+ }
+}

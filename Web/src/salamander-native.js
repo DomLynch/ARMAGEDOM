@@ -1,40 +1,19 @@
-export const SALAMANDER_RIG = "giant-salamander";
-export const SALAMANDER_BITE = Object.freeze({
-  moveId: "salamander_bite",
-  clip: "Bite",
-  foundationRef: SALAMANDER_RIG,
-  windupTicks: 20,
-  activeTicks: 12,
-  recoveryTicks: 24,
-  windup: 20 / 60,
-  active: 12 / 60,
-  recovery: 24 / 60,
-  damage: 4,
-  staminaDamage: 4,
-  range: 1.25,
-  weapon: "teeth",
-});
+import { CREATURE_MOVES, SALAMANDER_BREATH } from "./creature-moves.js";
+import { rigNumber, rigOfSpecies, rigText } from "./rig-capabilities.js";
+import { rigResponse } from "./rig-response.js";
+// The bite and the flame breath are rows of Web/src/data/creatures.json (resolved in creature-moves.js).
+export const SALAMANDER_BITE = CREATURE_MOVES.salamander_bite;
+// The reaction clips and ticks are the salamander's rigCapabilities row.
 export function salamanderResponse(alive, start) {
-  return { clip: alive ? "Hurt" : "Death", start, ticks: alive ? 32 : 74 };
+  return rigResponse(rigOfSpecies("salamander"), alive ? 1 : 0, start);
 }
 
 // Native Bite opens the own mouth at ticks 20–31; its teeth swing remains separate.
-export const SALAMANDER_BREATH = Object.freeze({
-  kind: "flame",
-  range: 4.86,
-  coneDegrees: 40,
-  windupTicks: 20,
-  activeTicks: 12,
-  intervalTicks: 6,
-  recoveryTicks: 54,
-  damage: 4,
-  minDistance: 3.45,
-  acquisitionRange: 7.96,
-});
+export { SALAMANDER_BREATH };
 export function salamanderMouthSource(view, entity, point) {
   const mesh = view?.model.getObjectByName("world-raw");
-  if (entity?.rig !== SALAMANDER_RIG || !mesh?.isSkinnedMesh) return null;
-  mesh.getVertexPosition(5727, point).applyMatrix4(mesh.matrixWorld);
+  if (rigText(entity?.rig, "species") !== "salamander" || !mesh?.isSkinnedMesh) return null;
+  mesh.getVertexPosition(rigNumber(entity.rig, "mouthVertex"), point).applyMatrix4(mesh.matrixWorld);
   return {
     position: { x: point.x, y: point.y, z: -point.z },
     direction: { x: entity.facing.x, y: 0, z: entity.facing.z },

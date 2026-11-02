@@ -1,0 +1,44 @@
+{
+ "attacks": {
+  "slash": {
+   "windup": 0.14,
+   "recovery": 0.28,
+   "range": 2.6,
+   "arc": 100,
+   "multiplier": 1,
+   "stagger": 0.1,
+   "cooldown": 0
+  },
+  "stab": {
+   "windup": 0.12,
+   "recovery": 0.24,
+   "range": 3.1,
+   "arc": 24,
+   "multiplier": 1.2,
+   "stagger": 0.12,
+   "cooldown": 0,
+   "single": true
+  },
+  "heavy": {
+   "windup": 0.36,
+   "recovery": 0.42,
+   "range": 3.2,
+   "arc": 130,
+   "multiplier": 2.1,
+   "stagger": 0.3,
+   "cooldown": 1.6
+  },
+  "special": {
+   "windup": 0.2,
+   "recovery": 0.38,
+   "range": 4.2,
+   "arc": 360,
+   "multiplier": 2.2,
+   "stagger": 0.3,
+   "cooldown": 7
+  }
+ },
+ "PLAYER_HEALTH_RULES": {
+  "regenerationSeconds": 60
+ }
+}

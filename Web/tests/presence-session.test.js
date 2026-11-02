@@ -1,0 +1,412 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import * as THREE from "three";
+import { createPresenceSession, percentile } from "../src/engine/presence-session.js";
+import { createRemotePlayersView, guestName } from "../src/engine/remote-players-view.js";
+import { INTERP_DELAY_MS } from "../src/engine/remote-players.js";
+
+class FakeSocket {
+  static all = [];
+  constructor(url, protocols) {
+    Object.assign(this, { url, protocols, readyState: 0, sent: [] });
+    FakeSocket.all.push(this);
+  }
+  send(text) {
+    this.sent.push(JSON.parse(text));
+  }
+  close() {
+    this.readyState = 3;
+  }
+  open() {
+    this.readyState = 1;
+    this.onopen();
+  }
+  receive(message) {
+    this.onmessage({ data: JSON.stringify(message) });
+  }
+}
+const flush = () => new Promise((resolve) => setImmediate(resolve));
+const toRender = (p, y = 0) => new THREE.Vector3(p.x, y, p.z);
+
+function setup(extra = {}) {
+  FakeSocket.all = [];
+  const clock = { ms: 10000 },
+    s = {
+      scene: new THREE.Scene(),
+      world: { areaId: "westminster", toRender },
+      game: { player: { pos: { x: 1, z: 2 } } },
+      traveling: false,
+    },
+    session = createPresenceSession(s, {
+      config: { url: "wss://example.test/presence" },
+      getToken: async () => "tok",
+      WebSocketImpl: FakeSocket,
+      now: () => clock.ms,
+      ...extra,
+    });
+  return { s, clock, session, socket: () => FakeSocket.all.at(-1) };
+}
+async function inWorld(t, area = "westminster") {
+  t.session.update();
+  await flush();
+  t.socket().open();
+  t.socket().receive({ t: "welcome", id: 3, area, x: 100, z: 200, arrival: null });
+}
+
+test("with the flag off no session exists, so the game is exactly the single-player game", () => {
+  assert.equal(createPresenceSession({}, { config: null }), null);
+});
+
+test("the first frame joins the area the phone is in, at the player's position", async () => {
+  const t = setup();
+  t.session.update();
+  await flush();
+  t.socket().open();
+  assert.deepEqual(t.socket().sent, [{ t: "join", area: "westminster", x: 100, z: 200 }]);
+});
+
+test("other players are drawn at their interpolated positions with a name tag; my own id is not", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 3, x: 100, z: 200 }, { id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 100;
+  t.socket().receive({ t: "state", tick: 2, players: [{ id: 3, x: 100, z: 200 }, { id: 9, x: 700, z: 600 }] });
+  t.clock.ms += INTERP_DELAY_MS - 50;
+  t.session.update();
+  const view = t.session.view;
+  assert.equal(view.count, 1, "only the other player");
+  const figure = view.group.children[0];
+  assert.equal(figure.name, "Player 9");
+  assert.ok(figure.position.x > 5 && figure.position.x < 7, `x ${figure.position.x}`);
+  assert.equal(figure.position.z, 6);
+  t.socket().receive({ t: "state", tick: 3, players: [{ id: 3, x: 100, z: 200 }] });
+  t.session.update();
+  assert.equal(view.count, 0, "gone when they leave the layer");
+});
+
+test("changing area asks the server to travel and forgets the old layer's players", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.session.update();
+  assert.equal(t.session.view.count, 1);
+  // The player runs on inside the old area: the 80 ms throttle leaves this last position unsent when the area changes.
+  t.s.game.player.pos = { x: 1.2, z: 2 };
+  t.clock.ms += 10;
+  t.session.update();
+  assert.equal(t.socket().sent.filter((m) => m.t === "loc").length, 0, "throttled, so not sent yet");
+  t.s.world.areaId = "south";
+  t.s.game.player.pos = { x: 40, z: 1 }; // the game has already moved the player to the new area
+  t.session.update();
+  const tail = t.socket().sent.slice(-2);
+  assert.deepEqual(tail, [{ t: "loc", x: 120, z: 200 }, { t: "travel", to: "south" }], "the last old-area position goes first");
+  assert.equal(t.session.view.count, 0);
+  t.socket().receive({ t: "welcome", id: 3, area: "south", x: 4000, z: 100, arrival: "south:from-westminster" });
+  assert.equal(t.session.client.area, "south");
+});
+
+test("when the server refuses the travel the session rejoins the area the phone is really in", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.s.world.areaId = "south";
+  t.session.update();
+  const before = FakeSocket.all.length;
+  t.socket().receive({ t: "refuse", reason: "travel" });
+  await flush();
+  assert.equal(FakeSocket.all.length, before + 1, "a fresh socket");
+  t.socket().open();
+  assert.deepEqual(t.socket().sent, [{ t: "join", area: "south", x: 100, z: 200 }]);
+});
+
+test("nothing is reported while the game is travelling or has no run", async () => {
+  const t = setup();
+  t.s.traveling = true;
+  t.session.update();
+  await flush();
+  assert.equal(FakeSocket.all.length, 0);
+  t.s.traveling = false;
+  t.s.game = null;
+  t.session.update();
+  assert.equal(FakeSocket.all.length, 0);
+});
+
+test("dispose closes the socket and removes the figures from the scene", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  assert.ok(t.s.scene.children.length > 0);
+  t.session.dispose();
+  assert.equal(t.s.scene.children.length, 0);
+  assert.equal(t.session.client.connected, false);
+});
+
+test("the state interval p50/p95 is logged every 100 states, and only a session that exists logs", async () => {
+  const lines = [],
+    t = setup({ log: (line) => lines.push(line) });
+  await inWorld(t);
+  for (let i = 0; i < 101; i++) {
+    t.clock.ms += i % 10 === 0 ? 180 : 100;
+    t.socket().receive({ t: "state", tick: i, players: [] });
+  }
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /\[arma-world\] state interval ms p50=100 p95=180 n=100/);
+  assert.equal(percentile([], 0.95), 0);
+});
+
+test("with the world on, the server's arrival point is honoured on join and on travel; a resumed position is not overridden", async () => {
+  const t = setup();
+  t.session.update();
+  await flush();
+  t.socket().open();
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 450, z: -120, arrival: "westminster:a2" });
+  assert.deepEqual(t.s.game.player.pos, { x: 4.5, z: -1.2 }, "placed on the arrival, centimetres to metres");
+  t.s.game.player.pos = { x: 9, z: 9 };
+  t.socket().receive({ t: "welcome", id: 3, area: "westminster", x: 100, z: 100, arrival: null });
+  assert.deepEqual(t.s.game.player.pos, { x: 9, z: 9 }, "arrival null: the phone's own position stands");
+  t.s.world.areaId = "south";
+  t.session.update();
+  t.socket().receive({ t: "welcome", id: 3, area: "south", x: 4000, z: 100, arrival: "south:from-westminster" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "travel arrival");
+  t.socket().receive({ t: "welcome", id: 3, area: "central-hub", x: 1, z: 1, arrival: "central-hub:a1" });
+  assert.deepEqual(t.s.game.player.pos, { x: 40, z: 1 }, "a welcome for another area than the phone's is ignored");
+});
+
+test("a player's display name is shown on the tag when the server sends one, else Guest <id>; a late name replaces it", async () => {
+  const t = setup();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  assert.deepEqual([...t.session.view.labels()], [
+    [9, "Survivor-1234"],
+    [10, "Guest 10"],
+  ]);
+  t.socket().receive({ t: "state", tick: 2, players: [{ id: 9, x: 500, z: 600, name: "Survivor-1234" }, { id: 10, x: 0, z: 0, name: "Sam" }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10), "Sam");
+  t.socket().receive({ t: "state", tick: 3, players: [{ id: 10, x: 0, z: 0, name: "x".repeat(60) }] });
+  t.clock.ms += 100;
+  t.session.update();
+  assert.equal(t.session.view.labels().get(10).length, 24, "long names are cut");
+});
+
+test("the view pools one figure per player and frees what leaves", () => {
+  const scene = new THREE.Scene(),
+    view = createRemotePlayersView({ scene, toRender });
+  view.update([{ id: 1, x: 0, z: 0, facing: 0 }, { id: 2, x: 1, z: 1, facing: 1 }]);
+  const first = view.group.children[0];
+  view.update([{ id: 1, x: 2, z: 2, facing: 0.5 }]);
+  assert.equal(view.count, 1);
+  assert.equal(view.group.children[0], first, "the same figure is reused");
+  assert.equal(first.position.x, 2);
+  view.dispose();
+  assert.equal(scene.children.length, 0);
+});
+
+test("an optional survivor kit supplies the figure; the view keeps the pool, position, facing and tag, and falls back to the capsule", () => {
+  const scene = new THREE.Scene(),
+    calls = [];
+  const kit = {
+    spawn(id) {
+      calls.push(["spawn", id]);
+      if (id === 2) return null; // model not loaded for this one
+      const root = new THREE.Group();
+      return {
+        root,
+        update: (state) => calls.push(["update", id, state.moving, state.facing]),
+        dispose: () => calls.push(["dispose", id]),
+      };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: kit });
+  view.update([
+    { id: 1, x: 3, z: 4, facing: 0.5, moving: true },
+    { id: 2, x: 0, z: 0, facing: 0, moving: false },
+  ]);
+  const [one, two] = view.group.children;
+  assert.equal(one.name, "Player 1");
+  assert.equal(one.position.x, 3);
+  assert.equal(one.rotation.y, 0.5);
+  assert.ok(two.children.length >= 1 && two.children[0].children.length === 2, "the capsule fallback for the one the kit could not make");
+  assert.deepEqual(calls.filter((c) => c[0] === "update"), [["update", 1, true, 0.5]]);
+  view.update([{ id: 1, x: 3, z: 4, facing: 0.5, moving: false }]);
+  assert.deepEqual(calls.filter((c) => c[0] === "spawn").length, 2, "one spawn per player, then pooled");
+  view.dispose();
+  assert.ok(calls.some((c) => c[0] === "dispose" && c[1] === 1));
+});
+
+test("when the kit is replaced, players already on screen get a figure from the new kit instead of staying bodiless", () => {
+  const scene = new THREE.Scene();
+  const makeKit = (name) => ({
+    name,
+    gone: false,
+    spawn() {
+      const root = new THREE.Group();
+      return { root, update() {}, dispose: () => root.removeFromParent() };
+    },
+    dispose() {
+      this.gone = true;
+    },
+  });
+  let current = makeKit("A");
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => current });
+  const players = [{ id: 9, x: 1, z: 1, facing: 0, moving: false }];
+  view.update(players);
+  const figure = view.group.children[0];
+  const first = figure.children[0];
+  assert.equal(figure.children.length, 1);
+  current.dispose();
+  current = makeKit("B");
+  view.update(players);
+  assert.equal(figure.children.length, 1, "one body, from kit B");
+  assert.notEqual(figure.children[0], first, "not the figure of the disposed kit");
+  view.dispose();
+});
+
+test("only the chosen players get the full survivor look; a player who drops out of the set goes back to the capsule and frees the kit's figure", () => {
+  const scene = new THREE.Scene(),
+    live = new Set();
+  const kit = {
+    spawn(id) {
+      live.add(id);
+      return { root: new THREE.Group(), update() {}, dispose: () => live.delete(id) };
+    },
+  };
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => kit });
+  const at = (id, x) => ({ id, x, z: 0, facing: 0, moving: false });
+  const players = [1, 2, 3, 4, 5, 6].map((id) => at(id, id));
+  view.update(players, new Set([1, 2, 3, 4]));
+  assert.deepEqual([...live].sort(), [1, 2, 3, 4]);
+  view.update(players, new Set([2, 3, 4, 5]));
+  assert.deepEqual([...live].sort(), [2, 3, 4, 5], "1 gave its figure back, 5 got one");
+  const one = view.group.children.find((c) => c.name === "Player 1");
+  assert.equal(one.children.length, 1, "player 1 is a capsule again");
+  view.update(players, new Set());
+  assert.equal(live.size, 0);
+  view.update([], new Set());
+  view.dispose();
+});
+
+test("the reduced survivor mesh is requested once, when the first remote player appears; until it loads (or if it fails) the capsule stays", async () => {
+  const t = setup(),
+    requested = [],
+    library = {
+      models: new Map(),
+      ensureModels: async (names) => {
+        requested.push(names);
+      },
+    };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.session.update();
+  assert.deepEqual(requested, [], "nobody else is here yet, so nothing is loaded");
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.update();
+  await flush();
+  t.session.update();
+  assert.deepEqual(requested, [["remote-survivor", "donor-warrior-cleaver"]], "one request, not one per frame");
+  const figure = t.session.view.group.children.find((c) => c.name === "Player 9");
+  assert.equal(figure.children[0].children.length, 2, "the capsule while the mesh is missing");
+});
+
+test("a library that is replaced (a restart) gets its own request", async () => {
+  const t = setup(),
+    requested = [];
+  const make = () => ({ models: new Map(), ensureModels: async (names) => requested.push(names) });
+  t.s.survivorLibrary = make();
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  await flush();
+  t.s.survivorLibrary = make();
+  t.session.update();
+  await flush();
+  assert.equal(requested.length, 2);
+});
+
+test("a mesh that finishes loading after dispose() builds no kit", async () => {
+  const t = setup();
+  let release,
+    built = 0;
+  const library = {
+    models: new Map([
+      ["remote-survivor", {}],
+      ["donor-warrior-cleaver", { get gltf() { built++; return { animations: [] }; } }], // only read when a kit is being built
+    ]),
+    ensureModels: () => new Promise((resolve) => (release = resolve)),
+  };
+  t.s.survivorLibrary = library;
+  await inWorld(t);
+  t.socket().receive({ t: "state", tick: 1, players: [{ id: 9, x: 500, z: 600 }] });
+  t.clock.ms += 400;
+  t.session.update();
+  t.session.dispose();
+  release();
+  await flush();
+  assert.equal(built, 0);
+});
+
+test("?stats=1 logs the renderer's totals for the whole previous frame every 120 frames, and resets them each frame; off by default", () => {
+  const lines = [];
+  let resets = 0;
+  const info = { autoReset: true, render: { calls: 31, triangles: 5000 }, reset: () => resets++ };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 120; i++) t.session.update();
+  assert.equal(info.autoReset, false, "totals add up over every pass of the frame");
+  assert.equal(resets, 120);
+  assert.deepEqual(lines.filter((l) => l.includes("frame draw calls")), ["[arma-world] frame draw calls=31 triangles=5000 remotes=0"]);
+  const quiet = setup({ log: (line) => lines.push(line) });
+  quiet.s.renderer = { info: { autoReset: true, render: {}, reset: () => assert.fail("not asked for") } };
+  for (let i = 0; i < 120; i++) quiet.session.update();
+  assert.equal(quiet.s.renderer.info.autoReset, true);
+});
+
+test("?stats=1: the render areas.js does after a travel ends is thrown away with the first update in the new area, and the count restarts", () => {
+  const lines = [];
+  const info = {
+    autoReset: true,
+    render: { calls: 0, triangles: 0 },
+    reset() {
+      this.render.calls = this.render.triangles = 0;
+    },
+  };
+  const frame = (t) => {
+    info.render.calls += 10; // one loop frame renders 10 calls
+    t.session.update();
+  };
+  const t = setup({ stats: true, log: (line) => lines.push(line) });
+  t.s.renderer = { info };
+  for (let i = 0; i < 119; i++) frame(t);
+  // A travel as the real loop sees it: update() is NOT called while traveling; the area changes; areas.js renders once on its own.
+  t.s.traveling = true;
+  t.s.world.areaId = "east";
+  t.s.traveling = false;
+  info.render.calls += 10; // the out-of-loop render
+  frame(t); // first update in the new area: 20 calls would be the mixed reading
+  assert.deepEqual(lines, [], "no line on that frame, and the count restarted");
+  for (let i = 0; i < 119; i++) frame(t);
+  assert.deepEqual(lines, [], "119 frames since the restart is not yet a line");
+  frame(t);
+  assert.deepEqual(lines, ["[arma-world] frame draw calls=10 triangles=0 remotes=0"], "a clean one-frame reading");
+});
+
+test("the view asks for the kit once a frame, however many players are on screen", () => {
+  const scene = new THREE.Scene();
+  let asked = 0;
+  const view = createRemotePlayersView({ scene, toRender, survivors: () => (asked++, null) });
+  view.update([1, 2, 3, 4].map((id) => ({ id, x: id, z: 0, facing: 0, moving: false })));
+  assert.equal(asked, 1);
+  view.dispose();
+});
+
+test("guests are named by id until the server sends names", () => {
+  assert.equal(guestName(12), "Guest 12");
+  assert.equal(guestName(12, "Sam"), "Sam");
+});

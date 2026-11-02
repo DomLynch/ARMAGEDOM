@@ -1,71 +1,14 @@
+import { GAME_DATA } from "./engine/game-data.js";
+import { rigText } from "./rig-capabilities.js";
 // Owned original rat/dog appearance only. No stats, motion, placement or damage.
-export const ANIMAL_APPEARANCES = Object.freeze(
-  [
-    { id: "rat-sewer", foundation: "original-rat", name: "Sewer Rat", width: 1, tint: [1, 1, 1], patch: 0 },
-    { id: "rat-ash", foundation: "original-rat", name: "Ash Rat", width: 1, tint: [1.6, 1.65, 1.66], patch: 0 },
-    { id: "rat-soot", foundation: "original-rat", name: "Soot Rat", width: 1, tint: [0.49, 0.51, 0.53], patch: 0 },
-    { id: "rat-mangy", foundation: "original-rat", name: "Mangy Rat", width: 1, tint: [1.08, 0.85, 0.72], patch: 0.57 },
-    { id: "rat-heavy", foundation: "original-rat", name: "Heavy Rat", width: 1.6, tint: [0.88, 0.79, 0.7], patch: 0 },
-    {
-      id: "rat-nest-defender",
-      foundation: "original-rat",
-      name: "Nest Defender",
-      width: 1,
-      tint: [1.13, 0.97, 0.71],
-      patch: 0.18,
-    },
-    {
-      id: "dog-street-mongrel",
-      foundation: "original-dog",
-      name: "Street Mongrel",
-      width: 1,
-      tint: [1, 1, 1],
-      patch: 0,
-    },
-    {
-      id: "dog-gaunt-hound",
-      foundation: "original-dog",
-      name: "Gaunt Hound",
-      width: 0.62,
-      tint: [0.88, 0.84, 0.76],
-      patch: 0.22,
-    },
-    {
-      id: "dog-stocky-yard",
-      foundation: "original-dog",
-      name: "Stocky Yard Dog",
-      width: 1.6,
-      tint: [0.7, 0.68, 0.66],
-      patch: 0,
-    },
-    {
-      id: "dog-ash-coated",
-      foundation: "original-dog",
-      name: "Ash-coated Hound",
-      width: 1,
-      tint: [1.6, 2.3, 3.2],
-      patch: 0,
-    },
-    {
-      id: "dog-mangy-stray",
-      foundation: "original-dog",
-      name: "Mangy Stray",
-      width: 1,
-      tint: [1.02, 0.79, 0.65],
-      patch: 0.6,
-    },
-    {
-      id: "dog-pack-chaser",
-      foundation: "original-dog",
-      name: "Pack Chaser",
-      width: 1,
-      tint: [0.72, 0.78, 0.86],
-      patch: 0.12,
-    },
-  ].map(Object.freeze),
-);
-const coatNames = { "original-rat": "Ash and soot worn fur", "original-dog": "Weathered brindle coat" };
+// The twelve rows (id, foundation, name, width, tint, patch) live in Web/src/data/appearance.json `animals` (read through game-data.js).
+export const ANIMAL_APPEARANCES = GAME_DATA.appearance.animals;
+// The torso taper band and the worn-patch field (appearance.json `animalCoat`): the patch value is a smooth noise of the vertex position.
+const COAT = GAME_DATA.appearance.animalCoat;
+// The coat material name of each foundation rig is its creatures.json rigCapabilities `coatName`.
 const torso = new Set(["pelvis", "spine", "chest"]);
+const XYZ = 3; // tuning-ok: a colour packed as three floats
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 // Apply to SkeletonUtils.clone(foundation.scene). Cache once per loaded foundation,
 // dispose after its last actor is removed. Originals and clips remain immutable.
 export function createAnimalAppearanceLibrary(THREE) {
@@ -83,26 +26,25 @@ export function createAnimalAppearanceLibrary(THREE) {
       p = g.attributes.position,
       ix = g.attributes.skinIndex,
       w = g.attributes.skinWeight;
-    const colors = new Float32Array(p.count * 3);
+    const colors = new Float32Array(p.count * XYZ);
     for (let i = 0; i < p.count; i++) {
       let body = 0;
-      for (let k = 0; k < 4; k++)
+      for (let k = 0; k < INFLUENCES; k++)
         if (torso.has(mesh.skeleton.bones[ix.getComponent(i, k)]?.name)) body += w.getComponent(i, k);
       // Smooth influence taper; head/neck/teeth/legs/paws/tail stay exact.
-      const mask = Math.max(0, Math.min(1, (body - 0.9) / 0.1));
+      const mask = Math.max(0, Math.min(1, (body - COAT.taper.from) / COAT.taper.range));
       const x = p.getX(i),
         y = p.getY(i),
         z = p.getZ(i);
       p.setX(i, x * (1 + (recipe.width - 1) * mask));
       // Broad worn patches modulate the existing atlas; no replacement texture.
-      const field = Math.sin(z * 43 + Math.cos(y * 37) * 1.7) + Math.sin(x * 51 - y * 19);
-      const patch = Math.max(0, Math.min(1, (field - 0.1) / 1.2));
+      const f = COAT.field,
+        field = Math.sin(z * f.z + Math.cos(y * f.cosY) * f.wobble) + Math.sin(x * f.x - y * f.y);
+      const patch = Math.max(0, Math.min(1, (field - COAT.patch.from) / COAT.patch.range));
       const value = 1 - recipe.patch * patch;
-      colors[i * 3] = value;
-      colors[i * 3 + 1] = value;
-      colors[i * 3 + 2] = value;
+      colors.fill(value, i * XYZ, (i + 1) * XYZ);
     }
-    if (recipe.patch > 0) g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    if (recipe.patch > 0) g.setAttribute("color", new THREE.BufferAttribute(colors, XYZ));
     if (recipe.width !== 1) g.computeVertexNormals();
     g.computeBoundingBox();
     g.computeBoundingSphere();
@@ -131,7 +73,7 @@ export function createAnimalAppearanceLibrary(THREE) {
       model.traverse((mesh) => {
         if (!mesh.isSkinnedMesh) return;
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        const coat = mats.filter((m) => m.name === coatNames[foundation]);
+        const coat = mats.filter((m) => m.name === rigText(foundation, "coatName"));
         if (!coat.length) return;
         if (mats.length !== 1) throw Error("Expected accepted one-material coat primitive");
         mesh.geometry = geometry(mesh, recipe);

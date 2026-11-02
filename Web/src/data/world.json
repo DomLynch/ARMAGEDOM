@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "statusPath": "/arma/api/status",
+  "statusTimeoutMs": 4000,
+  "recheckMinMs": 60000,
+  "presenceBackoffMs": [1000, 2000, 4000, 8000, 15000, 30000],
+  "closedCloseCodes": [4001, 4003],
+  "closedRefuseReasons": ["closed", "auth"],
+  "closedError": "O0007",
+  "clientLog": {
+    "path": "/arma/api/clientlog",
+    "kinds": ["error", "boot", "presence", "sync"],
+    "minIntervalMs": 10000,
+    "maxEvents": 10,
+    "maxDistinct": 40,
+    "messageChars": 200,
+    "maxBodyBytes": 3800,
+    "sessionIdChars": 12
+  },
+  "auth": {
+    "url": "https://fdbqnupceqytizxnoiua.supabase.co",
+    "anonKey": "sb_publishable_lrqe_EIp22G8SbUwhwYzsQ_oKAbYROI"
+  }
+}

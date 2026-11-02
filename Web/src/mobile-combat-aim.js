@@ -1,47 +1,55 @@
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
+import { GAME_DATA } from "./engine/game-data.js";
 const DEG = Math.PI / 180;
-export const MOBILE_AIM = Object.freeze({
-  steeringRate: 10,
-  headingRate: 24,
-  gain: 0.4125,
-  acquire: 6 * DEG,
-  retain: 9 * DEG,
-  near: 2,
-  far: 6,
-  deadzone: 0.13,
-  pistolGain: 1,
-  pistolRange: PISTOL_RULES.range,
-  acquireMargin: 0.6,
-  retainMargin: 0.9,
-});
+// The numbers live in weapons.json (mobileAim, flameAim, angles in degrees); these are the radian views the aim code reads.
+const { mobileAim, flameAim } = GAME_DATA.weapons;
+const radians = (degrees) => degrees * DEG;
+const mobileView = () =>
+  Object.freeze({
+    steeringRate: mobileAim.steeringRate,
+    headingRate: mobileAim.headingRate,
+    gain: mobileAim.gain,
+    acquire: radians(mobileAim.acquireDegrees),
+    retain: radians(mobileAim.retainDegrees),
+    near: mobileAim.near,
+    far: mobileAim.far,
+    deadzone: mobileAim.deadzone,
+    pistolGain: mobileAim.pistolGain,
+    pistolRange: PISTOL_RULES.range,
+    acquireMargin: mobileAim.acquireMargin,
+    retainMargin: mobileAim.retainMargin,
+  });
 // Flame lock changes orientation, never contact range or hit eligibility.
 // The barrel extends beyond the player; final range/LOS use the posed muzzle.
-export const FLAME_AIM = Object.freeze({
-  gain: 1,
-  acquire: 45 * DEG,
-  retain: 70 * DEG,
-  switchCone: 12 * DEG,
-  switchAdvantage: 8 * DEG,
-  steeringChange: 0.2 * DEG,
-  closeExtension: 0.5,
-  yawLimit: Math.PI / 3,
-  downPitch: (75 * Math.PI) / 180,
-  closeEnterGap: 0.8,
-  closeExitGap: 1,
-  extensionRate: 24,
-});
+const flameView = () =>
+  Object.freeze({
+    gain: flameAim.gain,
+    acquire: radians(flameAim.acquireDegrees),
+    retain: radians(flameAim.retainDegrees),
+    switchCone: radians(flameAim.switchConeDegrees),
+    switchAdvantage: radians(flameAim.switchAdvantageDegrees),
+    steeringChange: radians(flameAim.steeringChangeDegrees),
+    closeExtension: flameAim.closeExtension,
+    yawLimit: radians(flameAim.yawLimitDegrees),
+    downPitch: radians(flameAim.downPitchDegrees),
+    closeEnterGap: flameAim.closeEnterGap,
+    closeExitGap: flameAim.closeExitGap,
+    extensionRate: flameAim.extensionRate,
+  });
+export const MOBILE_AIM = mobileView();
+export const FLAME_AIM = flameView();
 const arc = (angle) => Math.atan2(Math.sin(angle), Math.cos(angle));
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const vector = (angle) => ({ x: Math.sin(angle), z: Math.cos(angle) });
-export function followMobileAngle(current, target, dt, rate = 24) {
+export function followMobileAngle(current, target, dt, rate = MOBILE_AIM.headingRate) {
   return current + arc(target - current) * (1 - Math.exp(-dt * rate));
 }
 export function mobileStickVector(x, y, radius) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(radius) || radius <= 0)
     throw RangeError("Invalid stick");
   const length = Math.hypot(x, y);
-  if (length <= radius * 0.13) return { x: 0, y: 0 };
-  const strength = Math.min(1, (length / radius - 0.13) / 0.87);
+  if (length <= radius * MOBILE_AIM.deadzone) return { x: 0, y: 0 };
+  const strength = Math.min(1, (length / radius - MOBILE_AIM.deadzone) / (1 - MOBILE_AIM.deadzone));
   return { x: (x / length) * strength, y: (y / length) * strength };
 }
 export function createMobileAimState(heading = 0) {
@@ -79,7 +87,7 @@ export function stepMobileAim(
     !Number.isFinite(state.rawHeading) ||
     !Number.isFinite(dt) ||
     dt < 0 ||
-    dt > 0.1 ||
+    dt > mobileAim.maxStepSeconds ||
     !point(move)
   )
     throw RangeError("Invalid aim step");
@@ -87,13 +95,13 @@ export function stepMobileAim(
     pointer = Number.isFinite(pointerHeading),
     active = mobile && moveHeld && !pointer && !cancel && alive;
   const assistEligible = (mobile || flame) && !pointer && !cancel && alive && assistEnabled;
-  const moving = Math.hypot(move.x, move.z) > 0.01,
+  const moving = Math.hypot(move.x, move.z) > mobileAim.movingThreshold,
     strength = Math.min(1, Math.hypot(move.x, move.z));
   let steering = active
     ? moving
       ? state.steering === null
         ? Math.atan2(move.x, move.z)
-        : followMobileAngle(state.steering, Math.atan2(move.x, move.z), dt, 10)
+        : followMobileAngle(state.steering, Math.atan2(move.x, move.z), dt, MOBILE_AIM.steeringRate)
       : state.steering
     : null;
   const movement =
@@ -136,7 +144,7 @@ export function stepMobileAim(
         continue;
       const distance = Math.hypot(t.pos.x - position.x, t.pos.z - position.z);
       if (
-        distance < (pistol && Number.isFinite(rangedRange) ? 1e-8 : 0.01) ||
+        distance < (pistol && Number.isFinite(rangedRange) ? 1e-8 : mobileAim.minTargetDistance) ||
         (!(flame && typeof flameEligible === "function") &&
           (pistol && Number.isFinite(rangedRange) ? distance > range + 1e-8 : distance >= range - 1e-8)) ||
         !lineClear(position, t.pos)
@@ -164,8 +172,8 @@ export function stepMobileAim(
       cohort.push({
         id: t.id,
         distance,
-        acquire: Math.min(Math.PI / 2 - 1e-8, acquire + body),
-        retain: Math.min(Math.PI / 2 - 1e-8, retain + body),
+        acquire: Math.min(Math.PI / 2 - 1e-8, acquire + body), // tuning-ok: a cone stays just under a quarter turn
+        retain: Math.min(Math.PI / 2 - 1e-8, retain + body), // tuning-ok: the same for the retain cone
         bearing: Math.atan2(t.pos.x - position.x, t.pos.z - position.z),
       });
     }
@@ -231,7 +239,7 @@ export function stepMobileAim(
       ? state.heading
       : flame && !mobile && !retained && Number.isFinite(manualHeading)
         ? raw
-        : followMobileAngle(state.heading, raw + correction, dt, 24);
+        : followMobileAngle(state.heading, raw + correction, dt, MOBILE_AIM.headingRate);
   return {
     state: {
       rawHeading: raw,

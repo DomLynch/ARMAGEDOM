@@ -136,16 +136,17 @@ export function createProgressionComponent({ baseCodec, getRun, ...options }) {
       } catch {
         return null;
       }
-      if (saved?.version === 4) {
+      if (saved?.version === 4) { // tuning-ok: the progression save format version this codec reads
         if (
           !closedData(saved, envelopeFields) ||
           !model.valid(saved.progression) ||
-          ![1, 2].includes(saved.supplies?.version)
+          ![1, 2].includes(saved.supplies?.version) // tuning-ok: the supplies save versions this codec accepts
         )
           return null;
         const progression = copyProgression(saved.progression),
           template = { ...g, player: { ...g.player, maxHP: model.maxHP(progression) } };
-        const oldRaw = JSON.stringify({ ...saved, version: saved.supplies.version === 2 ? 3 : 2 });
+        // Supplies v2 is run save v3, supplies v1 is run save v2 (the base codec's format versions).
+        const oldRaw = JSON.stringify({ ...saved, version: saved.supplies.version === 2 ? 3 : 2 }); // tuning-ok: base save versions
         const restored = baseCodec.restoreRun(template, oldRaw, null);
         return restored && coherent(progression, restored.supplies, restored.droneDeaths, g)
           ? { ...restored, progression }

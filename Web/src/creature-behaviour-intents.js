@@ -1,60 +1,8 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Preparation for existing residentPatrol/attack/recovery seams. No actor loop or timers.
-const intent = (extra = {}) =>
-  Object.freeze({
-    wakeDistance: 6,
-    homeLeash: 12,
-    holdUntilWake: false,
-    retreatSeconds: 0,
-    companionDistance: 0,
-    isolationDistance: 0,
-    burstSeconds: 0,
-    pauseSeconds: 0,
-    ...extra,
-  });
-export const RESIDENT_INTENTS = Object.freeze({
-  baseline: intent(),
-  ambush: intent({ wakeDistance: 2, holdUntilWake: true }),
-  territorial: intent({ wakeDistance: 4, homeLeash: 5 }),
-  "area-pursuit": intent({ pursuitScope: "area", wakeDistance: 6, homeLeash: 8, holdUntilWake: true }),
-  withdraw: intent({ retreatSeconds: 0.55 }),
-  companion: intent({ wakeDistance: 2.5, companionDistance: 6, isolationDistance: 2 }),
-  skitter: intent({ burstSeconds: 0.45, pauseSeconds: 0.35 }),
-  "short-burst": intent({ burstSeconds: 0.75, pauseSeconds: 0.65 }),
-});
-export const RECIPE_INTENTS = Object.freeze({
-  "human-street-scavenger": "baseline",
-  "human-crooked-hollow": "baseline",
-  "human-gaunt-skulker": "withdraw",
-  "human-stocky-brute": "baseline",
-  "human-limping-lurker": "short-burst",
-  "human-tunnel-dweller": "ambush",
-  "human-ragged-runner": "baseline",
-  "human-corner-ambusher": "ambush",
-  "human-territorial-brawler": "territorial",
-  "human-pack-scavenger": "companion",
-  "human-wounded-straggler": "baseline",
-  "human-scarred-veteran": "baseline",
-  "salamander-ember-guard": "area-pursuit",
-  "wolf-east-guard": "territorial",
-  "rat-sewer": "withdraw",
-  "rat-ash": "baseline",
-  "rat-soot": "ambush",
-  "rat-mangy": "baseline",
-  "rat-heavy": "baseline",
-  "rat-nest-defender": "territorial",
-  "dog-street-mongrel": "baseline",
-  "dog-gaunt-hound": "withdraw",
-  "dog-stocky-yard": "baseline",
-  "dog-ash-coated": "baseline",
-  "dog-mangy-stray": "baseline",
-  "dog-pack-chaser": "companion",
-  "roach-sewer": "baseline",
-  "roach-ash": "baseline",
-  "roach-rust-shell": "baseline",
-  "roach-heavy-shell": "baseline",
-  "roach-skitter": "skitter",
-  "roach-nest-guard": "territorial",
-});
+// The intent rows and which one each recipe uses live in Web/src/data/creatures.json `behaviours` (read through game-data.js).
+export const RESIDENT_INTENTS = GAME_DATA.creatures.behaviours.intents;
+export const RECIPE_INTENTS = GAME_DATA.creatures.behaviours.recipeIntents;
 export function resolveResidentIntent(recipe, foundation) {
   const name = Object.hasOwn(RECIPE_INTENTS, recipe) ? RECIPE_INTENTS[recipe] : null;
   if (!name) throw Error("Unknown resident recipe");

@@ -1,3 +1,4 @@
+import {donorPlayerRow,withDonorPlayer} from './helpers/donor-player.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,21 +18,22 @@ import {createHollowEncounter} from '../src/hollow-encounter.js';
 const sceneHeadCount=actors=>actors.views.get(0).root.parent.children.filter(o=>o.name==='Prepared detached Hollow head').length;
 const assertComplexion=view=>{const recipe=FACE_RECIPES.find(r=>r.id===view.appearance.id),skin=FACE_SKINS.find(s=>s.id===recipe.skinPreset);assert.deepEqual(view.model.getObjectByName('Photo').material.color.toArray(),skin.photo,'ordinary update preserves authored complexion');};
 const publicRoot=new URL('../public/',import.meta.url);
-const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+const manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));/* the player row is Perseus since 1 Nov 2026; the donor fixture below keeps the donor warrior mechanics under test */
+const donorManifest=withDonorPlayer(structuredClone(manifest));
 test('Hollow candidate resolves source-relative body/equipment hashes and keeps the donor player',()=>{
  for(const id of ['boss-butcher','boss-surgeon','boss-warden','hollow-scavenger','original-dog','original-rat','original-roach','vagrant'])assert(manifest.models[id],id);
  const donor=JSON.parse(fs.readFileSync(new URL('assets/donor/manifest.json',publicRoot)));
- const player=structuredClone(manifest.models.vagrant);player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','');assert.deepEqual(player,donor.models.vagrant);
+ assert.equal(manifest.models.vagrant.url,'appearances/perseus-106.glb');const player=donorPlayerRow();player.url=player.url.replace('donor/','');player.equipment.url=player.equipment.url.replace('donor/','').replace('-phone','');/* the 256 px phone knife copy; the source manifest names the original */assert.deepEqual(player,donor.models.vagrant);
  for(const entry of Object.values(manifest.files)){assert(!entry.file.includes('..'));const bytes=fs.readFileSync(new URL('assets/'+entry.file,publicRoot));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);}
  assert.equal(manifest.models['hollow-scavenger'].contactRig,'hero');assert.equal(manifest.count,3);
 });
 test('three Hollow bodies and native knives use independent clones/mixers at selected006 scale',async(t)=>{
  const priorDocument=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;});
- const models=new Map();for(const[name,description]of Object.entries(manifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
+ const models=new Map();for(const[name,description]of Object.entries(donorManifest.models))models.set(name,{description,gltf:await loadGeometry(fs.readFileSync(new URL('assets/'+description.url,publicRoot))),equipment:description.equipment?await loadGeometry(fs.readFileSync(new URL('assets/'+description.equipment.url,publicRoot))):null});
  const world={layout:{characterScale:1.265},spawn:{x:0,z:-6},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new THREE.Vector3(p.x,h,-p.z)};
  const description=manifest.models['hollow-scavenger'];const game=createGame(world,{pilot:'donor-knife',encounter:createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:description.contactRig,bodyScale:description.bodyScale})});spawnWave(game);
  const pistolAsset=await loadGeometry(fs.readFileSync(new URL('assets/pistol/pistol.glb',publicRoot)));
- const actors=createActors(new THREE.Scene(),world,{models,manifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))))},{visualScale:1.3225});actors.update(game,0);
+ const actors=createActors(new THREE.Scene(),world,{models,manifest:donorManifest,pistolAsset,dispose:()=>disposeActorSources(new Set([...models.values()].flatMap(m=>[m.gltf,m.equipment].filter(Boolean))))},{visualScale:1.3225});actors.update(game,0);
  const playerView=actors.views.get(0);assert.equal(playerView.pistolSlide.supported,true);
  game.player.weapon='pistol';actors.update(game,0,0);const hand=playerView.model.getObjectByName('hand_r'),restHand=hand.getWorldPosition(new THREE.Vector3()),restGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());actors.update(game,0,1);assert.equal(playerView.pistolSlide.slide.position.z,-.012);const recoilHand=hand.getWorldPosition(new THREE.Vector3()),recoilGun=playerView.pistolMount.getWorldPosition(new THREE.Vector3());assert.ok(recoilHand.distanceTo(restHand)>.1,'whole arm conveys actual shot recoil');assert.ok(Math.abs(recoilHand.distanceTo(recoilGun)-restHand.distanceTo(restGun))<1e-6,'gun remains gripped while arm recoils');
  const slideMaterial=playerView.pistolSlide.slide.children[0].material;assert.ok(playerView.materials.some(m=>m.material===slideMaterial),'slide borrows the actor private material');
@@ -47,12 +49,14 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  let disposed=0;const own=views.flatMap(v=>v.materials.map(m=>m.material));for(const material of own)material.addEventListener('dispose',()=>disposed++);actors.reset();assert.equal(disposed,own.length);actors.update(game,0);
  for(let i=0;i<views.length;i++){const recreated=actors.views.get(game.enemies[i].id);assert.notEqual(recreated.model,views[i].model);for(const m of recreated.materials){const expected=paletteColors[i].find(p=>p.name===m.material.name);if(expected)assert.deepEqual(m.material.color.toArray(),expected.rgb);}}
  // Controlled material integration: registered keys survive serial-ID changes and real corpse views.
+ // The rest of this test is the scavenger faces and palettes of the registered areas: the crowd bodies (data/crowdBodies.json) are switched off here, and tested in crowd-bodies.test.js.
+ const priorLocation=globalThis.location;globalThis.location={search:'?nocrowd=1'};t.after(()=>{if(priorLocation===undefined)delete globalThis.location;else globalThis.location=priorLocation;});
  world.areaId='westminster';actors.reset();
  for(let i=0;i<game.enemies.length;i++){game.enemies[i].placementKey=`westminster-roamer-${i+1}`;game.enemies[i].id+=100;}
  actors.update(game,0);
  for(const entity of game.enemies){const view=actors.views.get(entity.id),palette=hollowPaletteFor(entity,world.areaId);assert.equal(view.palette,palette);for(const {material} of view.materials){if(material.name===HOLLOW_GARMENTS.jacket)assert.deepEqual(material.color.toArray(),palette.jacket);if(material.name===HOLLOW_GARMENTS.trousers)assert.deepEqual(material.color.toArray(),palette.trousers);}}
  assert.equal(actors.views.get(0).palette,null);assert.equal(actors.views.get(0).appearance,null);
- const faceMap=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});assert.equal(new Set(faceMap.values()).size,24);
+ const faceMap=allocateFaceRecipes('london-residents',Object.values(AREA_MOB_SPAWNS).flat().map(r=>r.key),{version:FACE_APPEARANCE_VERSION,recipes:FACE_RECIPES});assert.equal(new Set(faceMap.values()).size,32)/*population-spread: 32 registered ground keys*/;
  for(const e of game.enemies)assert.equal(actors.views.get(e.id).appearance.id,faceMap.get(e.placementKey));
  const dead=game.enemies.shift(),outfit=actors.views.get(dead.id).palette,faceId=actors.views.get(dead.id).appearance.id;dead.hp=0;game.corpses.push(dead);actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);
  actors.reset();actors.update(game,0);assert.equal(actors.views.get(dead.id).palette,outfit);assert.equal(actors.views.get(dead.id).appearance.id,faceId);
@@ -85,9 +89,11 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  actors.reset();world.areaId='westminster';game.finishers={maxHeads:2,recentRecipeId:null};game.corpses=[];
  game.enemies=cohort.map((e,i)=>({...e,pos:{x:i*.8,z:1},id:500+i,placementKey:`westminster-roamer-${i+1}`,hp:100,response:null,flashUntil:0}));
  actors.update(game,0);
+ for(const e of game.enemies)assert.ok(!e.finisherSupport.some(s=>s.id==='decapitation'),'a living resident is built with the ordinary death only; the rest is prepared after arrival');
+ actors.completeFinisherPreparation();
  for(const e of game.enemies)assert.ok(e.finisherSupport.some(s=>s.id==='decapitation'));
  const groundingSource=game.enemies[0],translated={...groundingSource,id:1700,pos:{x:17,z:-3},mobSize:groundingSource.mobSize*1.15},sourceGrounding=actors.views.get(groundingSource.id).finisher.stats().runGrounding;
- game.enemies.push(translated);actors.update(game,0);const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
+ game.enemies.push(translated);actors.update(game,0);actors.completeFinisherPreparation();const reusedGrounding=actors.views.get(translated.id).finisher.stats().runGrounding;
  assert(reusedGrounding.cacheHitsSkinned>0,'actual cloned skinned draws at another world position and scale reuse compatible native floors');assert.equal(reusedGrounding.maxLocalLift,sourceGrounding.maxLocalLift);assert.equal(reusedGrounding.vertices,sourceGrounding.vertices);
  game.enemies.pop();actors.update(game,0);
  // Controlled actual-rig feedback: one owner composes render flinch without
@@ -114,7 +120,7 @@ test('three Hollow bodies and native knives use independent clones/mixers at sel
  game.time+=7;actors.update(game,7);assert.equal(cutView.finisher.stats().expired,true);assert.equal(cut.finisherHeadUntil,0);assert.equal(sceneHeadCount(actors),0);assert.equal(native(gunView).currentClip,'Death');
  actors.reset();actors.update(game,0,0,{restoreCorpses:true});assert.equal(actors.views.get(cut.id).model.getObjectByName('Photo').visible,false);assert.equal(actors.views.get(gun.id).model.getObjectByName('Photo').visible,false);assert.equal(sceneHeadCount(actors),0);
  // Regression: the real Crooked resident must use the same native pose for LUT preparation and death rendering.
- actors.reset();game.corpses=[];const rune={...cohort[0],id:777,placementKey:'westminster-roamer-3',pos:{x:0,z:1},mobSize:1.1,humanBodyRecipe:null,hp:40,response:null,finisher:null};game.enemies=[rune];actors.update(game,0);
+ actors.reset();game.corpses=[];const rune={...cohort[0],id:777,placementKey:'westminster-roamer-3',pos:{x:0,z:1},mobSize:1.1,humanBodyRecipe:null,hp:40,response:null,finisher:null};game.enemies=[rune];actors.update(game,0);actors.completeFinisherPreparation();
  const runeView=actors.views.get(rune.id);assert.equal(runeView.locomotionVariant,'crooked-hollow');rune.finisher=selectFinisher({victimId:rune.id,lethal:true,weapon:'knife',moveId:'thrust',impactDirection:{x:1,z:0}},{support:rune.finisherSupport,budget:2,ordinal:1});assert.equal(rune.finisher.recipeId,'run-through');rune.hp=0;rune.response={start:game.time,ticks:60,clip:'Death'};game.enemies=[];game.corpses=[rune];const runeStart=game.time;
  for(const age of [.05,.25,.7,1.1]){game.time=runeStart+age;actors.update(game,.05);runeView.root.updateWorldMatrix(true,true);runeView.model.traverse(n=>{if(n.skeleton)n.skeleton.update();});let minimum=Infinity;const point=new THREE.Vector3();runeView.model.traverse(n=>{if(!n.isMesh)return;for(let p=n;p&&p!==runeView.root;p=p.parent)if(!p.visible)return;const index=n.geometry.index,pos=n.geometry.attributes.position;for(let i=0;i<(index?.count??pos.count);i++){n.getVertexPosition(index?index.getX(i):i,point).applyMatrix4(n.matrixWorld);minimum=Math.min(minimum,point.y);}});const pose=runeView.finisher.pose(runeView.finisherAge);assert.ok(minimum>=-.0001,JSON.stringify({age,minimum,root:runeView.root.position.toArray(),pose,clip:native(runeView).currentClip,phase:native(runeView).currentPhase,grounding:runeView.finisher.stats().runGrounding}));}
  actors.dispose();assert.equal(hairDisposed,hair.length);

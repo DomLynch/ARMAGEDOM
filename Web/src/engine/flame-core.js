@@ -76,7 +76,12 @@ export function createFlameComponent({
           const restored = baseCodec.restoreRun(g, raw, legacyRaw);
           return restored ? { ...restored, flameFuel: model.freshState() } : null;
         }
-        if (saved?.version !== 8 || !closedData(saved, envelope) || !model.valid(saved.flameFuel)) return null;
+        if (
+          saved?.version !== 8 || // tuning-ok: the flame save format version this codec reads
+          !closedData(saved, envelope) ||
+          !model.valid(saved.flameFuel)
+        )
+          return null;
         const previous = { ...saved, version: 7 };
         delete previous.flameFuel;
         const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);

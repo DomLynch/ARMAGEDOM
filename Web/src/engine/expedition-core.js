@@ -6,6 +6,8 @@ import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
 import { PISTOL_RULES } from "../pistol.js";
 export const EXPEDITION_SAVE_KEY = "armagedom:expedition-run:v5";
 export const AREA_BOSS_SAVE_KEY = "armagedom:area-boss-run:v6";
+const EXPEDITION_ERA = 5; // tuning-ok: save era version (the `:v5` of the key above)
+const AREA_BOSS_ERA = 6; // tuning-ok: save era version (the `:v6` of the key above)
 const envelope = [
   "version",
   "pistol",
@@ -17,7 +19,7 @@ const envelope = [
   "progression",
   "expedition",
 ];
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 const same = (a, b) =>
   a.version === b.version &&
   a.status === b.status &&
@@ -25,7 +27,7 @@ const same = (a, b) =>
   a.selectedPistolVariant === b.selectedPistolVariant &&
   a.visitedIds.length === b.visitedIds.length &&
   a.visitedIds.every((id, i) => id === b.visitedIds[i]);
-export function expeditionModel(data, registry) {
+function expeditionModel(data, registry) {
   return createExpeditionModel({
     areaIds: registry.ids,
     expeditionId: data.contract.id,
@@ -46,7 +48,9 @@ export function validateExpeditionData(input, registry) {
   exact(input, ["version", "contract", "variants", "atlas"]);
   if (input.version !== 1) fail();
   const c = input.contract;
-  exact(c, ["id", "title", "summary", "giver", "case", "guard", "rewardVariantId", "receiptId"]);
+  const rows = ["id", "title", "summary", "giver", "case", "guard", "rewardVariantId", "receiptId"];
+  exact(c, c?.enabled === undefined ? rows : [...rows, "enabled"]);
+  if (c.enabled !== undefined && typeof c.enabled !== "boolean") fail();
   if (![c.id, c.title, c.summary, c.rewardVariantId, c.receiptId].every(text) || c.rewardVariantId === PISTOL_ITEM_ID)
     fail();
   for (const anchor of [c.giver, c.case]) {
@@ -100,8 +104,12 @@ export function validateExpeditionData(input, registry) {
   expeditionModel(input, registry);
   return freeze(structuredClone(input));
 }
+// Dom, 24 Oct: the optional contract is off for alpha. The state, saves, atlas and any owned reward stay;
+// only accepting, recovering and claiming stop. A saved mid-contract stage is ignored.
+export const contractEnabled = (data) => data?.contract?.enabled !== false;
 export function expeditionEligible(g, action, data) {
   const p = g.player;
+  if (["accept", "recover", "claim"].includes(action) && !contractEnabled(data)) return false;
   if (!p || p.hp <= 0 || g.finished || g.runSaveInvalid || p.swing || g.time < p.hurtUntil || g.time < p.dodgeUntil)
     return false;
   if (action === "reaper") return ownsReaper(g);
@@ -142,11 +150,11 @@ export function createExpeditionComponent({
   applyBaseSaved,
   baseStorageAdapter = (storage) => storage,
   canDispatch = () => true,
-  saveVersion = 5,
+  saveVersion = EXPEDITION_ERA,
   previousPlacementIds = null,
 }) {
-  if (![5, 6].includes(saveVersion)) throw TypeError("Unsupported run successor");
-  const saveKey = saveVersion === 6 ? AREA_BOSS_SAVE_KEY : EXPEDITION_SAVE_KEY;
+  if (![EXPEDITION_ERA, AREA_BOSS_ERA].includes(saveVersion)) throw TypeError("Unsupported run successor");
+  const saveKey = saveVersion === AREA_BOSS_ERA ? AREA_BOSS_SAVE_KEY : EXPEDITION_SAVE_KEY;
   let readOrigin = null;
   const previousPlacements = previousPlacementIds === null ? null : new Set(previousPlacementIds);
   const model = expeditionModel(data, registry),
@@ -174,7 +182,7 @@ export function createExpeditionComponent({
       } catch {
         return null;
       }
-      if ((origin === null && saved?.version === saveVersion) || (origin === "expedition" && saved?.version === 5)) {
+      if ((origin === null && saved?.version === saveVersion) || (origin === "expedition" && saved?.version === EXPEDITION_ERA)) {
         if (!closedData(saved, envelope)) return null;
         if (
           origin === "expedition" &&
@@ -191,7 +199,8 @@ export function createExpeditionComponent({
         const restored = baseCodec.restoreRun(g, JSON.stringify(previous), null);
         return restored ? { ...restored, expedition: extension } : null;
       }
-      if (origin !== "legacy" || (saved && ![2, 3, 4].includes(saved.version))) return null;
+      const legacyEra = saved && [2, 3, 4].includes(saved.version); // tuning-ok: the save eras before the expedition layer
+      if (origin !== "legacy" || (saved && !legacyEra)) return null;
       const restored = baseCodec.restoreRun(g, raw, legacyRaw);
       return restored ? { ...restored, expedition: model.freshState() } : null;
     },

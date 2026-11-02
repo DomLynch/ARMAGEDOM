@@ -13,10 +13,10 @@ their actual files and licenses. No third-party bundle was installed unchanged.
 
 ## Installed/updated locally
 
-- `/Users/domininclynch/.codex/skills/blender-procedural-assets/SKILL.md` and
+- `~/.codex/skills/blender-procedural-assets/SKILL.md` and
   `scripts/validate_mesh.py`: parametrized geometry workflow, scoped collections,
   bmesh context/ownership, preserved source, topology/normal/UV/export review.
-- `/Users/domininclynch/.codex/skills/unity-blender-cpu-art/SKILL.md` now routes to
+- `~/.codex/skills/unity-blender-cpu-art/SKILL.md` now routes to
   `references/shader-checks.md`; its original-hero reference also contains the
   validated retargeting lessons. No copied restricted examples or global plugin changes.
 

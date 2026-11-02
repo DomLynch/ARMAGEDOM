@@ -1,7 +1,7 @@
-import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';import*as T from'three';
+import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';import*as T from'three';import{withLegacySafehouse}from'./helpers/legacy-safehouse.js';
 import{safehouseCueOpacity,createSafehouseView}from'../src/engine/safehouse-view.js';
 import{validateSafehouseData}from'../src/engine/safehouse.js';import{publicAreaRegistry}from'../src/area-registry.js';
-const data=()=>JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))).safehouse;
+const data=()=>withLegacySafehouse(JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url)))).safehouse;
 test('short 3.5-second presentation pulse retains visible gold floor and pulses even selected; reduced motion stays static',()=>{
  for(const[mode,floor]of[[{},.4],[{near:true},.7],[{selected:true},.82]]){const low=safehouseCueOpacity(2.625,mode),peak=safehouseCueOpacity(.875,mode);assert(Math.abs(low-floor)<1e-10);assert.equal(peak,1);assert(Math.abs(safehouseCueOpacity(4.375,mode)-peak)<1e-10);}
  for(const time of[0,.875,2.625,100])assert.equal(safehouseCueOpacity(time,{selected:true,reduced:true}),.75);

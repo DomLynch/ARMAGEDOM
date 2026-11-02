@@ -1,6 +1,11 @@
 import { combatTargetHeight } from "../pistol-targeting.js";
 import { flameTouches } from "./flame-contact.js";
 import { safehouseProtected, safehouseBlocksSegment } from "./safehouse.js";
+import { GAME_DATA } from "./game-data.js";
+import { fillText } from "./game-data-combat-text.js";
+const FLAME_TEXT = GAME_DATA.combatText.bossFlame; // data/combatText.json
+// weapons.json `bossFlame.retreatDirections`: evenly spaced directions tried when a flame boss backs away.
+const RETREAT_DIRECTIONS = GAME_DATA.weapons.bossFlame.retreatDirections;
 const EPS = 1e-8;
 // Transient NPC attack only. Inventory, player fuel and defeat persistence stay
 // with their existing owners. An optional validated capability selects it.
@@ -40,7 +45,7 @@ export function stepBossFlame(
     }
     e.facing = { ...s.direction };
     s.phase = age < p.windupTicks ? "warning" : "active";
-    if (s.phase === "active" && s.pulses < 2 && age >= p.windupTicks + s.pulses * p.intervalTicks) {
+    if (s.phase === "active" && s.pulses < p.activeTicks / p.intervalTicks && age >= p.windupTicks + s.pulses * p.intervalTicks) {
       s.pulses++;
       const emitted = source?.(e),
         axis = emitted?.direction,
@@ -101,8 +106,8 @@ export function stepBossFlame(
       best = EPS;
     // Reuse the collision mover to choose a free backward/side step. A blocked
     // straight retreat must not oscillate forever against an authored obstacle.
-    for (let i = 0; i < 16; i++) {
-      const a = (i * Math.PI) / 8,
+    for (let i = 0; i < RETREAT_DIRECTIONS; i++) {
+      const a = (i * 2 * Math.PI) / RETREAT_DIRECTIONS, // tuning-ok: a full turn shared by the sampled directions
         c = Math.cos(a),
         s = Math.sin(a),
         d = { x: away.x * c - away.z * s, z: away.x * s + away.z * c },
@@ -131,7 +136,7 @@ export function stepBossFlame(
     source: null,
   };
   onStart?.(g, e);
-  g.message = (e.bossName ?? "SALAMANDER") + " · FLAME BURST — MOVE ASIDE";
+  g.message = fillText(FLAME_TEXT.warning, { name: e.bossName ?? FLAME_TEXT.defaultBossName });
   g.messageUntil = g.time + p.windupTicks / 60;
   emit(g, "boss-flame-warning", { actor: e, dir: { ...direction }, range: p.range, arc: p.coneDegrees });
   return true;

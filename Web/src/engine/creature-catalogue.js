@@ -1,6 +1,10 @@
 import { creatureDefinitions, recipeFoundations, nativeRoleDefinitions } from "./creature-definitions.js";
 import { resolveCreatureBehaviour } from "../creature-behaviour-presets.js";
 import { resolveResidentIntent } from "../creature-behaviour-intents.js";
+import { GAME_DATA } from "./game-data.js";
+import { rigText } from "../rig-capabilities.js";
+const DRONE_MODEL_SCALE = 2; // tuning-ok: the drone's procedural model is authored at twice the unit scale
+const REVIEWED_FOUNDATIONS = creatureDefinitions.length; // the reviewed foundations are the rows of creatureDefinitions.json
 // Capabilities provided by existing resident movement/native completion/neighbour seams.
 export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "home",
@@ -11,22 +15,8 @@ export const ENGINE_CREATURE_CAPABILITIES = Object.freeze([
   "nativeLocomotion",
   "eligibleCompanions",
 ]);
-const support = Object.freeze({
-  "hollow-scavenger": ["resident-knife", "knife", "hollow-scavenger", ["slash", "stab", "heavy"]],
-  "original-rat": ["rat-native-bite", "teeth", "original-rat", ["attack", "attackLow"]],
-  "original-dog": ["dog-native-bite", "teeth", "original-dog", ["attack"]],
-  "original-roach": ["roach-native-bite", "teeth", "original-roach", ["attack"]],
-  "low-hover-drone": ["drone-selector", "bolt", null, []],
-  "original-wolf": ["wolf-native-bite", "teeth", "original-wolf", ["attack"]],
-  "giant-salamander": ["salamander-native-bite", "teeth", "giant-salamander", ["attack"]],
-});
-const reach = Object.freeze({
-  "original-wolf": 2.375,
-  "original-rat": 1.050307904880233,
-  "original-dog": 1.635623468495986,
-  "original-roach": 1.6063268331546576,
-  "giant-salamander": 3.1078573708270647,
-});
+// The per-foundation controller/weapon/rig/actions and the native contact reach live in Web/src/data/creatures.json `catalogue`.
+const { support, reach } = GAME_DATA.creatures.catalogue;
 const freeze = (value) => {
   if (value && typeof value === "object") {
     for (const child of Object.values(value)) freeze(child);
@@ -89,24 +79,24 @@ export function createCreatureCatalogue({
       "provenanceRef",
       "runtimeIdentity",
     ]);
-    const pair = support[row.runtimeIdentity];
+    const pair = Object.hasOwn(support, row.runtimeIdentity) ? support[row.runtimeIdentity] : null;
     if (!pair || row.id !== row.runtimeIdentity || map.has(row.id)) throw Error("Unknown or duplicate foundation");
     closed(row.behaviour, ["controllerRef", "parameterPreset", "intentPolicyRef"]);
     closed(row.stats, ["health", "radius", "moveSpeed", "recoveryDelay", "weapon"]);
     closed(row.scale, ["model", "character", "visual", "mobSizeMode", "bodyScale", "appliedBy"]);
     if (
-      row.rig !== pair[2] ||
-      row.behaviour.controllerRef !== pair[0] ||
-      row.stats.weapon !== pair[1] ||
-      pair[3].some((action) => typeof row.clips[action] !== "string")
+      row.rig !== pair.rig ||
+      row.behaviour.controllerRef !== pair.controller ||
+      row.stats.weapon !== pair.weapon ||
+      pair.actions.some((action) => typeof row.clips[action] !== "string")
     )
       throw Error("Controller/foundation/action mismatch");
-    if (row.runtimeIdentity === "low-hover-drone") {
+    if (rigText(row.runtimeIdentity, "species") === "drone") {
       if (
         Object.keys(row.clips).length ||
         row.behaviour.parameterPreset !== null ||
         row.behaviour.intentPolicyRef !== null ||
-        row.scale.model !== 2 ||
+        row.scale.model !== DRONE_MODEL_SCALE ||
         row.scale.character !== 1 ||
         row.scale.visual !== 1 ||
         row.scale.appliedBy !== "procedural-library"
@@ -144,13 +134,14 @@ export function createCreatureCatalogue({
       throw Error("Unreviewed foundation stats/scale/asset/clip");
     map.set(row.id, freeze(row));
   }
-  if (map.size !== 7) throw Error("Seven reviewed foundations required");
+  if (map.size !== REVIEWED_FOUNDATIONS) throw Error("Seven reviewed foundations required");
   const recipeMap = structuredClone(recipes);
   for (const [recipe, foundation] of Object.entries(recipeMap))
     if (!Object.hasOwn(recipeFoundations, recipe) || recipeFoundations[recipe] !== foundation || !map.has(foundation))
       throw Error("Unknown recipe/foundation reference");
   for (const [recipe, foundation] of Object.entries(recipeMap))
-    if (foundation !== "low-hover-drone") resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
+    if (rigText(foundation, "species") !== "drone")
+      resolveResidentIntent(recipe, { behaviourCapabilities: capabilities });
   const roleRows = structuredClone(roles);
   if (JSON.stringify(roleRows) !== JSON.stringify(nativeRoleDefinitions))
     throw Error("Unreviewed exact role activation");

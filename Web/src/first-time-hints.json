@@ -1,0 +1,15 @@
+[
+  { "id": "attack", "when": { "enemyWithin": 6 }, "text": "SLASH or STAB hits what is in front of you." },
+  {
+    "id": "dodge-guard",
+    "when": { "tookHit": true },
+    "overMessage": true,
+    "text": "Dodge roll to avoid hits. Hold GUARD."
+  },
+  {
+    "id": "ember-fire",
+    "when": { "flameEquipped": true },
+    "text": "Hold FLAME to burn the enemy in front of you."
+  },
+  { "id": "first-loot", "when": { "lootDropped": true }, "text": "Rare drop kept. Menu, Items tab, to see it." }
+]

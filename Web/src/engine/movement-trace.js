@@ -1,5 +1,6 @@
+import { MOVEMENT_TRACE } from "./movement-trace-data.js";
 const vector = (p) => (p ? { x: p.x, z: p.z } : null);
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
 export function movementBoundary(world, point, radius) {
   const polygons = [
     ["road", world.geometry.road],
@@ -16,7 +17,7 @@ export function movementBoundary(world, point, radius) {
       edges.push({ name, index: i, distance: Math.hypot(point.x - a.x - t * dx, point.z - a.z - t * dz) });
     }
   edges.sort((a, b) => a.distance - b.distance);
-  return { clear: world.geometry.clear(point, radius), nearest: edges.slice(0, 2) };
+  return { clear: world.geometry.clear(point, radius), nearest: edges.slice(0, MOVEMENT_TRACE.nearestEdges) };
 }
 // Observes only. Never changes input, simulation, collision, storage or actors.
 export function createMovementTrace(
@@ -26,7 +27,7 @@ export function createMovementTrace(
     document: doc = globalThis.document,
     window: win = globalThis.window,
     identity = null,
-    capacity = 900,
+    capacity = MOVEMENT_TRACE.capacity,
   } = {},
 ) {
   if (!enabled) return null;
@@ -45,7 +46,7 @@ export function createMovementTrace(
   box.id = "movement-support";
   box.style.cssText =
     "position:fixed;top:210px;left:8px;right:8px;z-index:1000;background:#000d;color:#fff;font:10px monospace;padding:5px;pointer-events:none";
-  button.textContent = "Copy movement report";
+  button.textContent = "Copy movement report"; // text-ok: QA overlay label, shown only with the movement trace on
   button.style.cssText = "pointer-events:auto;font-size:12px";
   box.append(line, button);
   doc.body.append(box);
@@ -67,7 +68,7 @@ export function createMovementTrace(
     if (p === s.game?.player.pos && calls.length < 8) {
       const desired = { x: p.x + d.x, z: p.z + d.z },
         accepted = vector(answer),
-        partial = distance(desired, answer) > 0.0001;
+        partial = distance(desired, answer) > MOVEMENT_TRACE.answerEpsilon;
       calls.push({
         from: vector(p),
         delta: vector(d),
@@ -170,14 +171,14 @@ export function createMovementTrace(
     const text = JSON.stringify(report());
     try {
       await win.navigator.clipboard.writeText(text);
-      source.textContent = "Copied movement report";
+      source.textContent = "Copied movement report"; // text-ok: QA overlay label
     } catch {
       const area = doc.createElement("textarea");
       area.readOnly = true;
       area.value = text;
       (source.closest?.("dialog") ?? box).append(area);
       area.select();
-      source.textContent = "Select and copy report below";
+      source.textContent = "Select and copy report below"; // text-ok: QA overlay label
       listeners.push(() => area.remove());
     }
   }
@@ -187,7 +188,7 @@ export function createMovementTrace(
   if (menu) {
     const menuCopy = doc.createElement("button");
     menuCopy.id = "movement-report-copy";
-    menuCopy.textContent = "Copy movement report";
+    menuCopy.textContent = "Copy movement report"; // text-ok: QA overlay label
     menu.append(menuCopy);
     menuCopy.addEventListener("click", copy);
     listeners.push(() => {
@@ -237,7 +238,8 @@ export function createMovementTrace(
       };
       const delta = { x: p.pos.x - before.pos.x, z: p.pos.z - before.pos.z },
         blocked =
-          Math.hypot(before.intent.move.x, before.intent.move.z) > 0.01 && Math.hypot(delta.x, delta.z) < 0.0001;
+          Math.hypot(before.intent.move.x, before.intent.move.z) > MOVEMENT_TRACE.stalledIntent &&
+          Math.hypot(delta.x, delta.z) < MOVEMENT_TRACE.answerEpsilon;
       const row = {
         type: "step",
         time: g.time,
@@ -253,7 +255,7 @@ export function createMovementTrace(
         locks,
         calls,
         nearby: g.enemies
-          .filter((e) => e.hp > 0 && distance(p.pos, e.pos) < 4)
+          .filter((e) => e.hp > 0 && distance(p.pos, e.pos) < MOVEMENT_TRACE.nearbyMetres)
           .map((e) => ({
             id: e.id,
             key: e.placementKey,
@@ -265,10 +267,11 @@ export function createMovementTrace(
         camera: { right: vector(w.cameraRight), forward: vector(w.cameraForward), center: { ...w.center } },
       };
       push(row);
-      if (g.time - lastPaint >= 0.2) {
+      if (g.time - lastPaint >= MOVEMENT_TRACE.paintSeconds) {
         lastPaint = g.time;
         const boundary = calls.find((c) => c.boundary);
-        line.textContent = `${identity?.version ?? "Build identity loading"} ${identity?.sourceCommit?.slice(0, 8) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(2)},${p.pos.z.toFixed(2)} r${p.radius} stick ${stick.x.toFixed(2)},${stick.y.toFixed(2)} · ${
+        const build = identity?.version ?? "Build identity loading"; // text-ok: QA overlay fallback
+        line.textContent = `${build} ${identity?.sourceCommit?.slice(0, MOVEMENT_TRACE.commitChars) ?? ""} · ${w.areaId} · ${blocked ? "STOP" : "MOVE"}\nroot ${p.pos.x.toFixed(MOVEMENT_TRACE.decimals)},${p.pos.z.toFixed(MOVEMENT_TRACE.decimals)} r${p.radius} stick ${stick.x.toFixed(MOVEMENT_TRACE.decimals)},${stick.y.toFixed(MOVEMENT_TRACE.decimals)} · ${
           Object.entries(locks)
             .filter(([, v]) => v)
             .map(([k]) => k)

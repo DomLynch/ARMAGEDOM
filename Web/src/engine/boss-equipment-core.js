@@ -1,4 +1,5 @@
 import { closedData } from "./progression-state.js";
+import { GAME_DATA } from "./game-data.js";
 import { syncMeleeEquipment } from "../melee-equipment.js";
 import { createUnlockRewardModel } from "./unlock-reward-state.js";
 import { createAmmoRewardModel } from "./rifle-state.js";
@@ -43,11 +44,7 @@ export const BOSS_EQUIPMENT_LAYER = Object.freeze({
   ]),
   pickupEpsilon: 1e-8,
   events: Object.freeze({ drop: "boss-equipment-drop" }),
-  messages: Object.freeze({
-    envelope: "Invalid boss equipment envelope",
-    base: "Boss equipment requires existing v9",
-    snapshot: "Invalid equipment snapshot",
-  }),
+  messages: GAME_DATA.combatText.layerMessages.bossEquipment, // data/combatText.json
 });
 const fail = layerFailure;
 const equal = sameJson;

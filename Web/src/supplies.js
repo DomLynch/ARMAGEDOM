@@ -1,21 +1,16 @@
 import { isExtendedSupplies, issueExtendedSupply } from "./supply-ledger-v2.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // Area1-only rules; caller owns actual kill authority and atomic run persistence.
-export const SUPPLY_RULES = Object.freeze({ pickupRadius: 1.3, reserveCap: 12, healFraction: 0.2 });
-export const AREA1_SUPPLIES = Object.freeze({
-  "westminster-roamer-1": Object.freeze({ kind: "rounds", amount: 3 }),
-  "westminster-roamer-2": null,
-  "westminster-roamer-3": Object.freeze({ kind: "rounds", amount: 2 }),
-  "westminster-roamer-4": null,
-  "westminster-roamer-5": Object.freeze({ kind: "dressing", amount: 1 }),
-  "westminster-roamer-6": null,
-});
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+export const SUPPLY_RULES = GAME_DATA.supplies.rules; // data/supplies.json: pickupRadius, reserveCap, healFraction
+export const AREA1_SUPPLIES = GAME_DATA.supplies.area1; // data/supplies.json: roamer key -> { kind, amount } or null
+import { point } from "./engine/shared-checks.js";
 const copy = (p) => ({ x: p.x, z: p.z });
 const dropId = (key) => `area1-supply-v1:${key}`;
 
 // Validate this bounded three-drop DTO; never repair/reset a broken saved ledger.
+const EXTENDED_VERSION = 2; // tuning-ok: the extended supplies save format version
 export function isSuppliesState(s, rules) {
-  if (s?.version === 2) return isExtendedSupplies(s, rules);
+  if (s?.version === EXTENDED_VERSION) return isExtendedSupplies(s, rules);
   if (
     s?.version !== 1 ||
     !Array.isArray(s.issued) ||
@@ -62,7 +57,7 @@ export function createSuppliesState(rules) {
 
 // Call on a resolved dead resident, not on an attack/selected target/area clear.
 export function issueSupply(state, { areaId, placementKey, position, hp, rules, cycle } = {}) {
-  if (state?.version === 2) return issueExtendedSupply(state, { areaId, placementKey, position, hp, rules, cycle });
+  if (state?.version === EXTENDED_VERSION) return issueExtendedSupply(state, { areaId, placementKey, position, hp, rules, cycle });
   if (
     !isSuppliesState(state) ||
     areaId !== "westminster" ||
@@ -153,10 +148,10 @@ export function collectSupply(state, { dropId, areaId, position, resources, line
   };
 }
 
-export const GEAR_ITEMS = Object.freeze(["westminster-start-pistol-v1", "westminster-worn-vest-v1"]);
+export const GEAR_ITEMS = GAME_DATA.supplies.gearItems; // data/supplies.json: start pistol, then worn vest
 // The immutable issued outcome identifies the source; no reroll or second ledger.
 export function collectedGearSource(state, rules, itemId) {
-  if (state?.version !== 2 || !isExtendedSupplies(state, rules)) return false;
+  if (state?.version !== EXTENDED_VERSION || !isExtendedSupplies(state, rules)) return false;
   return state.rolls.some(
     (r) =>
       rules[r.placementKey].outcomes[r.outcomeIndex].itemId === itemId &&

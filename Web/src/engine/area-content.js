@@ -1,10 +1,12 @@
 import { validateMarkedData } from "./marked.js";
+import { validateCursedRelicData, validateCursedRelicGeometry } from "./cursed-relic.js";
 import { validateReaperData } from "./reaper.js";
 import { validateSafehouseData, validateSafehouseGeometry } from "./safehouse.js";
 import { validateBossEquipmentData } from "./boss-equipment-data.js";
 import { validateRifleData } from "./rifle-runtime.js";
 import { validateFlameData, validateFlameGeometry } from "./flame-data.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
+import { rigText } from "../rig-capabilities.js";
 import { validatePopulationData } from "./area-population.js";
 import { validateUniqueRewardData } from "./unique-reward-runtime.js";
 import { validateAreaBosses, mergeBossResidents, validateBossGeometry } from "./area-bosses.js";
@@ -65,7 +67,7 @@ export function validateResidentPlacements(
       keys.add(row.key);
       const foundation = creatureCatalogue.get(row.foundationRef);
       residentEncounterHealth(row, foundation.stats.health);
-      if (foundation.runtimeIdentity === "low-hover-drone" && DRONE_KEYS[row.key] !== area)
+      if (rigText(foundation.runtimeIdentity, "brain") === "drone" && DRONE_KEYS[row.key] !== area)
         throw Error("Unsupported declared drone death placement");
       if (creatureCatalogue.forRecipe(row.recipeRef).id !== foundation.id) fail();
       point(row.pos);
@@ -97,22 +99,25 @@ export function validateAreaGeometry(
   populationData = null,
   flameData = null,
   safehouseData = null,
+  cursedRelicData = null,
 ) {
+  if (layout.portraitScale !== undefined && !(Number.isFinite(layout.portraitScale) && layout.portraitScale > 0))
+    throw Error("Layout portraitScale must be a finite number above 0");
   const g = createGeometry(layout),
     area = registry.get(areaId);
   validateSafehouseGeometry(safehouseData, areaId, g, residents?.[areaId] ?? []);
   validateBossGeometry(bossData, areaId, g, registry);
   validateFlameGeometry(flameData, registry, areaId, g);
+  validateCursedRelicGeometry(cursedRelicData, areaId, g);
   validateGuidance(layout, g, registry.links(areaId));
   const tutorial = validateTutorialPath(layout, g);
   if (tutorial) {
     if (areaId !== "westminster") throw Error("Tutorial must belong to Westminster");
-    if (safehouseData) {
-      const anchor = safehouseData.props.find((p) => p.id === "comms")?.standing,
-        end = layout.tutorialPath.at(-1);
-      if (safehouseData.areaId !== areaId || !anchor || Math.hypot(anchor.x - end.x, anchor.y - end.y) > 1e-8)
-        throw Error("Tutorial must reach original Westminster shelter");
-    }
+    // The tutorial ends on the Westminster steps, where the named set-piece slot sits (empty until its contents are authored).
+    const slot = layout.setPieceSlot?.at,
+      end = layout.tutorialPath.at(-1);
+    if (!slot || Math.hypot(slot.x - end.x, slot.y - end.y) > 1e-8)
+      throw Error("Tutorial must reach the Westminster set-piece slot");
   }
   if (expedition) {
     for (const anchor of [expedition.contract.giver, expedition.contract.case])
@@ -249,6 +254,7 @@ export function validateAreaContent(content, registry, layouts) {
       "safehouse",
       "reaper",
       "marked",
+      "cursedRelic",
     ],
   );
   const original = validateResidentPlacements(content.residents, registry, layouts),
@@ -265,6 +271,7 @@ export function validateAreaContent(content, registry, layouts) {
     );
   return Object.freeze({
     markedData: validateMarkedData(content.marked, registry),
+    cursedRelicData: validateCursedRelicData(content.cursedRelic, registry),
     reaperData: validateReaperData(content.reaper, content.expedition),
     safehouseData: validateSafehouseData(content.safehouse, registry),
     bossEquipmentData: validateBossEquipmentData(content.bossEquipment, registry, residents),
@@ -303,6 +310,7 @@ export function validateAreaMetadata(content, registry) {
       "safehouse",
       "reaper",
       "marked",
+      "cursedRelic",
     ],
   );
   const original = validateResidentPlacements(content.residents, registry, {}, { geometryValidation: false }),
@@ -311,6 +319,7 @@ export function validateAreaMetadata(content, registry) {
     uniqueRewardData = validateUniqueRewardData(content.uniqueReward, registry, residents);
   return Object.freeze({
     markedData: validateMarkedData(content.marked, registry),
+    cursedRelicData: validateCursedRelicData(content.cursedRelic, registry),
     reaperData: validateReaperData(content.reaper, content.expedition),
     safehouseData: validateSafehouseData(content.safehouse, registry),
     bossEquipmentData: validateBossEquipmentData(content.bossEquipment, registry, residents),

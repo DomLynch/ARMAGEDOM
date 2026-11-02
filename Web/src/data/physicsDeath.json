@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "flagParam": "physics",
+  "flagValue": "1",
+  "offValue": "0",
+  "defaultOn": true,
+  "rigRef": "marked-hunter",
+  "droneRef": "low-hover-drone",
+  "remote": { "modelRef": "remote-survivor", "deathField": "dead", "fallbackClip": "Death" },
+  "seed": 731,
+  "stepHz": 60,
+  "maxStepsPerFrame": 4,
+  "settleSeconds": 5,
+  "removeSeconds": 8,
+  "preloadIdleMs": 2500,
+  "cutPrefetch": { "range": 24, "idleMs": 6000, "skipSaveData": true, "slowTypes": ["slow-2g", "2g", "3g"] },
+  "poolSize": 3,
+  "maxParked": 6,
+  "rewarmMs": 3000,
+  "killImpulse": { "horizontal": 260, "up": 40, "part": "spine2" },
+  "bulletImpulse": {
+    "flagParam": "bulletimpulse",
+    "offValue": "0",
+    "onValue": "1",
+    "defaultOn": true,
+    "byWeapon": {
+      "pistol": { "horizontal": 240, "up": 60 },
+      "rifle": { "horizontal": 300, "up": 70 },
+      "railgun": { "horizontal": 330, "up": 60 },
+      "shotgun": { "horizontal": 380, "up": 90 },
+      "grenade": { "horizontal": 430, "up": 120 },
+      "rocket": { "horizontal": 480, "up": 140 },
+      "knife": { "horizontal": 70, "up": 15 },
+      "flamethrower": { "horizontal": 100, "up": 30 }
+    },
+    "byAttackClass": {
+      "blast": { "horizontal": 440, "up": 120 }
+    }
+  },
+  "parts": {
+    "hips": "Hips", "spine": "Spine", "spine1": "Spine1", "spine2": "Spine2", "neck": "Neck", "head": "Head",
+    "armLeft": "LeftArm", "armRight": "RightArm", "forearmLeft": "LeftForeArm", "forearmRight": "RightForeArm",
+    "handLeft": "LeftHand", "handRight": "RightHand", "thighLeft": "LeftUpLeg", "thighRight": "RightUpLeg",
+    "shinLeft": "LeftLeg", "shinRight": "RightLeg", "footLeft": "LeftFoot", "footRight": "RightFoot",
+    "toeLeft": "LeftToeBase", "toeRight": "RightToeBase"
+  }
+}

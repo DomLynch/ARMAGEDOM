@@ -1,8 +1,12 @@
 // One player pistol; deterministic domain rules, no renderer/input/game writes.
 import { RANGED_WEAPON_CATALOG } from "./engine/weapon-catalog.js";
+import { GAME_DATA } from "./engine/game-data.js";
+// The ground pickup's id and the label its context button shows; the first-time hint names the same label.
+export const START_PISTOL_ID = "westminster-start-pistol-v1";
+export const START_PISTOL_LABEL = GAME_DATA.combatText.gear.startPistolLabel; // data/combatText.json
 export const PISTOL_RULES = RANGED_WEAPON_CATALOG["westminster-start-pistol-v1"].rules;
 const EPS = 1e-8;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+import { point } from "./engine/shared-checks.js";
 const copy = (p) => ({ x: p.x, z: p.z });
 
 export function createPistolState({ pickupPos, pickupAreaId = "westminster" } = {}) {
@@ -66,8 +70,8 @@ export function tracePistol(origin, aim, targets, lineClear, rules = PISTOL_RULE
   if (!lineClear(origin, at(limit))) {
     let low = 0,
       high = limit;
-    for (let i = 0; i < 20; i++) {
-      const middle = (low + high) / 2;
+    for (let i = 0; i < 20; i++) { // tuning-ok: twenty halvings pin the first blocked point to a millionth of the range
+      const middle = (low + high) / 2; // tuning-ok: bisection takes the midpoint
       if (lineClear(origin, at(middle))) low = middle;
       else high = middle;
     }

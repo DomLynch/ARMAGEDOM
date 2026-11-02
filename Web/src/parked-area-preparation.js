@@ -1,4 +1,5 @@
 import { publicAreaRegistry } from "./area-registry.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // Prepare one authoritative dormant roster using the existing resident factory.
 // No simulation, events, persistence or rewards run here; travel adopts this record.
 export function prepareParkedResidents(game, areaWorld, initializeResidents) {
@@ -25,7 +26,7 @@ export function prepareParkedResidents(game, areaWorld, initializeResidents) {
     areaInitialized: false,
     encounterCleared: false,
     wave: 0,
-    nextWave: game.time + 2,
+    nextWave: game.time + GAME_DATA.areaRuntime.travel.firstWaveDelay,
     nextEnemyAttackAt: game.time,
   };
   initializeResidents(dormant);

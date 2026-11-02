@@ -1,10 +1,14 @@
 import { ratMeleePosePhase } from "./rat-melee-definition.js";
+import { rigBone } from "./rig-bones.js";
 import * as THREE from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+
+const DONOR_MOTION = GAME_DATA.donorMotion;
 
 // Native hand transform and per-player clip overrides; never mutate the cache.
 // The caller supplies an independently SkeletonUtils-cloned character scene.
 export function equipDonorPlayer(asset, part) {
-  const hand = asset.scene.getObjectByName("hand_r"),
+  const hand = rigBone(asset.scene, "hand"),
     blade = part.scene.getObjectByName("WeaponDrawn");
   if (!hand || !blade) throw Error("Donor knife mount missing");
   const remove = [];
@@ -12,11 +16,21 @@ export function equipDonorPlayer(asset, part) {
     if (/^(SwordSheathed|SwordDrawn|WeaponDrawn|WeaponSheathed)(_\d+)?$/.test(node.name)) remove.push(node);
   });
   for (const node of remove) node.removeFromParent();
-  hand.add(blade.clone(true));
-  const overrides = new Set(part.animations.map((clip) => clip.name));
+  const held = blade.clone(true),
+    grip = asset.scene.userData?.rigGrip;
+  // A body whose hand bone is oriented differently from the hero's tilts the blade in the hand's own frame (row `knifeGripDegrees`, XYZ).
+  if (grip) held.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...grip.map(THREE.MathUtils.degToRad))));
+  hand.add(held);
+  // A body whose row names its own hand bone (the 106 rig) keeps its own clip where the weapon file only carries tracks for hero bones.
+  const custom = !!asset.scene.userData?.rigBones?.hand,
+    fits = (clip) =>
+      !custom ||
+      clip.tracks.every((t) => asset.scene.getObjectByName(THREE.PropertyBinding.parseTrackName(t.name).nodeName)),
+    own = part.animations.filter(fits),
+    overrides = new Set(own.map((clip) => clip.name));
   return {
     scene: asset.scene,
-    animations: [...part.animations, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
+    animations: [...own, ...asset.animations.filter((clip) => !overrides.has(clip.name))],
   };
 }
 export function donorSwingPhase(age, timing, source) {
@@ -24,11 +38,12 @@ export function donorSwingPhase(age, timing, source) {
   if (!(total > 0) || !Number.isFinite(source) || source < 0 || source > 1) throw Error("Invalid donor swing timing");
   const contact = timing.windup / total,
     p = THREE.MathUtils.clamp(age / total, 0, 1);
+  const curve = DONOR_MOTION.swing;
   const keys = [
     [0, 0],
-    [contact * 0.7, source * 0.44],
+    [contact * curve.windupKeyFraction, source * curve.windupSourceFraction],
     [contact, source],
-    [contact + 0.16, source + (1 - source) * 0.56],
+    [contact + curve.followThrough, source + (1 - source) * curve.followThroughFraction],
     [1, 1],
   ];
   for (let i = 1; i < keys.length; i++)
@@ -66,7 +81,10 @@ export class DonorMotion {
     }
     // Only spine descendants hold guard while native locomotion drives the legs.
     const upper = new Set();
-    model.getObjectByName("spine_01")?.traverse((node) => upper.add(node.name));
+    // The bone that starts the upper body is a manifest row (`upperBone`), because a 106-joint body names it mixamorig:Spine.
+    model
+      .getObjectByName(THREE.PropertyBinding.sanitizeNodeName(description.upperBone ?? "spine_01"))
+      ?.traverse((node) => upper.add(node.name));
     for (const name of new Set([
       description.clips.walk,
       description.clips.run,
@@ -106,7 +124,7 @@ export class DonorMotion {
     if (!selected) throw Error("Donor clip missing: " + name);
     for (const action of this.actions.values()) action.setEffectiveWeight(action === selected ? 1 : 0);
     this.guardUpper?.setEffectiveWeight(guardOverlay ? 1 : 0);
-    selected.time = THREE.MathUtils.clamp(phase, 0, 0.999999) * selected.getClip().duration;
+    selected.time = THREE.MathUtils.clamp(phase, 0, DONOR_MOTION.samplePhaseMax) * selected.getClip().duration;
     if (this.guardUpper) this.guardUpper.time = 0;
     this.mixer.update(0);
     this.model.updateWorldMatrix(true, true);
@@ -170,7 +188,11 @@ export class DonorMotion {
       const phase = entity.sawPhase?.phase;
       this.sample(
         this.description.clips.stab ?? this.description.clips.slash,
-        phase === "windup" ? 0.25 : phase === "recovery" ? 0.9 : 0.58,
+        phase === "windup"
+          ? DONOR_MOTION.saw.windup
+          : phase === "recovery"
+            ? DONOR_MOTION.saw.recovery
+            : DONOR_MOTION.saw.active,
       );
       return;
     }
@@ -188,14 +210,15 @@ export class DonorMotion {
     }
     if (noTick) return; // Keep the sampled pose between fixed simulation ticks.
     const distance = delta.length(),
-      speed = elapsed > 0 ? distance / elapsed : 0;
+      speed = elapsed > 0 ? distance / elapsed : 0,
+      move = DONOR_MOTION.locomotion;
     if (["rat", "dog", "roach", "salamander", "wolf"].includes(this.description.motion)) {
-      const name = speed > 0.05 ? this.description.clips.walk : this.description.clips.idle;
+      const name = speed > move.moveSpeed ? this.description.clips.walk : this.description.clips.idle;
       this.cycle = THREE.MathUtils.euclideanModulo(this.cycle + elapsed / this.actions.get(name).getClip().duration, 1);
       this.sample(name, this.cycle);
       return;
     }
-    if (speed > 0.05) {
+    if (speed > move.moveSpeed) {
       const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.root.quaternion),
         right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.root.quaternion),
         along = delta.dot(forward),
@@ -206,17 +229,17 @@ export class DonorMotion {
           ? across < 0
             ? (this.description.clips.strafeLeft ?? "StrafeLeft")
             : (this.description.clips.strafeRight ?? "StrafeRight")
-          : speed >= 4.2
+          : speed >= move.runSpeed
             ? run
             : this.description.clips.walk,
         name = this.actions.has(wanted) ? wanted : this.description.clips.walk;
       const stride = this.description.stride ?? 1,
-        rate = strafe ? 0.75 : name === run ? 3.5 : 1.7;
-      // Player sprint uses the native donor Run clock: 1x at 5.2m/s, independent
+        rate = strafe ? move.strafeRate : name === run ? move.runRate : move.walkRate;
+      // Player sprint uses the native donor Run clock: 1x at sprintSpeed (5.2 m/s), independent
       // of the approved visual enlargement. Other locomotion stays unchanged.
       const cycleDistance =
         name === run && entity.running
-          ? 5.2 * this.actions.get(name).getClip().duration
+          ? move.sprintSpeed * this.actions.get(name).getClip().duration * (this.description.sprintStride ?? 1)
           : rate * stride * this.root.scale.x;
       this.cycle = THREE.MathUtils.euclideanModulo(
         this.cycle + (strafe ? distance : Math.sign(along) * distance) / cycleDistance,

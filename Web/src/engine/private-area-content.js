@@ -3,6 +3,10 @@ import { validateAreaWater } from "./area-water.js";
 import { validateAreaLighting } from "./area-lighting.js";
 import { createAreaRegistry } from "../area-registry.js";
 import { closed, freeze, validateResidentPlacements } from "./area-content.js";
+import { GAME_DATA } from "./game-data.js";
+const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
+// A private area's texture budget may not go below or above the public one (data/areaRuntime.json `view`).
+const BUDGET = GAME_DATA.areaRuntime.view;
 // Explicit private entry isolates both current and legacy save keys before IO.
 export function preparePrivateAreaContent(content) {
   closed(
@@ -14,8 +18,8 @@ export function preparePrivateAreaContent(content) {
     typeof content.namespace !== "string" ||
     !/^armagedom:private:[a-z0-9-]+:$/.test(content.namespace) ||
     !Number.isFinite(content.textureBudgetBytes) ||
-    content.textureBudgetBytes < 16 * 1024 * 1024 ||
-    content.textureBudgetBytes > 48 * 1024 * 1024
+    content.textureBudgetBytes < BUDGET.textureBudgetMinMiB * MIB ||
+    content.textureBudgetBytes > BUDGET.textureBudgetMiB * MIB
   )
     throw Error("Invalid private area content");
   const registry = createAreaRegistry({ areas: content.areas, manifest: content.manifest, includePrivate: true });

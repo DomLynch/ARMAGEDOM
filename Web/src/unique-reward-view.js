@@ -3,6 +3,12 @@ import { effectiveWeaponDamage } from "./engine/progression-runtime.js";
 import * as T from "three";
 import { cloneMeleeWeapon, MELEE_VARIANTS } from "./melee-equipment.js";
 import { addPickupGlow } from "./pickup-glow.js";
+import { autoEquipAfterClaim, collectedMessage } from "./auto-equip.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
+// Checked by engine/weapon-view-data.js, which the engine weapon views load.
+const REWARD = GAME_DATA.visual.weaponViews.uniqueReward;
+const TEXT = GAME_DATA.weaponViewText.uniqueReward;
+const CLEAVER = GAME_DATA.combatText.rewardNames.cleaver;
 const paint = (element, text) => {
   if (element.textContent !== text) element.textContent = text;
 };
@@ -12,18 +18,18 @@ export function createMeleePickupView(source, data) {
     display = new T.Group(),
     contours = [],
     meshes = [];
-  root.name = "Unique reward · " + data.itemId;
+  root.name = "Unique reward · " + data.itemId; // text-ok: three.js group name for scene lookup, never shown
   root.userData = { itemId: data.itemId, placementKey: data.placementKey };
   display.add(clone.root);
   root.add(display);
   root.updateWorldMatrix(true, true);
   let bounds = new T.Box3().setFromObject(display),
     size = bounds.getSize(new T.Vector3());
-  display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+  display.scale.setScalar(Math.min(1, REWARD.pickup.fitSize / Math.hypot(size.x, size.z)));
   root.updateWorldMatrix(true, true);
   bounds = new T.Box3().setFromObject(display);
   const center = bounds.getCenter(new T.Vector3());
-  display.position.set(-center.x, 0.025 - bounds.min.y, -center.z);
+  display.position.set(-center.x, REWARD.pickup.lift - bounds.min.y, -center.z);
   clone.root.traverse((mesh) => {
     if (mesh.isMesh) meshes.push(mesh);
   });
@@ -42,7 +48,16 @@ export function createMeleePickupView(source, data) {
     },
   };
 }
-export function createUniqueRewardView(s, dispatch) {
+// `markers` is the engine's drop marker (engine/drop-marker.js: markDrop, createMarkerOnlyDrop), handed in by run-views.js because
+// this file sits outside the engine boundary. Without it the drop has no ring or label.
+const noMarkers = {
+  markDrop: (view) => view,
+  createMarkerOnlyDrop() {
+    const root = new T.Group();
+    return { root, dispose: () => root.removeFromParent() };
+  },
+};
+export function createUniqueRewardView(s, dispatch, markers = noMarkers) {
   const el = (id) => document.getElementById(id),
     panel = el("melee-equipment"),
     label = el("unique-reward-label");
@@ -99,10 +114,10 @@ export function createUniqueRewardView(s, dispatch) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? "Pitborn Cleaver collected. Equip it in Gear."
-          : MELEE_VARIANTS[command.itemId].name + " equipped.";
-      g.messageUntil = g.time + 4;
-      if (command.type === "equip") s.input.clear();
+          ? collectedMessage(CLEAVER)
+          : fillText(TEXT.equipped, { name: MELEE_VARIANTS[command.itemId].name });
+      g.messageUntil = g.time + REWARD.messageSeconds;
+      if (command.type === "equip") s.input.clear({ keepMovement: true });
     }
     update();
     return result;
@@ -126,10 +141,8 @@ export function createUniqueRewardView(s, dispatch) {
             execute({ type: "equip", itemId: id, equipped: true });
         } catch {
           if (s.game === owner) {
-            owner.message = loadOnly
-              ? "Cleaver loading unavailable. Pending drop kept; retry in Gear."
-              : "Weapon loading unavailable. Selection kept; tap Equip to retry.";
-            owner.messageUntil = owner.time + 5;
+            owner.message = loadOnly ? TEXT.cleaverLoadFailed : TEXT.weaponLoadFailed;
+            owner.messageUntil = owner.time + REWARD.loadFailedSeconds;
           }
         }
         update();
@@ -149,17 +162,30 @@ export function createUniqueRewardView(s, dispatch) {
       !s.paused &&
       g.world.areaId === data.areaId &&
       source(data.itemId) &&
-      Math.hypot(g.player.pos.x - state.dropPosition.x, g.player.pos.z - state.dropPosition.z) <= 1.3 + 1e-8 &&
+      Math.hypot(g.player.pos.x - state.dropPosition.x, g.player.pos.z - state.dropPosition.z) <=
+        GAME_DATA.uniqueReward.pickupRadius + 1e-8 &&
       g.world.lineClear(g.player.pos, state.dropPosition)
     );
   }
   function interact() {
     const g = s.game;
     if (!g || !eligible(g)) return false;
-    return execute({ type: "claimPickup", pickupId: g.world.uniqueRewardData.itemId }).ok;
+    const itemId = g.world.uniqueRewardData.itemId,
+      claimed = execute({ type: "claimPickup", pickupId: itemId }).ok;
+    if (claimed)
+      void autoEquipAfterClaim(g, {
+        equip: (options) => equipHandlers.get(itemId)?.(options),
+        active: () => g.uniqueReward?.selectedMeleeVariant === itemId,
+        itemId,
+        name: CLEAVER,
+      });
+    return claimed;
   }
-  function createDrop(data) {
-    const view = createMeleePickupView(source(data.itemId), data);
+  function createDrop(data, ready) {
+    const name = MELEE_VARIANTS[data.itemId]?.name ?? TEXT.fallbackName,
+      view = ready
+        ? Object.assign(markers.markDrop(createMeleePickupView(source(data.itemId), data), name), { model: true })
+        : markers.createMarkerOnlyDrop(name);
     s.scene.add(view.root);
     return view;
   }
@@ -183,13 +209,16 @@ export function createUniqueRewardView(s, dispatch) {
       el("melee-state"),
       state.status === "pending"
         ? retry
-          ? "Pitborn Cleaver loading failed. Retry loading below, then collect it in East."
-          : "Hale dropped the Pitborn Cleaver. Collect it in East."
+          ? TEXT.stateRetry
+          : TEXT.statePending
         : state.status === "legacy-dead"
-          ? "Hale was already defeated in this run. A new kill after Retry can earn his cleaver."
+          ? TEXT.stateLegacyDead
           : owned
-            ? `${selected.name} ${g.flame?.equipped || g.player.weapon !== "knife" ? "stored for melee" : "equipped"}. Earned weapon retained across Retry.`
-            : "Defeat Hale in East to earn his unique cleaver. Supply-case progress is separate.",
+            ? fillText(TEXT.stateOwned, {
+                name: selected.name,
+                status: g.flame?.equipped || g.player.weapon !== "knife" ? TEXT.storedForMelee : TEXT.ownedEquipped,
+              })
+            : TEXT.stateLocked,
     );
     for (const [id, button] of buttons) {
       const profile = MELEE_VARIANTS[id],
@@ -201,8 +230,23 @@ export function createUniqueRewardView(s, dispatch) {
       paint(
         button,
         lockerStored(g, id)
-          ? `Stored · ${profile.name}`
-          : `${loads.has(id) ? "Loading" : canLoad ? (retry ? "Retry loading" : "Load weapon") : equipped ? "Equipped" : canOwn ? "Equip" : "Locked"} · ${profile.name}`,
+          ? fillText(TEXT.buttonStored, { name: profile.name })
+          : fillText(TEXT.button, {
+              action: TEXT.actions[
+                loads.has(id)
+                  ? "loading"
+                  : canLoad
+                    ? retry
+                      ? "retryLoading"
+                      : "loadWeapon"
+                    : equipped
+                      ? "equipped"
+                      : canOwn
+                        ? "equip"
+                        : "locked"
+              ],
+              name: profile.name,
+            }),
       );
     }
     if (el("melee-comparison"))
@@ -211,15 +255,24 @@ export function createUniqueRewardView(s, dispatch) {
         Object.values(MELEE_VARIANTS)
           .map(
             (profile) =>
-              `${profile.name}: Slash ${+effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1)} / Heavy ${+effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1)} damage · stamina ${profile.costs.slash}/${profile.costs.heavy}`,
+              fillText(TEXT.comparison, {
+                name: profile.name,
+                slash: +effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1),
+                heavy: +effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1),
+                slashCost: profile.costs.slash,
+                heavyCost: profile.costs.heavy,
+              }),
           )
           .join(" / "),
       );
     const visible = available() && state.status === "pending" && g.world.areaId === data.areaId;
     if (visible && !source(data.itemId) && !loads.has(data.itemId) && !failed.has(data.itemId))
       prepare(data.itemId).catch(() => {});
-    if (visible && source(data.itemId)) {
-      if (!drop) drop = createDrop(data);
+    if (visible) {
+      // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
+      const ready = !!source(data.itemId);
+      if (drop && ready && !drop.model) clearDrop();
+      drop ??= createDrop(data, ready);
       drop.root.position.copy(g.world.toRender(state.dropPosition));
     } else clearDrop();
     label.hidden = true;
@@ -229,7 +282,8 @@ export function createUniqueRewardView(s, dispatch) {
     if (!g || !eligible(g)) return null;
     return {
       id: g.world.uniqueRewardData.itemId,
-      label: "Collect Pitborn Cleaver",
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: CLEAVER }),
+      pickup: true,
       position: g.uniqueReward.dropPosition,
       run() {
         interact();

@@ -1,12 +1,18 @@
 import { FLAME_DEATH_DATA, flameDeathSeconds, isFlameRecipe } from "./finisher-data.js";
-import { combatTargetHeight } from "../pistol-targeting.js";
+import { rigBone } from "../rig-bones.js";
+import { combatTargetHeight, rangedTargets, selectCombatTarget, chainedSight, withChained } from "../pistol-targeting.js";
+import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { flameTouches } from "./flame-contact.js";
 import * as T from "three";
 import { attachPistol, applyPistolAim, PISTOL_ARM_EXTENSION } from "../pistol-pose.js";
 import { FLAME_AIM } from "../mobile-combat-aim.js";
 import profile from "../donor/flame-right-digit-profile.json" with { type: "json" };
 export const FLAME_DOWN_PITCH = FLAME_AIM.downPitch;
-const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) => [1, 2, 3].map((i) => `${f}_0${i}_r`));
+import { FLAME_PRESENTATION as FP } from "./flame-presentation-data.js";
+const PITCH_UP = -(Math.PI * FP.pitchUpDegrees) / 180; // the highest the barrel tilts above level, in radians
+const names = ["middle", "ring", "pinky", "index", "thumb"].flatMap((f) =>
+  Array.from({ length: 3 }, (_, i) => `${f}_0${i + 1}_r`), // tuning-ok: the rig has three joints on each finger
+);
 const validated = new WeakMap();
 // The one accepted profile is bound to this exact hero, not retargeted or fitted.
 export function flameGripProfile(model, heroSHA) {
@@ -25,7 +31,7 @@ export function flameGripProfile(model, heroSHA) {
       !Array.isArray(q) ||
       q.length !== 4 ||
       !q.every(Number.isFinite) ||
-      Math.abs(Math.hypot(...q) - 1) > 1e-5
+      Math.abs(Math.hypot(...q) - 1) > 1e-5 // tuning-ok: how far from unit length a profile quaternion may be
     )
       throw Error("Flame grip bone/quaternion mismatch");
   }
@@ -42,6 +48,12 @@ export function flameGripProfile(model, heroSHA) {
   validated.set(model, profile);
   return profile;
 }
+// The finger profile exists only for the donor hero; a body that names its own hand bone (the 106-rig Perseus) holds the flamethrower without it.
+export function flameGripFor(model, manifest) {
+  if (manifest.models.vagrant.handBone) return undefined;
+  const record = Object.values(manifest.files ?? {}).find((r) => r.file === manifest.models.vagrant.url);
+  return flameGripProfile(model, record?.sha256);
+}
 const heldFlameBindings = new WeakMap();
 export function attachFlame(model, source, { bindHand = false } = {}) {
   if (!source?.scene?.getObjectByName("Grip") || !source.scene.getObjectByName("Muzzle"))
@@ -49,7 +61,7 @@ export function attachFlame(model, source, { bindHand = false } = {}) {
   const mount = attachPistol(model, source.scene);
   mount.name = "FlamethrowerMount";
   // Art's one measured scene-child offset is not baked into the immutable GLB.
-  mount.children[0].position.add({ x: -0.01262174057948523, y: 0.07164552251435374, z: 0.014197067151910436 });
+  mount.children[0].position.add(FP.mountOffset);
   mount.visible = false;
   if (bindHand) {
     // Calibrate the existing ready grip once, then restore the native pose exactly.
@@ -82,13 +94,13 @@ export function rememberFlameHand(model, mount) {
   model.updateWorldMatrix(true, true);
   heldFlameBindings.set(
     mount,
-    model.getObjectByName("hand_r").matrixWorld.clone().invert().multiply(mount.matrixWorld),
+    rigBone(model, "hand").matrixWorld.clone().invert().multiply(mount.matrixWorld),
   );
 }
 // Keep the model-owned mount affine-exact on the native hurt/idle hand, without IK.
 export function followFlameHand(model, mount) {
   const binding = heldFlameBindings.get(mount),
-    hand = model.getObjectByName("hand_r");
+    hand = rigBone(model, "hand");
   if (!binding || !hand || mount.parent !== model) throw Error("Held flame hand binding unavailable");
   model.updateWorldMatrix(true, true);
   mount.matrix.copy(model.matrixWorld).invert().multiply(hand.matrixWorld).multiply(binding);
@@ -142,13 +154,13 @@ function projectedPitch({ shoulder, muzzle, axis, forward }, target) {
     below = to.dot(down),
     radius = Math.hypot(along, below);
   const pitch = radius > 1e-8 ? Math.atan2(below, along) - Math.asin(Math.max(-1, Math.min(1, offset / radius))) : 0;
-  return Math.max(-Math.PI / 6, Math.min(FLAME_DOWN_PITCH, pitch));
+  return Math.max(PITCH_UP, Math.min(FLAME_DOWN_PITCH, pitch));
 }
 // Read-only prediction of the SAME shoulder transform used by the renderer.
 // Capture before pitching; prospective yaw follows the ordinary body facing.
 export function flameAimBasis(model, mount, g) {
   model.updateWorldMatrix(true, true);
-  const shoulder = model.getObjectByName("upperarm_r")?.getWorldPosition(new T.Vector3()),
+  const shoulder = rigBone(model, "upperArm")?.getWorldPosition(new T.Vector3()),
     m = mount.getObjectByName("Muzzle");
   if (!shoulder || !m) throw Error("Native flame shoulder/muzzle required");
   const root = (model.parent ?? model).getWorldPosition(new T.Vector3()),
@@ -201,7 +213,7 @@ export function flameAimEligible(basis, g, target) {
     target,
     time: g.time,
     profile: g.world.flameData.contact,
-    lineClear: (a, b) => g.world.lineClear(a, b),
+    lineClear: chainedSight(g),
     playerPosition: g.player.pos,
   });
 }
@@ -242,16 +254,39 @@ export function flameAimPitch(model, mount, g) {
   return flameAimPose(model, mount, g).pitch;
 }
 export function flameAimPose(model, mount, g) {
-  const enemy =
-    (g.mobileAssistEnabled !== false || !!g.touchTarget) &&
-    g.enemies.find(
+  const assisted = g.mobileAssistEnabled !== false || !!g.touchTarget,
+    locked =
+      assisted &&
+      g.enemies.find(
+        (e) =>
+          e.placementKey === g.mobileAim?.targetId &&
+          e.visible !== false &&
+          e.hp > 0 &&
+          (e.areaId ?? g.world.areaId) === g.world.areaId &&
+          g.world.lineClear(g.player.pos, e.pos),
+      );
+  // No touch lock at all (desktop aim): the body the player faces within the flame's own cone and range,
+  // chosen by the selector the melee and ranged weapons use, so a low body is aimed at without a tap.
+  // An unusable lock still yields no pitch, so independent choices never steal the touch lock.
+  const faced =
+    !locked &&
+    g.mobileAim?.targetId == null &&
+    assisted &&
+    withChained(g, g.enemies).find(
       (e) =>
-        e.placementKey === g.mobileAim?.targetId &&
-        e.visible !== false &&
-        e.hp > 0 &&
-        (e.areaId ?? g.world.areaId) === g.world.areaId &&
-        g.world.lineClear(g.player.pos, e.pos),
+        e.id ===
+        selectCombatTarget({
+          position: g.player.pos,
+          aim: g.player.facing,
+          targets: rangedTargets(g),
+          lineClear: chainedSight(g),
+          range: selectedFlameProfile(g).contact.range,
+          rangeOffset: (t) => t.radius,
+          coneDegrees: selectedFlameProfile(g).contact.coneDegrees / 2, // tuning-ok: the cone's half angle either side of the aim
+          areaId: g.world.areaId,
+        })?.targetId,
     );
+  const enemy = locked || faced;
   return enemy
     ? flameTargetAim(model, mount, g.world.toRender(enemy.pos, combatTargetHeight(enemy, g.time)))
     : { pitch: 0, yaw: 0 };
@@ -273,10 +308,10 @@ export function restoreFlamePitch(model) {
 }
 export function applyFlamePitch(model, mount, pitch, yaw = 0) {
   if (!Number.isFinite(pitch) || !Number.isFinite(yaw)) throw Error("Finite flame aim required");
-  const upper = model.getObjectByName("upperarm_r");
+  const upper = rigBone(model, "upperArm");
   if (!upper || mount.parent !== model) throw Error("Flame aim mount mismatch");
   if (pitched.has(model)) throw Error("Restore flame pitch before gait/sample");
-  pitch = Math.max(-Math.PI / 6, Math.min(FLAME_DOWN_PITCH, pitch));
+  pitch = Math.max(PITCH_UP, Math.min(FLAME_DOWN_PITCH, pitch));
   yaw = Math.max(-FLAME_AIM.yawLimit, Math.min(FLAME_AIM.yawLimit, yaw));
   if (Math.abs(pitch) < 1e-8 && Math.abs(yaw) < 1e-8) return;
   model.updateWorldMatrix(true, true);

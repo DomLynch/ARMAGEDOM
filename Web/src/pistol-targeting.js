@@ -1,29 +1,29 @@
 import { droneHoverHeight } from "./drone-mechanics.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { chainedSight, withChained } from "./engine/chain-break.js";
+export { chainedSight, withChained };
+// Every enemy plus the shackled Pitborn's stand-in while it is chained.
+export const bodies = (g) => withChained(g, g.enemies ?? []);
 import { PISTOL_RULES, tracePistol } from "./pistol.js";
+import { rigCapability, rigNumber } from "./rig-capabilities.js";
 
 export function combatTargetHeight(target, time) {
-  return target.rig === "low-hover-drone"
-    ? droneHoverHeight(time)
-    : (target.rig === "original-wolf"
-        ? 1.625
-        : target.rig === "giant-salamander"
-          ? 1.08
-          : target.rig === "original-rat"
-            ? 0.54
-            : target.rig === "original-dog"
-              ? target.contactGoalReach
-                ? 0.7
-                : 0.35
-              : target.rig === "original-roach"
-                ? target.contactGoalReach
-                  ? 0.24
-                  : 0.08
-                : 1.15) * (target.mobSize ?? 1);
+  if (rigCapability(target.rig, "hoverTarget")) return droneHoverHeight(time);
+  // The per-rig heights live in creatures.json rigCapabilities; a rig with none (the humans and bosses) uses the default.
+  const height = rigNumber(target.rig, "targetHeight"),
+    reach = rigNumber(target.rig, "targetHeightReach");
+  return (
+    (target.contactGoalReach && reach !== undefined ? reach : (height ?? GAME_DATA.weapons.targeting.defaultHeight)) *
+    (target.mobSize ?? 1)
+  );
 }
-export const PISTOL_TARGETING = Object.freeze({ acquireDegrees: 12, retainDegrees: 18 });
-export const COMBAT_TARGETING = Object.freeze({ meleeDegrees: 45 });
+// Cone degrees live in weapons.json "targeting".
+const TARGETING = GAME_DATA.weapons.targeting;
+const SHOT = TARGETING.shot;
 const EPS = 1e-8;
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+const SAME_SPOT = 1e-6; // tuning-ok: metres within which an aim point counts as standing on a target
+const sq = (x) => x * x;
+import { point } from "./engine/shared-checks.js";
 
 // Stateless: caller supplies original intent, current visible cohort and weapon
 // potential reach. Selection never turns an actor, starts an attack or grants a hit.
@@ -35,7 +35,7 @@ export function selectCombatTarget({
   lineClear,
   range,
   rangeOffset,
-  coneDegrees = COMBAT_TARGETING.meleeDegrees,
+  coneDegrees = TARGETING.meleeConeDegrees,
   areaId,
   nearest = false,
 } = {}) {
@@ -100,12 +100,12 @@ export function selectCombatTarget({
 // Compatible pistol policy. New runtime resolves each actual shot without a
 // retained ID; legacy opt-in hysteresis stays available to unchanged callers.
 export function selectPistolTarget({ retainedTargetId = null, switchTarget = false, ...input } = {}) {
-  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: PISTOL_TARGETING.acquireDegrees };
+  const policy = { ...input, range: PISTOL_RULES.range, coneDegrees: TARGETING.pistol.acquireDegrees };
   const retained =
     !switchTarget && retainedTargetId != null
       ? selectCombatTarget({
           ...policy,
-          coneDegrees: PISTOL_TARGETING.retainDegrees,
+          coneDegrees: TARGETING.pistol.retainDegrees,
           targets: Array.from(input.targets ?? []).filter((target) => target?.id === retainedTargetId),
         })
       : null;
@@ -122,7 +122,7 @@ export function resolvePistolShot({ position, aim, targets, visibleIds, lineClea
     lineClear,
     areaId,
     range: rules.range,
-    coneDegrees: PISTOL_TARGETING.acquireDegrees,
+    coneDegrees: TARGETING.pistol.acquireDegrees,
   });
   return tracePistol(position, selected?.direction ?? aim, targets, lineClear, rules);
 }
@@ -142,16 +142,23 @@ export function selectedRangedProfile(g) {
     };
   return null;
 }
+// Bodies a gun can aim at: the visible hostile enemies, plus the shackled Pitborn's stand-in while it is chained (it is always listed,
+// the view cull knows only real enemies).
 export function rangedTargets(g, visibleIds) {
-  return (g.enemies ?? []).filter(
-    (t) =>
-      t.hp > 0 &&
-      t.hostile !== false &&
-      t.visible !== false &&
-      (!visibleIds || visibleIds.includes(t.id)) &&
-      (t.areaId == null || t.areaId === g.world.areaId),
+  return withChained(
+    g,
+    (g.enemies ?? []).filter(
+      (t) =>
+        t.hp > 0 &&
+        t.hostile !== false &&
+        t.visible !== false &&
+        (!visibleIds || visibleIds.includes(t.id)) &&
+        (t.areaId == null || t.areaId === g.world.areaId),
+    ),
   );
 }
+// Bodies a melee swing can turn toward: every enemy in view, plus the shackled Pitborn's stand-in.
+export const meleeCandidates = (g, visibleIds) => withChained(g, g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)));
 export function resolveRangedAim(
   g,
   aim,
@@ -164,7 +171,7 @@ export function resolveRangedAim(
   if (!profile || length < EPS || !Number.isFinite(length)) return null;
   const direction = { x: aim.x / length, z: aim.z / length },
     targets = rangedTargets(g, visibleIds),
-    lineClear = g.world.lineClear.bind(g.world),
+    lineClear = chainedSight(g),
     projectile = ["grenade", "rocketLauncher"].includes(profile.field),
     rules = profile.rules;
   const explicitTarget =
@@ -181,13 +188,28 @@ export function resolveRangedAim(
     }
     assist = false;
   }
+  // `targets` already holds the shackled Pitborn's stand-in (rangedTargets) and `lineClear` lets sight reach it past its statue.
   const trace = assist
-    ? resolvePistolShot({ position: p, aim: direction, targets, visibleIds, lineClear, areaId: g.world.areaId, rules })
+    ? resolvePistolShot({ position: p, aim: direction, targets, lineClear, areaId: g.world.areaId, rules })
     : tracePistol(p, direction, targets, lineClear, rules);
   if (!trace) return null;
-  let target = targets.find((t) => t.id === trace.targetId) ?? null,
+  // The statue stops a bullet short of the shackled Pitborn without hitting its stand-in body; a line that passes within its radius still
+  // counts as aimed at it (the cue and the lock). The shot itself snaps the chains through chain-break.js, not through this target.
+  const through = (t) => {
+    const dx = t.pos.x - p.x,
+      dz = t.pos.z - p.z,
+      line = trace.direction;
+    return (
+      !!t.chainedStandIn &&
+      lineClear(p, t.pos) &&
+      Math.hypot(dx, dz) <= rules.range &&
+      dx * line.x + dz * line.z > 0 &&
+      Math.abs(dx * line.z - dz * line.x) <= t.radius
+    );
+  };
+  let target = targets.find((t) => t.id === trace.targetId) ?? (trace.targetId == null ? targets.find(through) : null) ?? null,
     position = target ? { ...target.pos } : { ...trace.end },
-    height = target ? combatTargetHeight(target, g.time) : 1.05;
+    height = target ? combatTargetHeight(target, g.time) : SHOT.missHeight;
   if (projectile) {
     if (g.mobileAssistEnabled === false && !explicitTarget) target = null;
     if (point(aimPoint)) {
@@ -202,7 +224,7 @@ export function resolveRangedAim(
           ? (targets.find(
               (t) =>
                 t.id === aimTargetId &&
-                Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < 1e-6 &&
+                Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < SAME_SPOT &&
                 lineClear(p, t.pos),
             ) ?? null)
           : null;
@@ -216,10 +238,17 @@ export function resolveRangedAim(
     } else if (target && Math.hypot(target.pos.x - p.x, target.pos.z - p.z) > rules.range + EPS) target = null;
     if (!point(aimPoint) && !target) {
       const distance =
-        profile.field === "grenade" ? Math.min(rules.range, g.grenadeThrowRange ?? 5) - EPS : rules.range;
+        profile.field === "grenade"
+          ? Math.min(rules.range, g.grenadeThrowRange ?? SHOT.grenadeFallbackRange) - EPS
+          : rules.range;
       position = { x: p.x + direction.x * distance, z: p.z + direction.z * distance };
     }
-    height = profile.field === "grenade" ? 0.08 : target ? combatTargetHeight(target, g.time) : 0.05;
+    height =
+      profile.field === "grenade"
+        ? SHOT.grenadeLandingHeight
+        : target
+          ? combatTargetHeight(target, g.time)
+          : SHOT.landingHeight;
   }
   return {
     profile,
@@ -262,7 +291,7 @@ export function pistolCue(game, { paused = false, visibleIds } = {}) {
 function groundPointerPoint(world, views, enemies, x, y) {
   const ground = world.screenToGround(x, y),
     frames = enemies
-      .filter((e) => e.hp > 0 && e.rig === "low-hover-drone")
+      .filter((e) => e.hp > 0 && rigCapability(e.rig, "hoverTarget"))
       .map((e) => {
         const v = views.get(e.id);
         return (v?.contactModel ?? v?.model)?.getObjectByName("ARM_Drone_Rigid_Frame");
@@ -294,12 +323,12 @@ export function flamePointerPoint(world, views, enemies, x, y, { assist = true, 
       continue;
     const height = combatTargetHeight(e, time),
       r = e.radius,
-      v = Math.max(0.1, height * 0.65),
+      v = Math.max(SHOT.bodyMinHalfHeight, height * SHOT.bodyHeightRatio),
       o = { x: ray.origin.x - e.pos.x, y: ray.origin.y - height, z: ray.origin.z + e.pos.z },
       d = ray.direction,
-      a = (d.x / r) ** 2 + (d.y / v) ** 2 + (d.z / r) ** 2,
-      b = (o.x * d.x) / r ** 2 + (o.y * d.y) / v ** 2 + (o.z * d.z) / r ** 2,
-      c = (o.x / r) ** 2 + (o.y / v) ** 2 + (o.z / r) ** 2 - 1,
+      a = sq(d.x / r) + sq(d.y / v) + sq(d.z / r),
+      b = (o.x * d.x) / sq(r) + (o.y * d.y) / sq(v) + (o.z * d.z) / sq(r),
+      c = sq(o.x / r) + sq(o.y / v) + sq(o.z / r) - 1,
       disc = b * b - a * c;
     if (!Number.isFinite(disc) || disc < 0) continue;
     const near = (-b - Math.sqrt(disc)) / a,
@@ -322,11 +351,13 @@ export function rangedPointerPoint(g, views, x, y, { visibleIds } = {}) {
     targets = rangedTargets(g, visibleIds).filter(
       (t) =>
         Math.hypot(t.pos.x - g.player.pos.x, t.pos.z - g.player.pos.z) <= profile.rules.range + EPS &&
-        g.world.lineClear(g.player.pos, t.pos),
+        chainedSight(g)(g.player.pos, t.pos),
     ),
     projectionTargets = targets.map((t) => {
       const scale = views.get(t.id)?.root?.scale?.y;
-      return t.rig !== "original-wolf" && Number.isFinite(scale) && scale > 0 ? { ...t, mobSize: scale } : t;
+      return !rigCapability(t.rig, "fixedPointerScale") && Number.isFinite(scale) && scale > 0
+        ? { ...t, mobSize: scale }
+        : t;
     }),
     position = pistolPointerPoint(g.world, views, projectionTargets, x, y, { assist, time: g.time, visibleIds });
   const target = assist && targets.find((t) => Math.hypot(t.pos.x - position.x, t.pos.z - position.z) < EPS);

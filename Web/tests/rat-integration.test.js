@@ -1,9 +1,10 @@
+import { withDonorPlayer } from "./helpers/donor-player.js";
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from 'three';
 import {ratLowBlade} from '../src/rat-contact.js';import bladePath from '../src/rat-data/blade-path.json' with {type:'json'};
 import {loadGeometry} from '../../art/donor/probe.mjs';import {createActors} from '../src/actors.js';import {disposeActorSources} from '../src/actor-resources.js';
 import {travelTo} from '../src/travel.js';
 import {createGame,stepGame,attack,receiveHit} from '../src/combat.js';import {createHollowEncounter} from '../src/hollow-encounter.js';import {pistolCue} from '../src/pistol-targeting.js';
-const publicRoot=new URL('../public/',import.meta.url),manifest=JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot)));
+const publicRoot=new URL('../public/',import.meta.url),manifest=withDonorPlayer(JSON.parse(fs.readFileSync(new URL('assets/manifest-hollow.json',publicRoot))));
 const encounter=createHollowEncounter({rig:'hollow-scavenger',weapon:'knife',contactRig:'hero',bodyScale:1});
 function world(){return {areaId:'east',layout:{characterScale:1.265},spawn:{x:0,z:0},move:(p,d)=>({x:p.x+d.x,z:p.z+d.z}),lineClear:()=>true,geometry:{clear:()=>true,lineClear:()=>true},toRender:(p,h=0)=>new T.Vector3(p.x,h,-p.z)};}
 // Keep the sealed1x geometry regression inputs; current3x boundary/contact has separate coverage.
@@ -25,11 +26,11 @@ test('historical1x recorded stationary frontal .8 case receives repeated actual 
  assert.ok(hits.length>=2,'repeated real tooth intersections in formerly missing stationary case');assert.ok(hits.every(e=>e.amount===6&&e.weapon==='teeth'));assert.ok(commits.every(e=>e.clip==='rat_bite_low'));assert.equal(rat.hp,20);
 });
 test('one rat replaces existing East7 without adding residents or West rewards',async()=>{
- const w=world(),g=createGame(w,options);assert.equal(g.enemies.length,9);const rat=g.enemies.find(e=>e.rig==='original-rat');assert.equal(rat.placementKey,'east-roamer-7');assert.equal(rat.hp,20);assert.equal(rat.radius,1.09);assert.equal(rat.mobSize,1);assert.equal(rat.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-rat').length,1);
- const west=createGame({...world(),areaId:'westminster'},options);assert.equal(west.enemies.length,6);assert.equal(west.enemies.find(e=>e.placementKey==='westminster-roamer-4').rig,'original-rat');assert.ok(west.enemies.filter(e=>e.placementKey!=='westminster-roamer-4').every(e=>e.rig==='hollow-scavenger'&&e.hp===40));
+ const w=world(),g=createGame(w,options);assert.equal(g.enemies.length,12);const rat=g.enemies.find(e=>e.rig==='original-rat');assert.equal(rat.placementKey,'east-roamer-7');assert.equal(rat.hp,20);assert.equal(rat.radius,1.09);assert.equal(rat.mobSize,1);assert.equal(rat.weapon,'teeth');assert.equal(g.enemies.filter(e=>e.rig==='original-rat').length,1);
+ const west=createGame({...world(),areaId:'westminster'},options);assert.equal(west.enemies.length,8);assert.equal(west.enemies.find(e=>e.placementKey==='westminster-roamer-4').rig,'original-rat');assert.ok(west.enemies.filter(e=>e.placementKey!=='westminster-roamer-4').every(e=>e.rig==='hollow-scavenger'&&e.hp===40));
  Object.assign(g.pistol,{collected:true,equipped:true,magazine:6});g.enemies=[rat];g.player.pos={x:rat.pos.x,z:rat.pos.z-5};g.pistolUserFacing={x:0,z:1};assert.equal(pistolCue(g).height,.54);
  stepGame(g,{actions:['fire'],aim:{x:0,z:1}});assert.equal(g.kills,1);assert.equal(rat.finisher.recipeId,'bullet-native-collapse');assert.deepEqual(g.supplies.issued,[]);assert.equal(rat.response.clip,'rat_death');assert.equal(rat.response.ticks,54);
- w.loadArea=async id=>{w.areaId=id;return{x:0,z:0};};const id=rat.id;await travelTo(g,{areaId:'westminster'});assert.equal(g.enemies.length,6);await travelTo(g,{areaId:'east'});assert.equal(g.corpses.length,1);assert.equal(g.corpses[0].id,id);assert.equal(g.corpses[0].response.clip,'rat_death');assert.deepEqual(g.supplies.issued,[]);
+ w.loadArea=async id=>{w.areaId=id;return{x:0,z:0};};const id=rat.id;await travelTo(g,{areaId:'westminster'});assert.equal(g.enemies.length,8);await travelTo(g,{areaId:'east'});assert.equal(g.corpses.length,1);assert.equal(g.corpses[0].id,id);assert.equal(g.corpses[0].response.clip,'rat_death');assert.deepEqual(g.supplies.issued,[]);
 });
 for(const retreat of [false,true])test(`historical1x actual posed foot approach and native close slash ${retreat?'after normal backstep':'without backstep'}`,async t=>{
  const prior=globalThis.document;globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({createRadialGradient:()=>({addColorStop(){}}),fillRect(){}})})};t.after(()=>{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;});

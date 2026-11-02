@@ -1,13 +1,22 @@
 import { BOSS_RANGED_RULES } from "./engine/boss-ranged.js";
+import { slotModelRefs } from "./engine/slot-models.js";
+import {
+  actorModelRef,
+  areaRequiredRefs,
+  crowdAreaRefs,
+  crowdBodyRef,
+  staleLook,
+  visualRigOf,
+} from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
-import { createRailgunCoils } from "./engine/railgun-coils.js";
+import { createLmgDrum } from "./engine/lmg-drum.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
+import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
+import { bodyHitStart, bodyHitStep, bodyHitEnd } from "./engine/hit-reaction.js";
 import {
   traceGrenadeSurface,
-  traceRailgunSurface,
-  posedActorBounds,
   followGrenadeSurface,
   surfaceAimHeight,
 } from "./engine/grenade-surface.js";
@@ -26,7 +35,7 @@ import {
   followFlameHand,
   rememberFlameHand,
   flameTargetAim,
-  flameGripProfile,
+  flameGripFor,
   applyFlamePitch,
   restoreFlamePitch,
   flameAimPose,
@@ -52,17 +61,30 @@ import dogBite from "./dog-data/bite-scaled.json" with { type: "json" };
 import dogMidClip from "./dog-data/mid-slash.json" with { type: "json" };
 import dogBlade from "./dog-data/blade-path.json" with { type: "json" };
 import dogReceiverAppend from "./dog-data/receiver-append.json" with { type: "json" };
+import { createBodyContact } from "./body-contact.js";
 import { createRatBiteReceiver, ratLowBlade } from "./rat-contact.js";
-import { rigCapability } from "./rig-capabilities.js";
+import { rigCapability, rigNumber, rigText } from "./rig-capabilities.js";
+// The larger feral variant of a rig is the one at its `feralScale` (a rig without one has none).
+const feralVariant = (rig, scale) => {
+  const feral = rigNumber(rig, "feralScale");
+  return feral !== undefined && feral === scale;
+};
 import footBindings from "./rat-data/foot-bindings.json" with { type: "json" };
 import lowClip from "./rat-data/low-slash.json" with { type: "json" };
 import lowBlade from "./rat-data/blade-path.json" with { type: "json" };
 import { attachPistolSlide } from "./pistol-slide.js";
 import { createHitReaction } from "./combat-impact.js";
+import { createOffscreenThrottle } from "./engine/offscreen-actors.js";
 import { createFinisherPresentationSteps, finisherVictimPoseAge, validateHeadParts } from "./finisher-presentation.js";
 import { createVestView } from "./vest-view.js";
 import * as THREE from "three";
-const damageCrimson = new THREE.Color(0x831428);
+import { GAME_DATA } from "./engine/game-data.js";
+import { createHubNpcs } from "./engine/hub-npcs.js";
+import { syncGoldenSkins } from "./engine/golden-weapons.js";
+// The damage flash, blob shadow, marked tint, drone clocks, contact bands and hit, flame and fire/reload timings are appearance.json `actorView`.
+const LOOK = GAME_DATA.appearance.actorView;
+const damageCrimson = new THREE.Color(LOOK.damageColor);
+const SKIN_INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
@@ -70,12 +92,16 @@ import { HOLLOW_GARMENTS, hollowPaletteFor, applyHollowPalette } from "./hollow-
 import { ActorMotion } from "./motion.js";
 import { attachPistol, applyPistolAim, restoreGripProfile } from "./pistol-pose.js";
 import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.js";
+import { setRigBones } from "./rig-bones.js";
 import { disposeActorSources } from "./actor-resources.js";
-import { hollowLocomotionFor, AREA_MOB_SPAWNS } from "./area-mob-spawns.js";
+import { shareIdenticalTextures } from "./actor-texture-share.js";
+import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
 import { FACE_APPEARANCE_VERSION, FACE_RECIPES, ORIGINAL_FACE_ID, faceRecipeFor } from "./face-recipes.js";
 import { allocateFaceRecipes } from "./face-allocator.js";
+import { applyStarTell } from "./engine/star-variants-view.js";
+import { createFinisherPrepPump, captureRig, applyRig } from "./engine/finisher-prep-pump.js";
 const residentFaces = allocateFaceRecipes(
   "london-residents",
   Object.values(AREA_MOB_SPAWNS)
@@ -84,26 +110,6 @@ const residentFaces = allocateFaceRecipes(
   { version: FACE_APPEARANCE_VERSION, recipes: FACE_RECIPES },
 );
 const names = ["revenant", "orc", "warlock", "warlord"];
-function actorModelRef(entity, manifest, loaded) {
-  // Appearance only: the hunter keeps its existing mechanical rig and rules.
-  // The hunter model is deferred; until it has loaded the tinted scavenger stands in.
-  if (entity.markedHunter && manifest.models?.["marked-hunter"] && (!loaded || loaded.has("marked-hunter")))
-    return "marked-hunter";
-  if (entity.appearanceRef !== undefined) {
-    const ref = entity.appearanceRef;
-    if (
-      entity.kind < 0 ||
-      typeof ref !== "string" ||
-      !/^[a-z][a-z0-9-]*$/.test(ref) ||
-      !manifest.models ||
-      !Object.hasOwn(manifest.models, ref) ||
-      manifest.models[ref].rig !== entity.rig
-    )
-      throw Error("Invalid actor appearance reference");
-    return ref;
-  }
-  return entity.kind < 0 ? "vagrant" : manifest.pilot === "donor-knife" ? entity.rig : names[entity.kind];
-}
 export function restoreActorFlash(view) {
   for (const m of view.flashMaterials) {
     if (m.color) m.material.color.copy(m.color);
@@ -131,12 +137,14 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     pendingModels = new Map();
   let pistolAsset = null;
   const urls = new Map();
-  const sources = new Set();
+  const sources = new Set(),
+    sharedTextures = new Map();
   function load(url) {
     if (!urls.has(url)) {
       const pending = loader
         .loadAsync(url)
-        .then((gltf) => {
+        .then(async (gltf) => {
+          if (!disposed) await shareIdenticalTextures(gltf, sharedTextures);
           if (disposed) {
             disposeActorSources(new Set([gltf]));
             throw Error("Actor library disposed");
@@ -158,6 +166,7 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     disposed = true;
     disposeActorSources(sources);
     sources.clear();
+    sharedTextures.clear();
     models.clear();
     pendingModels.clear();
     urls.clear();
@@ -214,9 +223,21 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
     dispose();
     throw failure?.reason ?? Error("Survivor export missing");
   }
+  // Files loadModel would fetch for these deferred, not yet loaded models.
+  function modelUrls(names) {
+    return [...new Set(names)]
+      .filter((name) => Object.hasOwn(manifest.models, name) && !models.has(name))
+      .flatMap((name) => {
+        const description = manifest.models[name];
+        return [description.url, description.equipment?.url, description.armSever?.url]
+          .filter(Boolean)
+          .map((url) => new URL(url, manifestURL).href);
+      });
+  }
   return {
     models,
     ensureModels,
+    modelUrls,
     manifest,
     pistolAsset,
     complete:
@@ -229,14 +250,22 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
 }
 function shadowTexture() {
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 64;
+  const blob = LOOK.shadowBlob;
+  canvas.width = canvas.height = blob.size;
   const ctx = canvas.getContext("2d"),
-    g = ctx.createRadialGradient(32, 32, 3, 32, 32, 31);
+    g = ctx.createRadialGradient(
+      blob.centre,
+      blob.centre,
+      blob.innerRadius,
+      blob.centre,
+      blob.centre,
+      blob.outerRadius,
+    );
   g.addColorStop(0, "rgba(0,0,0,.6)");
-  g.addColorStop(0.55, "rgba(0,0,0,.25)");
+  g.addColorStop(blob.midStop, "rgba(0,0,0,.25)");
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillRect(0, 0, blob.size, blob.size);
   return new THREE.CanvasTexture(canvas);
 }
 export function createActors(
@@ -248,6 +277,7 @@ export function createActors(
   const bodyShapes = createFeralBodyShapeLibrary(),
     roachLooks = createRoachAppearanceLibrary(THREE),
     droneKits = createLowHoverDroneLibrary({ appearance: droneAppearance }),
+    offscreen = createOffscreenThrottle(THREE, GAME_DATA.offscreenActors),
     faceKits = new Map(),
     dogKits = new Map(),
     animalLooks = createAnimalAppearanceLibrary(THREE),
@@ -261,13 +291,22 @@ export function createActors(
     } catch (error) {
       gauntPreparationError = String(error.message ?? error);
     }
+  const hubNpcs = createHubNpcs({ library, visualScale });
   let reaperView = null;
+  let earlyHunterLoad = false;
   let feedbackMode = "high",
     lastReduced = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   const reducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   const parkedViews = new Map(),
     groundingCache = new WeakMap(),
-    goreOwners = new Set();
+    goreOwners = new Set(),
+    storeOf = (a) => parkedViews.get(a) ?? parkedViews.set(a, new Map()).get(a);
+  // Residents whose finisher geometry is still to be prepared after arrival (see engine/finisher-prep-pump.js).
+  const deferredViews = new Set(),
+    finisherPump = createFinisherPrepPump({
+      config: FINISHER_DATA.preparation.deferred,
+      onError: (view, error) => console.warn("ARMAGEDOM_FINISHER_PREP", view.entity?.placementKey, error?.message),
+    });
   const views = new Map(),
     shadowMap = shadowTexture(),
     shadowGeometry = new THREE.PlaneGeometry(1, 1);
@@ -284,8 +323,8 @@ export function createActors(
     restoreCorpses = false,
     { stageWorld = world, renderScene = scene, store = views } = {},
   ) {
-    if (entity.markedHunter) finishers = false;
-    if (entity.rig === "low-hover-drone") {
+    if (entity.markedHunter || crowdBodyRef(entity, stageWorld.areaId)) finishers = false;
+    if (rigCapability(entity.rig, "hoverTarget")) {
       const drone = droneKits.spawn({
         scene: renderScene,
         position: stageWorld.toRender(entity.pos),
@@ -321,22 +360,24 @@ export function createActors(
         ? createFinisherGore({ root: view.root, model: view.model, rig: entity.rig, camera: stageWorld.camera })
         : null;
       if (view.gore) goreOwners.add(view.gore);
-      view.finisherDeathSeconds = 0.8;
+      view.finisherDeathSeconds = LOOK.droneDeathSeconds;
       view.restoredCorpse = restoreCorpses && entity.hp <= 0;
-      if (finishers) entity.finisherSupport = nativeFinisherSupport({ clip: "drone_death", seconds: 0.8 });
+      if (finishers)
+        entity.finisherSupport = nativeFinisherSupport({ clip: "drone_death", seconds: LOOK.droneDeathSeconds });
       store.set(entity.id, view);
       return view;
     }
-    const name = actorModelRef(entity, library.manifest, library.models),
+    const name = actorModelRef(entity, library.manifest, library.models, stageWorld.areaId),
       source = library.models.get(name);
     if (!source) throw Error(`Original ${name} export not ready`);
-    const visualRig = entity.markedHunter && name === "marked-hunter" ? source.description.rig : entity.rig,
+    const visualRig = visualRigOf(entity, name, source.description),
       garments = source.description.clothingMaterials ?? (visualRig === "hollow-scavenger" ? HOLLOW_GARMENTS : null);
     const palette = entity.kind >= 0 && garments ? hollowPaletteFor(entity, stageWorld.areaId) : null;
     const root = new THREE.Group(),
       model = clone(source.gltf.scene),
       description = source.description,
       materials = [];
+    setRigBones(model, description);
     let animations = source.equipment
       ? equipDonorPlayer({ scene: model, animations: source.gltf.animations }, source.equipment).animations
       : source.gltf.animations;
@@ -347,11 +388,16 @@ export function createActors(
         THREE.AnimationClip.parse(dogMidClip),
         ...(library.manifest.models?.["vagrant-cleaver"] ? [THREE.AnimationClip.parse(cleaverLowClip)] : []),
       ];
-    if (entity.rig === "original-roach" && (description.scale === 3 || description.scale === 4))
+    if (rigText(entity.rig, "biteMove") === "roach" && LOOK.roachBiteScales.includes(description.scale))
       animations = [...animations, THREE.AnimationClip.parse(roachBite)];
+    // The clone, clip parsing and the coat work below were one 35-58 ms step; each now ends its own step.
+    yield "actor-clone";
     let feral = null;
-    if (entity.rig === "original-dog" && description.scale === 2) {
-      if (!dogKits.has(source.gltf.scene)) dogKits.set(source.gltf.scene, createFeralDogLibrary(source.gltf.scene));
+    if (feralVariant(entity.rig, description.scale)) {
+      if (!dogKits.has(source.gltf.scene)) {
+        dogKits.set(source.gltf.scene, createFeralDogLibrary(source.gltf.scene));
+        yield "actor-clone";
+      }
       feral = dogKits.get(source.gltf.scene).apply(model);
       animations = [...animations, THREE.AnimationClip.parse(dogBite)];
     }
@@ -360,23 +406,26 @@ export function createActors(
       ? bodyShapes.apply(model, animalAppearanceId)
       : null;
     if (animalAppearanceId) {
-      if (entity.rig === "original-rat") animalLooks.apply(model, animalAppearanceId, entity.rig);
-      else if (entity.rig === "original-roach") roachLooks.apply(model, animalAppearanceId);
+      const kit = rigText(entity.rig, "appearanceKit");
+      if (kit === "rat") animalLooks.apply(model, animalAppearanceId, entity.rig);
+      else if (kit === "roach") roachLooks.apply(model, animalAppearanceId);
       else dogCoats.apply(model, animalAppearanceId);
     }
+    yield "actor-clone";
     const pistolMount = entity.kind < 0 && library.pistolAsset ? attachPistol(model, library.pistolAsset.scene) : null;
     if (pistolMount) pistolMount.visible = false;
     const knife = entity.kind < 0 || entity.bossProfile?.weapon ? model.getObjectByName("WeaponDrawn") : null;
     root.name = name;
     root.position.copy(stageWorld.toRender(entity.pos));
     root.scale.setScalar(
-      (stageWorld.layout.characterScale ?? 1.265) *
+      (stageWorld.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
         (description.scale ?? 1) *
         visualScale *
         (entity.kind >= 0 ? (entity.mobSize ?? 1) : 1),
     );
     root.add(model);
-    if (["giant-salamander", "original-wolf"].includes(entity.rig)) model.position.y += description.groundOffset;
+    if (rigCapability(entity.rig, "nativeSkeleton")) model.position.y += description.groundOffset;
+    const materialDim = rigNumber(entity.rig, "materialDim");
     const hidden = new Set((description.starterHidden ?? []).map(THREE.PropertyBinding.sanitizeNodeName));
     model.traverse((o) => {
       if (hidden.has(o.name)) o.visible = false;
@@ -385,9 +434,10 @@ export function createActors(
         const original = Array.isArray(o.material) ? o.material : [o.material];
         const copies = original.map((m) => {
           const own = m.clone();
-          if (entity.rig === "giant-salamander") own.color?.multiplyScalar(0.75);
+          if (materialDim !== undefined) own.color?.multiplyScalar(materialDim);
           if (palette) applyHollowPalette(own, palette, garments);
-          if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(1, 0.66, 0.55));
+          if (entity.markedHunter && name !== "marked-hunter") own.color?.multiply(new THREE.Color(...LOOK.markedTint));
+          if (entity.star) applyStarTell(own, entity.star);
           materials.push({
             material: own,
             emissive: own.emissive?.clone(),
@@ -412,8 +462,8 @@ export function createActors(
         toneMapped: false,
       }),
     );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.scale.set(1.25 * root.scale.x, 1.25 * root.scale.x, 1);
+    shadow.rotation.x = -Math.PI / 2; // tuning-ok: a quarter turn lays the blob flat
+    shadow.scale.set(LOOK.shadowScale * root.scale.x, LOOK.shadowScale * root.scale.x, 1);
     shadow.renderOrder = 0;
     const view = {
       root,
@@ -474,7 +524,8 @@ export function createActors(
         const flame = library.models.get(entity.bossProfile.weapon.modelRef);
         if (flame) view.flameMount = attachFlame(model, flame.gltf, { bindHand: true });
       }
-      view.finisherDeathSeconds = animations.find((c) => c.name === description.clips.death)?.duration ?? 2.4;
+      view.finisherDeathSeconds =
+        animations.find((c) => c.name === description.clips.death)?.duration ?? LOOK.defaultDeathSeconds;
       view.restoredCorpse = restoreCorpses && entity.hp <= 0;
       if (finishers && entity.kind >= 0)
         entity.finisherSupport = nativeFinisherSupport({
@@ -485,7 +536,13 @@ export function createActors(
       renderScene.add(root, shadow);
       yield "actor-motion";
       if (finishers && entity.kind >= 0 && entity.rig === "hollow-scavenger") {
+        // A living resident is built with the ordinary death only; its finisher geometry is prepared after arrival.
+        const defer = FINISHER_DATA.preparation.deferred.enabled && entity.hp > 0;
+        if (defer) view.finisherPose0 = captureRig(model);
+        view.rigEpoch = 0;
         view.finisher = yield* createFinisherPresentationSteps({
+          deferPreparation: defer,
+          rigEpoch: () => view.rigEpoch,
           root,
           model,
           rig: entity.rig,
@@ -514,6 +571,7 @@ export function createActors(
             !stageWorld.geometry.clear(point, radius) || (!!from && !stageWorld.geometry.lineClear(from, point)),
         });
         entity.finisherSupport = view.finisher.support;
+        if (defer) deferredViews.add(view);
         view.restoredCorpse = restoreCorpses && entity.hp <= 0;
       }
       if (finishers && entity.kind >= 0)
@@ -525,9 +583,35 @@ export function createActors(
     }
     return view;
   }
+  // Runs `run` with the rig in the pose it had when the resident was built, then puts the live pose back. The
+  // epoch tells the grounding bake that the pose was rewritten, so it re-poses from scratch (see finisher-grounding.js).
+  function atBuildPose(view, run) {
+    view.lodRestore?.(); // finisher preparation reads the full geometry (engine/actor-lod.js)
+    view.rigEpoch++;
+    const live = captureRig(view.model);
+    applyRig(view.finisherPose0, view.root, view.model);
+    try {
+      return run();
+    } finally {
+      applyRig(live, view.root, view.model);
+    }
+  }
+  function* finishDeferredSteps() {
+    for (const view of [...deferredViews]) {
+      if (view.finisherPrepFailed || view.finisher.isPrepared() || view.entity.hp <= 0) continue;
+      const steps = view.finisher.prepare();
+      for (;;) {
+        const step = atBuildPose(view, () => steps.next());
+        if (step.done) break;
+        yield step.value;
+      }
+    }
+  }
   function remove(id, store = views) {
     const view = store.get(id);
     if (!view) return;
+    releasePhysicsDeath(view);
+    bodyHitEnd(view);
     view.gore?.dispose();
     goreOwners.delete(view.gore);
     if (view.drone) {
@@ -542,6 +626,8 @@ export function createActors(
     view.salamanderReceiver?.dispose();
     view.wolfReceiver?.dispose();
     view.ratReceiver?.dispose();
+    finisherPump.forget(view);
+    deferredViews.delete(view);
     view.finisher?.dispose();
     if (view.finisher) {
       view.entity.finisherSupport = [];
@@ -549,6 +635,7 @@ export function createActors(
       view.entity.finisherPartsUntil = 0;
     }
     view.pistolSlide.dispose();
+    for (const skin of view.goldSkins?.values() ?? []) skin.dispose();
     view.appearance?.dispose();
     view.humanBody?.dispose();
     view.bodyShape?.dispose();
@@ -566,7 +653,7 @@ export function createActors(
     view.shadow.removeFromParent();
     view.shadow.material.dispose();
     view.bossGunPose?.dispose();
-    view.railgunCoils?.dispose();
+    view.lmgDrum?.dispose();
     view.railgunPose?.dispose();
     view.riflePose?.dispose();
     view.shotgunPose?.dispose();
@@ -612,6 +699,11 @@ export function createActors(
             : !!library.models.get("vagrant")?.equipment)
       );
     },
+    // A deferred model by manifest name, loaded on demand (presentation props such as the chained Pitborn).
+    async modelAsset(name) {
+      await library.ensureModels([name]);
+      return library.models.get(name);
+    },
     equipmentAsset(field) {
       const data = world.bossEquipmentData?.[field];
       if (!data) return null;
@@ -631,11 +723,11 @@ export function createActors(
         contactOnly: true,
         projectileContactIds: new Set([actor.id, target.id]),
       });
-      return boneSawContact(views.get(actor.id)?.knife, views, target);
+      return boneSawContact(views.get(actor.id)?.knife, views, target, { ground: target !== game.player });
     },
     rocketAimHeight(game, start, end, targetId) {
       const target = game.enemies.find((e) => e.id === targetId && e.hp > 0);
-      if (!target) return 0.05;
+      if (!target) return LOOK.rocketAimFallback;
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([targetId]) });
       return surfaceAimHeight(views, target, start, end);
     },
@@ -647,37 +739,6 @@ export function createActors(
     grenadeFollow(game, anchor, enemy) {
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([enemy.id]) });
       return followGrenadeSurface(anchor, views.get(enemy.id));
-    },
-    clearRailgunCharge() {
-      const v = views.get(0);
-      v?.railgunCoils?.update({ charging: false, visible: !!v.railgunPose?.mount.visible });
-    },
-    railgunSource(game) {
-      this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set() });
-      const p = this.equipmentOrigin("commanderPistol");
-      return p ? { x: p.x, y: p.y, z: p.z } : null;
-    },
-    railgunAimPoint(game, id) {
-      this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([id]) });
-      const view = views.get(id),
-        aimView = view?.contactModel ? { root: view.contactModel, model: view.contactModel } : view,
-        box = posedActorBounds(aimView, { skinnedOnly: true }) ?? posedActorBounds(aimView),
-        p = box?.getCenter(new THREE.Vector3());
-      return p ? { x: p.x, y: p.y, z: p.z } : null;
-    },
-    railgunTrace(game, start, end) {
-      const targets = game.enemies
-        .filter((e) => e.hp > 0 && e.hostile !== false && (e.areaId == null || e.areaId === game.world.areaId))
-        .sort(
-          (a, b) => Math.hypot(a.pos.x - start.x, a.pos.z + start.z) - Math.hypot(b.pos.x - start.x, b.pos.z + start.z),
-        )
-        .slice(0, 32);
-      this.update(game, 0, 0, {
-        presentationDt: 0,
-        contactOnly: true,
-        projectileContactIds: new Set(targets.map((e) => e.id)),
-      });
-      return traceRailgunSurface(views, targets, start, end);
     },
     bossRangedSource(game, actor) {
       this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([actor.id]) });
@@ -738,7 +799,7 @@ export function createActors(
     },
     flameSource(id = 0) {
       const view = views.get(id);
-      if (view?.entity?.rig === "giant-salamander")
+      if (rigCapability(view?.entity?.rig, "fireBreath"))
         return salamanderMouthSource(view, view.entity, new THREE.Vector3());
       const mount = view?.flameMount,
         muzzle = mount?.visible && mount.getObjectByName("Muzzle");
@@ -759,22 +820,9 @@ export function createActors(
     ensureAreaModels(record, areaId = world.areaId, { fresh = false } = {}) {
       const flame = world.flameData,
         reward = world.uniqueRewardData,
-        refs = [...(record.enemies ?? []), ...(record.corpses ?? [])]
-          .filter(
-            (e) => e.bossProfile || e.appearanceRef !== undefined || library.manifest.models[e.rig]?.deferred === true,
-          )
-          .map((e) => actorModelRef(e, library.manifest));
+        refs = areaRequiredRefs(record, library, areaId, world);
       if (fresh) {
-        refs.push(
-          ...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles ?? {})
-            .map((spec) => spec.foundationRef)
-            .filter((ref) => library.manifest.models[ref]?.deferred === true),
-        );
-        refs.push(
-          ...(world.residentPlacements?.[areaId] ?? [])
-            .filter((row) => row.appearanceRef !== undefined)
-            .map((row) => row.appearanceRef),
-        );
+        refs.push(...slotModelRefs(world, areaId, library.manifest));
         refs.push(
           ...(world.bossData?.placements ?? [])
             .filter((row) => row.areaId === areaId)
@@ -804,6 +852,7 @@ export function createActors(
         }
       const required = library.ensureModels?.([...new Set(refs)]) ?? Promise.resolve();
       return required.then(async () => {
+        refs.crowd();
         if (flame && areaId === flame.areaId)
           try {
             await library.ensureModels([flame.modelRef]);
@@ -812,15 +861,40 @@ export function createActors(
           }
       });
     },
+    // Model files area entry would need that no loaded model covers: placed bosses and their
+    // weapons, resident appearances and deferred creature foundations. Static data only.
+    areaPrefetchUrls(areaId) {
+      const refs = [
+        ...Object.values(world.populationData?.areas[areaId]?.creatureSlot.cycles ?? {})
+          .map((spec) => spec.foundationRef)
+          .filter((ref) => library.manifest.models[ref]?.deferred === true),
+        ...(world.residentPlacements?.[areaId] ?? [])
+          .flatMap((row) => [row.appearanceRef, row.foundationRef])
+          .filter((ref) => ref !== undefined),
+        ...(AREA_MOB_SPAWNS[areaId] ?? []).map((row) => row.appearanceRef).filter((ref) => ref !== undefined),
+        ...slotAppearanceRefs(world.populationData?.areas[areaId]),
+        ...crowdAreaRefs(world, areaId, AREA_MOB_SPAWNS[areaId]),
+        ...(world.uniqueRewardData?.areaId === areaId ? [world.uniqueRewardData.modelRef] : []),
+        ...(world.bossData?.placements ?? [])
+          .filter((row) => row.areaId === areaId)
+          .flatMap((row) => {
+            const profile = world.bossData.profiles[row.profileRef],
+              weapon = profile.weapon;
+            return [profile.modelRef, ...(weapon && weapon.kind !== "saw" ? [weapon.modelRef] : [])];
+          }),
+      ];
+      return library.modelUrls?.(refs) ?? [];
+    },
     parkArea(areaId) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       for (const [id, view] of [...views])
         if (id !== 0) {
+          releasePhysicsDeath(view, true);
           view.impactFlashLife = 0;
           view.hitReactionFresh = false;
           restoreActorFlash(view);
           view.hitReaction.reset();
+          bodyHitEnd(view);
           view.pistolSlide.reset();
           view.finisher?.setDormant(true);
           view.root.removeFromParent();
@@ -830,8 +904,7 @@ export function createActors(
         }
     },
     *prepareAreaSteps(areaId, record, stageWorld, finishers) {
-      const stored = parkedViews.get(areaId) ?? new Map();
-      parkedViews.set(areaId, stored);
+      const stored = storeOf(areaId);
       const added = [];
       let completed = false;
       try {
@@ -855,7 +928,15 @@ export function createActors(
         view.finisher?.setScene(renderScene);
       }
     },
+    // Finish every deferred finisher preparation now, in one go (tests, and tools that need the full recipe set).
+    completeFinisherPreparation() {
+      for (const _ of finishDeferredSteps());
+    },
+    // The same preparation as one step at a time (what the idle pump runs a slice of), rig pose held per step.
+    deferredFinisherSteps: finishDeferredSteps,
+    finisherPreparationStats: () => finisherPump.stats(),
     activateArea(areaId) {
+      finisherPump.enter();
       const stored = parkedViews.get(areaId);
       if (!stored) return;
       for (const [id, view] of stored) {
@@ -882,19 +963,24 @@ export function createActors(
         woundResidentBudget: FINISHER_DATA.gore.residentViewBudget,
         parked: [...parkedViews].map(([area, stored]) => ({ area, count: stored.size })),
         ownedFinisherGeometryBytes: [...all].reduce((n, v) => n + (v.finisher?.stats().ownedGeometryBytes ?? 0), 0),
-        finisherGeometryBudgetBytes: 128 * 1024 * 1024,
+        finisherGeometryBudgetBytes: LOOK.finisherGeometryBudgetBytes,
       };
     },
     humanBodyStats() {
       return { libraries: [...gauntKits.values()].map((kit) => kit.stats()), preparationError: gauntPreparationError };
     },
     ratContact() {
+      // The hero binds recorded lower-leg faces; a swapped body (manifest `bodyContact`) binds its own bones' faces (body-contact.js).
+      const bodySpec = library.manifest.models.vagrant?.bodyContact,
+        bodyOf = (view) => (bodySpec ? (view.bodyContact ??= createBodyContact(view.model, bodySpec)) : null);
       const point = new THREE.Vector3(),
         ray = new THREE.Raycaster();
       function preparePlayer(view) {
         if (view.footReceiver) return;
-        view.footReceiver = createRatBiteReceiver(view.model, footBindings.bindings);
-        view.footPoints = [];
+        const body = bodyOf(view);
+        view.footReceiver = createRatBiteReceiver(view.model, body ? body.bindings("foot") : footBindings.bindings);
+        view.footPoints = body ? body.footPoints(bodySpec.footPart, LOOK.footWeightMin) : [];
+        if (body) return;
         for (const binding of footBindings.bindings) {
           const mesh = view.model.getObjectByName(binding.runtimeName),
             g = mesh.geometry,
@@ -904,10 +990,10 @@ export function createActors(
             const indices = new Set(binding.faceBindings.flatMap((f) => f.vertices)),
               valid = [...indices].filter((i) => {
                 let total = 0;
-                for (let k = 0; k < 4; k++)
+                for (let k = 0; k < SKIN_INFLUENCES; k++)
                   if (["foot_" + side, "ball_" + side].includes(mesh.skeleton.bones[ix.getComponent(i, k)]?.name))
                     total += w.getComponent(i, k);
-                return total > 0.85;
+                return total > LOOK.footWeightMin;
               });
             const chosen = new Set();
             for (const axis of ["X", "Y", "Z"])
@@ -931,7 +1017,7 @@ export function createActors(
       }
       function tooth(view) {
         const mesh = view.model.getObjectByName("Original_ARM_rat_surface_3");
-        mesh.getVertexPosition(80, point);
+        mesh.getVertexPosition(LOOK.toothVertex, point);
         return point.applyMatrix4(mesh.matrixWorld).toArray();
       }
       return {
@@ -942,23 +1028,28 @@ export function createActors(
           preparePlayer(player);
           if (
             !player.dogReceiver &&
-            game.enemies.some((e) => e.rig === "original-dog" && views.get(e.id)?.description.scale === 2)
+            game.enemies.some((e) => feralVariant(e.rig, views.get(e.id)?.description.scale))
           ) {
-            const bindings = footBindings.bindings.map((b) => ({
-              ...b,
-              faceBindings: [
-                ...b.faceBindings,
-                ...dogReceiverAppend
-                  .filter((f) => f.runtimeName === b.runtimeName)
-                  .map(({ face, vertices }) => ({ face, vertices })),
-              ],
-            }));
+            const body = bodyOf(player),
+              bindings = body
+                ? body.bindings("dog")
+                : footBindings.bindings.map((b) => ({
+                    ...b,
+                    faceBindings: [
+                      ...b.faceBindings,
+                      ...dogReceiverAppend
+                        .filter((f) => f.runtimeName === b.runtimeName)
+                        .map(({ face, vertices }) => ({ face, vertices })),
+                    ],
+                  }));
             player.dogReceiver = createRatBiteReceiver(player.model, bindings);
           }
           if (!player.salamanderReceiver) {
-            const own = game.enemies.find((e) => e.rig === "giant-salamander"),
+            const own = game.enemies.find((e) => rigCapability(e.rig, "calfFaceReceiver")),
               faces = own && views.get(own.id)?.description.contact.calfFaces;
-            if (faces) {
+            if (faces && bodySpec)
+              player.salamanderReceiver = createRatBiteReceiver(player.model, bodyOf(player).bindings("salamander"));
+            else if (faces) {
               const bindings = [];
               for (const { runtimeName, face, vertices } of faces) {
                 let binding = bindings.find((b) => b.runtimeName === runtimeName);
@@ -971,8 +1062,11 @@ export function createActors(
               player.salamanderReceiver = createRatBiteReceiver(player.model, bindings);
             }
           }
-          if (!player.wolfReceiver && game.enemies.some((e) => e.rig === "original-wolf"))
-            player.wolfReceiver = createRatBiteReceiver(player.model, wolfBodyReceiverBindings(player.model));
+          if (!player.wolfReceiver && game.enemies.some((e) => rigCapability(e.rig, "bodyReceiver")))
+            player.wolfReceiver = createRatBiteReceiver(
+              player.model,
+              bodySpec ? bodyOf(player).bindings("wolf") : wolfBodyReceiverBindings(player.model),
+            );
           const rats = new Map();
           for (const e of game.enemies)
             if (rigCapability(e.rig, "lowStrike")) {
@@ -991,7 +1085,7 @@ export function createActors(
             }
           const swing = game.player.swing,
             posedMelee = game.player.meleeVariantId && game.player.meleeVariantId !== "knife" && swing?.def.ratLow,
-            contact = posedMelee ? MELEE_VARIANTS[game.player.meleeVariantId].contact : [0.12, 0.52],
+            contact = posedMelee ? MELEE_VARIANTS[game.player.meleeVariantId].contact : LOOK.ratContact,
             playerBlade =
               swing?.def.ratRetimed || posedMelee
                 ? contact.map((y) =>
@@ -1027,7 +1121,7 @@ export function createActors(
             if (!visible(mesh)) continue;
             mesh.getVertexPosition(i, point);
             point.applyMatrix4(mesh.matrixWorld);
-            if (point.y < -0.01 || point.y > 0.2) continue;
+            if (point.y < LOOK.footBand[0] || point.y > LOOK.footBand[1]) continue;
             const next = { x: point.x, y: point.y, z: -point.z },
               d = Math.hypot(next.x - rat.pos.x, next.z - rat.pos.z);
             if (d < distance && world.geometry.clear(next, 0) && world.lineClear(rat.pos, next)) {
@@ -1038,13 +1132,28 @@ export function createActors(
           return best;
         },
         calf: (game, dog) => {
-          this.update(game, 0, 0, { presentationDt: 0, contactOnly: true });
+          this.update(game, 0, 0, { presentationDt: 0, contactOnly: true, projectileContactIds: new Set([dog.id]) });
           const player = views.get(0),
             view = views.get(dog.id);
           if (!player || !view) return null;
           let best = null,
             distance = Infinity;
           player.root.updateMatrixWorld(true);
+          const body = bodyOf(player),
+            consider = (goal, face) => {
+              const next = { x: goal.x, y: goal.y, z: -goal.z, face },
+                d = Math.hypot(next.x - dog.pos.x, next.y, next.z - dog.pos.z);
+              if (d < distance && world.lineClear(dog.pos, next)) {
+                best = next;
+                distance = d;
+              }
+            };
+          if (body) {
+            // A creature reaches the body surface nearest it, then `contactDepth` (rigCapabilities, 0 surface to 1 limb axis) inwards.
+            const depth = rigNumber(dog.rig, "contactDepth") ?? 0;
+            for (const p of body.reachPoints(rigText(dog.rig, "contactPart"), depth, visible, () => new THREE.Vector3())) consider(p);
+            return best;
+          }
           for (const binding of view.description.contact.calfFaces) {
             const mesh = player.model.getObjectByName(binding.runtimeName);
             if (!visible(mesh)) continue;
@@ -1053,35 +1162,25 @@ export function createActors(
               mesh.getVertexPosition(i, point);
               goal.add(point.applyMatrix4(mesh.matrixWorld));
             }
-            goal.multiplyScalar(1 / 3);
-            const band = view.description.contact.calfBand ?? [0.49, 0.54];
+            goal.multiplyScalar(1 / 3); // tuning-ok: the mean of a binding's three vertices
+            const band = view.description.contact.calfBand ?? LOOK.calfBand;
             if (goal.y < band[0] || goal.y > band[1]) continue;
-            const next = { x: goal.x, y: goal.y, z: -goal.z, face: binding.face },
-              d = Math.hypot(next.x - dog.pos.x, next.y, next.z - dog.pos.z);
-            if (d < distance && world.lineClear(dog.pos, next)) {
-              best = next;
-              distance = d;
-            }
+            consider(goal, binding.face);
           }
           return best;
         },
         hit: (a, d, s, before, after) => {
-          if (a.rig === "original-rat") {
+          if (rigText(a.rig, "brain") === "rat") {
             const old = before.rats.get(a.id),
               now = after.rats.get(a.id);
             return old && now && views.get(0).footReceiver.sweep(before.player, after.player, old.tooth, now.tooth).hit;
           }
-          if (
-            a.rig === "original-dog" ||
-            a.rig === "original-roach" ||
-            a.rig === "giant-salamander" ||
-            a.rig === "original-wolf"
-          ) {
+          if (rigText(a.rig, "brain") === "dog") {
             const old = before.rats.get(a.id),
               now = after.rats.get(a.id),
-              scaled = a.rig === "original-dog" && now?.view.description.scale === 2,
-              own = a.rig === "giant-salamander",
-              wolf = a.rig === "original-wolf",
+              scaled = feralVariant(a.rig, now?.view.description.scale),
+              own = rigCapability(a.rig, "calfFaceReceiver"),
+              wolf = rigCapability(a.rig, "bodyReceiver"),
               receiver = wolf
                 ? views.get(0).wolfReceiver
                 : own
@@ -1166,7 +1265,8 @@ export function createActors(
           const v = views.get(e.actor?.id);
           if (v) {
             v.hitReactionFresh = true;
-            v.impactFlashLife = 0.1;
+            v.impactFlashLife = LOOK.hitFlashSeconds;
+            bodyHitStart(v, e);
             if (!e.blocked)
               v.hitReaction.hit({
                 x: e.impactDirection?.x ?? 0,
@@ -1189,6 +1289,25 @@ export function createActors(
       pistolRecoil = 0,
       { presentationDt = dt, restoreCorpses = false, contactOnly = false, projectileContactIds, combatVisibleIds } = {},
     ) {
+      if (!contactOnly) hubNpcs.sync(game.world, presentationDt);
+      if (deferredViews.size && dt > 0 && !contactOnly) {
+        finisherPump.pump(
+          [...deferredViews]
+            .filter((view) => views.get(view.entity.id) === view)
+            .map((view) => ({
+              key: view,
+              entity: view.entity,
+              isPrepared: () => view.finisherPrepFailed || view.finisher.isPrepared(),
+              start: () => view.finisher.prepare(),
+              settle: () => view.finisher.settle(),
+              around: (run) => atBuildPose(view, run),
+              fail() {
+                view.finisherPrepFailed = true;
+              },
+            })),
+          game.player.pos,
+        );
+      }
       if (
         reaperSelected(game) &&
         game.player.hp > 0 &&
@@ -1199,7 +1318,7 @@ export function createActors(
           actor = r?.actor ?? game.player;
         if (!reaperView) {
           reaperView = droneKits.spawn({ scene, position: world.toRender(actor.pos) });
-          reaperView.root.name = "Reaper Drone companion";
+          reaperView.root.name = "Reaper Drone companion"; // text-ok: a scene-graph label for debugging, never shown to the player
         }
         reaperView.update({
           time: game.time,
@@ -1213,6 +1332,23 @@ export function createActors(
         reaperView?.dispose();
         reaperView = null;
       }
+      // Start the deferred hunter model ahead of the warning: once the player first holds marked money, or half way through the
+      // first-arrival wait. Never in the first-input bytes.
+      if (
+        !earlyHunterLoad &&
+        game.world?.markedData &&
+        game.world.markedData.hunters !== false &&
+        library.manifest.models?.["marked-hunter"] &&
+        (game.marked?.carried > 0 ||
+          game.marked?.bounty > 0 ||
+          (game.markedHunt &&
+            game.time >= game.markedHunt.arrivedAt + game.world.markedData.arrivalDelay * LOOK.huntArrivalShare))
+      ) {
+        earlyHunterLoad = true;
+        library.ensureModels?.(["marked-hunter"])?.catch(() => {
+          /* The warning event retries; the tinted scavenger stands in meanwhile. */
+        });
+      }
       if (lastReduced !== reducedMotion()) {
         lastReduced = reducedMotion();
         this.configureFeedback(feedbackMode);
@@ -1220,6 +1356,7 @@ export function createActors(
       const entities = [game.player, ...game.enemies, ...(game.corpses ?? [])],
         ids = new Set(entities.map((e) => e.id));
       for (const id of [...views.keys()]) if (!ids.has(id)) remove(id);
+      offscreen.begin(world.camera, game.player.pos);
       for (const entity of entities) {
         if (
           contactOnly &&
@@ -1229,6 +1366,8 @@ export function createActors(
             : !rigCapability(entity.rig, "lowStrike"))
         )
           continue;
+        // A live hunter, or a calm crowd resident, built from the stand-in is rebuilt once its own model has loaded (appearance only).
+        if (staleLook(entity, views.get(entity.id), library, world.areaId)) remove(entity.id);
         const view = views.get(entity.id) ?? make(entity, game.finishers, restoreCorpses);
         view.bossGunPose?.restore();
         if (entity.kind < 0) {
@@ -1250,23 +1389,25 @@ export function createActors(
               ? "death"
               : warning
                 ? "alert"
-                : entity.droneState.phase === "recover" && game.time - entity.droneState.readyAt + 1.4 < 0.12
+                : entity.droneState.phase === "recover" &&
+                    game.time - entity.droneState.readyAt + LOOK.droneAttackLead < LOOK.droneAttackWindow
                   ? "attack"
                   : entity.alerted
                     ? "idle"
                     : "patrol";
-          view.drone.update({
-            time: game.time,
-            dt: Math.max(0, dt),
-            position: world.toRender(entity.pos),
-            heading: Math.atan2(entity.facing.x, -entity.facing.z),
-            state,
-            phase: dead
-              ? (game.time - (entity.response?.start ?? game.time)) / 0.8
-              : warning
-                ? (game.time - warning.start) / 0.6
-                : 0,
-          });
+          if (!physicsDeathStep(view, entity, library, dt))
+            view.drone.update({
+              time: game.time,
+              dt: Math.max(0, dt),
+              position: world.toRender(entity.pos),
+              heading: Math.atan2(entity.facing.x, -entity.facing.z),
+              state,
+              phase: dead
+                ? (game.time - (entity.response?.start ?? game.time)) / LOOK.droneDeathSeconds
+                : warning
+                  ? (game.time - warning.start) / LOOK.droneWarningSeconds
+                  : 0,
+            });
           view.root.updateWorldMatrix(true, true);
           if (dead) {
             view.finisherAge = finisherPresentationAge(entity, game.time);
@@ -1275,8 +1416,15 @@ export function createActors(
           }
           continue;
         }
+        // Living enemies off screen are refreshed at a reduced rate (data/offscreenActors.json); the rest are always drawn.
+        if (!contactOnly && dt > 0 && entity.kind >= 0 && entity.hp > 0 && !entity.bossProfile) {
+          if (offscreen.skip(entity, view, dt)) continue;
+        } else if (!view.root.visible) {
+          view.root.visible = true;
+          if (view.shadow) view.shadow.visible = true;
+        }
         view.root.scale.setScalar(
-          (world.layout.characterScale ?? 1.265) *
+          (world.layout.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale) *
             (view.description.scale ?? 1) *
             visualScale *
             (entity.kind >= 0 ? (entity.mobSize ?? 1) : 1),
@@ -1343,30 +1491,34 @@ export function createActors(
           }
         }
         animateBoneSaw(view.knife, game.time, !!entity.saw?.active);
-        if (contactOnly && ["giant-salamander", "original-wolf"].includes(entity.rig))
+        if (contactOnly && rigCapability(entity.rig, "nativeSkeleton"))
           view.motion.sampleContacts(entity, game.time, deathPose);
-        else
+        else if (!physicsDeathStep(view, entity, library, dt))
           view.motion.update(
             entity,
             game.time,
-            game.finished && view.description.motion !== "donor-knife" ? 0 : dt,
+            (game.finished && view.description.motion !== "donor-knife" ? 0 : dt) + offscreen.takePending(view),
             deathPose,
           );
+        bodyHitStep(view, entity, dt, contactOnly);
         const reaction = view.hitReaction.update(
-          contactOnly || view.hitReactionFresh ? 0 : Math.min(0.05, presentationDt),
+          contactOnly || view.hitReactionFresh ? 0 : Math.min(LOOK.hitStepMax, presentationDt),
           { paused: presentationDt === 0 },
         );
         if (!contactOnly && !view.hitReactionFresh)
-          view.impactFlashLife = Math.max(0, (view.impactFlashLife ?? 0) - Math.min(0.05, Math.max(0, presentationDt)));
+          view.impactFlashLife = Math.max(
+            0,
+            (view.impactFlashLife ?? 0) - Math.min(LOOK.hitStepMax, Math.max(0, presentationDt)),
+          );
         if (!contactOnly) view.hitReactionFresh = false;
         // Living flinch and native corpse pose share this sole render transform owner.
         if (entity.hp > 0) {
-          const lean = reaction.energy * 0.3;
+          const lean = reaction.energy * LOOK.leanGain;
           view.root.rotation.x = -reaction.z * lean;
           view.root.rotation.z = -reaction.x * lean;
           const flinch = {
-            x: entity.pos.x + reaction.x * reaction.energy * 0.1,
-            z: entity.pos.z + reaction.z * reaction.energy * 0.1,
+            x: entity.pos.x + reaction.x * reaction.energy * LOOK.flinchGain,
+            z: entity.pos.z + reaction.z * reaction.energy * LOOK.flinchGain,
           };
           if (
             (!world.geometry?.clear || world.geometry.clear(flinch, entity.radius)) &&
@@ -1410,7 +1562,9 @@ export function createActors(
             if (view.knife) view.knife.visible = !pose;
             if (pose)
               view.bossGunPose.apply(
-                game.time - (entity.bossRangedFiredAt ?? -Infinity) < 0.25 ? "Rifle_Fire" : "Rifle_Aim",
+                game.time - (entity.bossRangedFiredAt ?? -Infinity) < LOOK.fireWindowSeconds
+                  ? "Rifle_Fire"
+                  : "Rifle_Aim",
                 Math.max(0, game.time - (entity.bossRangedFiredAt ?? game.time)),
               );
           }
@@ -1461,10 +1615,7 @@ export function createActors(
           if (pose && !view.flameMount) {
             const source = library.models.get(world.flameData?.modelRef);
             if (source) {
-              const record = Object.values(library.manifest.files ?? {}).find(
-                (r) => r.file === library.manifest.models.vagrant.url,
-              );
-              view.flameGrip = flameGripProfile(view.model, record?.sha256);
+              view.flameGrip = flameGripFor(view.model, library.manifest);
               view.flameMount = attachFlame(view.model, source.gltf);
             }
           }
@@ -1476,7 +1627,7 @@ export function createActors(
               view.flameExtension ??= stance.extension;
               view.flameExtension +=
                 (stance.extension - view.flameExtension) *
-                (1 - Math.exp(-Math.min(0.1, Math.max(0, presentationDt)) * stance.rate));
+                (1 - Math.exp(-Math.min(LOOK.flameStepMax, Math.max(0, presentationDt)) * stance.rate));
               applyPistolAim(view.model, view.flameMount, {
                 recoil: 0,
                 gripProfile: view.flameGrip,
@@ -1508,10 +1659,14 @@ export function createActors(
             if (pose) {
               const clock = game.rifleAction ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.riflePose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
-                reloading ? 2 - (clock.reloadingUntil - game.time) : firing ? game.time - clock.firedAt : 0,
+                reloading
+                  ? LOOK.reloadClipSeconds - (clock.reloadingUntil - game.time)
+                  : firing
+                    ? game.time - clock.firedAt
+                    : 0,
               );
             }
           }
@@ -1528,26 +1683,21 @@ export function createActors(
               game.time >= entity.hurtUntil;
           if (railgunSource && !view.railgunPose) {
             view.railgunPose = createRiflePose(view.model, railgunSource);
-            view.railgunPose.mount.name = "ThundercoilRailgunMount";
-            view.railgunCoils = createRailgunCoils(view.railgunPose.mount.getObjectByName("Rifle"));
+            view.railgunPose.mount.name = "LightMachineGunMount";
+            view.lmgDrum = createLmgDrum(view.railgunPose.mount.getObjectByName("Rifle"));
             view.flashMaterials.push(...view.railgunPose.materials);
           }
           if (view.railgunPose) {
             view.railgunPose.mount.visible = railgunPose;
-            view.railgunCoils.update({
-              visible: railgunPose,
-              charging: !!game.railgunCharge,
-              progress: game.railgunCharge ? (game.time - game.railgunCharge.startedAt) / railgun.charge.seconds : 0,
-              time: game.time,
-            });
+            view.lmgDrum.update({ visible: railgunPose });
             if (railgunPose) {
               const clock = game.bossEquipmentAction?.commanderPistol ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.railgunPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / railgun.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / railgun.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
@@ -1572,17 +1722,18 @@ export function createActors(
             if (pose) {
               const clock = game.bossEquipmentAction?.shotgun ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.shotgunPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / shotgun.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / shotgun.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
               );
             }
           }
+          syncGoldenSkins(view, game);
           const rocket = world.bossEquipmentData?.rocketLauncher,
             rocketSource = library.models.get(rocket?.modelRef),
             rocketHolding = !!game.bossEquipment?.rocketLauncher?.selected,
@@ -1602,11 +1753,11 @@ export function createActors(
             if (rocketPose) {
               const clock = game.bossEquipmentAction?.rocketLauncher ?? {},
                 reloading = clock.reloadingUntil > game.time,
-                firing = clock.firedAt >= 0 && game.time - clock.firedAt < 0.25;
+                firing = clock.firedAt >= 0 && game.time - clock.firedAt < LOOK.fireWindowSeconds;
               view.rocketPose.apply(
                 reloading ? "Rifle_Reload" : firing ? "Rifle_Fire" : "Rifle_Aim",
                 reloading
-                  ? 2 * (1 - (clock.reloadingUntil - game.time) / rocket.rules.reload)
+                  ? LOOK.reloadClipSeconds * (1 - (clock.reloadingUntil - game.time) / rocket.rules.reload)
                   : firing
                     ? game.time - clock.firedAt
                     : 0,
@@ -1627,18 +1778,19 @@ export function createActors(
               game.time >= entity.dodgeUntil &&
               game.time >= entity.hurtUntil;
         }
-        if (entity === game.player && game.vest) {
+        // The worn-vest overlay is cut from the hero Gambeson mesh; a body without it (the 106-rig Perseus) shows no vest.
+        if (entity === game.player && game.vest && (view.vest || view.model.getObjectByName("Gambeson"))) {
           view.vest ??= createVestView(view.model);
           view.vest.setVisible(game.vest.equipped);
           view.vest.update();
         }
-        view.shadow.position.copy(world.toRender(entity.pos, 0.016));
+        view.shadow.position.copy(world.toRender(entity.pos, LOOK.shadowLift));
         // Only confirmed positive damage starts this window; legacy flashUntil also marks zero-damage blocks.
         const flash = (view.impactFlashLife ?? 0) > 0 && !(entity.hp <= 0 && goreProfile(entity.finisher?.recipeId));
         for (const m of view.flashMaterials) {
           if (m.material.emissive) {
             m.material.emissive.copy(flash ? damageCrimson : m.emissive);
-            m.material.emissiveIntensity = flash ? 0.35 : m.intensity;
+            m.material.emissiveIntensity = flash ? LOOK.flashIntensity : m.intensity;
           }
           if (m.color) m.material.color.copy(flash ? damageCrimson : m.color);
           if (Number.isFinite(m.roughness)) m.material.roughness = m.roughness;

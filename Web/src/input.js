@@ -1,4 +1,13 @@
 import { mobileStickVector } from "./mobile-combat-aim.js";
+import { installTapFallback } from "./engine/tap-fallback.js";
+import { GAME_DATA } from "./engine/game-data.js";
+import { buildKeyMap } from "./engine/input-keymap.js";
+import { HELD_ACTION, PRESS_ACTION } from "./engine/input-keymap-data.js";
+// Stick, aim and tap thresholds: data/visual.json `input`.
+const INPUT = GAME_DATA.visual.input;
+// How far the knob travels at full tilt: a third of the pad's width, so a larger pad moves the knob further (136 px pad: 46 px; the old
+// 106 px pad and a pad whose size is not known: 36 px). The finger travel for full tilt (mobileStickVector's 46 px) is unchanged.
+const knobTravel = (element) => Math.round((element?.offsetWidth || INPUT.knobPadPx) * INPUT.knobTravelShare);
 const clampStick = (value, radius) => {
   const length = Math.hypot(value.x, value.y);
   const divisor = length > radius ? length : radius;
@@ -45,10 +54,10 @@ export class InputState {
     const delta = { x: at.x - pointer.start.x, y: at.y - pointer.start.y };
     if (pointer.kind === "move") {
       // Preserve the floating touch origin: donor ratios map to this 46px pad.
-      const raw = Math.hypot(delta.x, delta.y) / 46;
-      this.stick = mobileStickVector(delta.x, delta.y, 46);
-      pointer.run = raw > 1.4 + 1e-10;
-    } else if ((pointer.kind !== "fire" || pointer.aimable) && Math.hypot(delta.x, delta.y) > 12) {
+      const raw = Math.hypot(delta.x, delta.y) / INPUT.stickRadiusPx;
+      this.stick = mobileStickVector(delta.x, delta.y, INPUT.stickRadiusPx);
+      pointer.run = raw > INPUT.runTilt + 1e-10;
+    } else if ((pointer.kind !== "fire" || pointer.aimable) && Math.hypot(delta.x, delta.y) > INPUT.aimStartPx) {
       pointer.aim = clampStick(delta, 1);
       pointer.aimOrder = ++this.aimOrder;
     }
@@ -72,8 +81,8 @@ export class InputState {
   clear({ keepMovement = false } = {}) {
     if (keepMovement) {
       for (const [id, pointer] of this.pointers) if (pointer.kind !== "move") this.pointers.delete(id);
-      for (const key of this.keys)
-        if (!["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftRight"].includes(key)) this.keys.delete(key);
+      // `keys` holds the held action names (moveUp, sprint, ...), not raw key codes: see engine/input-keymap.js.
+      for (const key of this.keys) if (!HELD_ACTION.test(key)) this.keys.delete(key);
     } else {
       this.pointers.clear();
       this.keys.clear();
@@ -93,8 +102,8 @@ export class InputState {
       ),
     ];
     const move = {
-      x: this.stick.x + (this.keys.has("KeyD") ? 1 : 0) - (this.keys.has("KeyA") ? 1 : 0),
-      y: this.stick.y + (this.keys.has("KeyS") ? 1 : 0) - (this.keys.has("KeyW") ? 1 : 0),
+      x: this.stick.x + (this.keys.has("moveRight") ? 1 : 0) - (this.keys.has("moveLeft") ? 1 : 0),
+      y: this.stick.y + (this.keys.has("moveDown") ? 1 : 0) - (this.keys.has("moveUp") ? 1 : 0),
     };
     const length = Math.hypot(move.x, move.y);
     if (length > 1) {
@@ -119,8 +128,7 @@ export class InputState {
       moveHeld: [...this.pointers.values()].some((p) => p.kind === "move"),
       run:
         [...this.pointers.values()].some((p) => p.kind === "move" && p.run) ||
-        this.keys.has("ShiftLeft") ||
-        this.keys.has("ShiftRight"),
+        this.keys.has("sprint"),
       aim: this.aim,
       fireAim:
         ([...this.pointers.values()].find((p) => p.kind === "fire") ?? presses.find((p) => p.kind === "fire")?.pointer)
@@ -141,6 +149,9 @@ export function attachInput({
   isPaused,
   onInteraction = () => {},
   onPickup = () => false,
+  // switchWeapon({ step: 1 | -1 }) or ({ slot: n }): the next/previous carried weapon, or the nth, through the weapon tiles' select path.
+  switchWeapon = () => {},
+  keymap = buildKeyMap(),
   isPistol = () => false,
   isFlame = () => false,
   isWorldGun = () => false,
@@ -210,7 +221,7 @@ export function attachInput({
         lastTap = -Infinity;
         return;
       }
-      if (event.timeStamp - lastTap < 350) prevent(event);
+      if (event.timeStamp - lastTap < INPUT.doubleTapMs) prevent(event);
       lastTap = event.timeStamp;
     },
     { passive: false, capture: true },
@@ -231,16 +242,10 @@ export function attachInput({
       },
       { passive: true },
     );
-  const map = {
-    KeyQ: "heavy",
-    KeyE: "special",
-    Digit1: "special",
-    Space: "dodge",
-    KeyF: "guard",
-    KeyG: "pickup",
-  };
   let mouse = null,
-    touch = false;
+    touch = false,
+    lastWheel = -Infinity;
+  const heldCodes = new Set();
 
   const bind = (element, kind) => {
     listen(element, "pointerdown", (event) => {
@@ -269,13 +274,13 @@ export function attachInput({
     listen(element, "pointermove", (event) => {
       state.move(event.pointerId, { x: event.clientX, y: event.clientY });
       if (kind === "move") {
-        element.style.setProperty("--knob-x", `${state.stick.x * 36}px`);
-        element.style.setProperty("--knob-y", `${state.stick.y * 36}px`);
+        element.style.setProperty("--knob-x", `${state.stick.x * knobTravel(element)}px`);
+        element.style.setProperty("--knob-y", `${state.stick.y * knobTravel(element)}px`);
       } else {
         const aim = state.pointers.get(event.pointerId)?.aim;
         if (aim) {
           element.classList.add("aiming");
-          element.style.setProperty("--aim-angle", `${Math.atan2(aim.y, aim.x)}rad`);
+          element.style.setProperty("--aim-angle", `${Math.atan2(aim.y, aim.x)}rad`); // text-ok: CSS angle value, not English
         }
       }
     });
@@ -292,8 +297,8 @@ export function attachInput({
         element.style.setProperty("--aim-angle", "0rad");
       }
       if (kind === "move") {
-        element.style.setProperty("--knob-x", `${state.stick.x * 36}px`);
-        element.style.setProperty("--knob-y", `${state.stick.y * 36}px`);
+        element.style.setProperty("--knob-x", `${state.stick.x * knobTravel(element)}px`);
+        element.style.setProperty("--knob-y", `${state.stick.y * knobTravel(element)}px`);
       }
     };
     for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
@@ -305,7 +310,7 @@ export function attachInput({
 
   listen(canvas, "pointermove", (event) => {
     const contact = worldContacts.get(event.pointerId);
-    if (contact && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > 10) contact.cancelled = true;
+    if (contact && Math.hypot(event.clientX - contact.x, event.clientY - contact.y) > INPUT.worldTapSlopPx) contact.cancelled = true;
     if (event.pointerType === "mouse") {
       touch = false;
       mouse = { x: event.clientX, y: event.clientY };
@@ -329,7 +334,9 @@ export function attachInput({
       return;
     }
     if (event.pointerType !== "mouse" || isPaused()) return;
-    if (isSelectOnly() && event.button !== 2) {
+    const kind = keymap.mouseKind(event.button, isPistol());
+    if (!kind) return;
+    if (isSelectOnly() && keymap.mouseName(event.button) !== "secondary") {
       onInteraction();
       event.preventDefault();
       touch = false;
@@ -346,8 +353,21 @@ export function attachInput({
     event.preventDefault();
     canvas.setPointerCapture(event.pointerId);
     mouse = { x: event.clientX, y: event.clientY };
-    state.down(event.pointerId, event.button === 2 ? "stab" : isPistol() ? "fire" : "slash", mouse);
+    state.down(event.pointerId, kind, mouse);
   });
+  // The wheel steps through the carried weapons, one step per wheelStepMs so a smooth-scroll burst does not skip past the one you want.
+  listen(
+    canvas,
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      const step = Math.sign(event.deltaY);
+      if (isPaused() || !step || event.timeStamp - lastWheel < keymap.wheelStepMs) return;
+      lastWheel = event.timeStamp;
+      switchWeapon({ step });
+    },
+    { passive: false },
+  );
   listen(canvas, "pointerup", (event) => {
     const contact = worldContacts.get(event.pointerId);
     worldContacts.delete(event.pointerId);
@@ -356,8 +376,8 @@ export function attachInput({
       !contact.cancelled &&
       !isPaused() &&
       isWorldGun() &&
-      event.timeStamp - contact.at <= 350 &&
-      Math.hypot(event.clientX - contact.x, event.clientY - contact.y) <= 10 &&
+      event.timeStamp - contact.at <= INPUT.worldTapMaxMs &&
+      Math.hypot(event.clientX - contact.x, event.clientY - contact.y) <= INPUT.worldTapSlopPx &&
       worldSurface(event.clientX, event.clientY)
     )
       worldTap = { x: event.clientX, y: event.clientY };
@@ -376,43 +396,48 @@ export function attachInput({
   function retryAllowed() {
     if (document.hidden || document.getElementById("menu")?.open || document.getElementById("entry")?.hidden === false)
       return false;
-    // Main treats a finished encounter as paused; retain desktop death/retry.
-    return !isPaused() || document.getElementById("ending")?.hidden === false;
+    // Main treats a finished encounter as paused, so the ending card is the one place the retry key works. In play the same key is
+    // Stab / reload: a mid-fight reload must never throw the encounter away.
+    return document.getElementById("ending")?.hidden === false;
   }
 
   listen(window, "keydown", (event) => {
-    if (event.code === "Escape") {
+    const action = keymap.actionFor(event.code);
+    if (action === "menu") {
       event.preventDefault();
       if (!event.repeat) onMenu();
       return;
     }
-    if (event.code === "KeyR") {
+    if (keymap.isRetry(event.code) && retryAllowed()) {
       event.preventDefault();
-      if (!event.repeat && retryAllowed()) onRetry();
+      if (!event.repeat) onRetry();
       return;
     }
+    // Ctrl/Cmd chords (copy, reload, find) belong to the browser.
+    if (event.ctrlKey || event.metaKey || !action) return;
     if (isPaused()) return;
     touch = false;
     worldTap = null;
     worldContacts.clear();
     if (!isSelectOnly()) onTargetClear();
     onInteraction();
-    if (["KeyW", "KeyA", "KeyS", "KeyD", "ShiftLeft", "ShiftRight"].includes(event.code)) {
-      event.preventDefault();
-      touch = false;
-      state.keys.add(event.code);
-    }
-    if (event.code === "KeyG" && !event.repeat && onPickup()) {
-      event.preventDefault();
-      return;
-    }
-    if (map[event.code] && !event.repeat) {
-      event.preventDefault();
-      state.down(event.code, map[event.code], { x: 0, y: 0 });
-    }
+    event.preventDefault();
+    if (HELD_ACTION.test(action)) {
+      heldCodes.add(event.code);
+      state.keys.add(action);
+    } else if (action === "pickup") {
+      // A pickup the world answers is done here; otherwise the press goes to the sim as before.
+      if (!event.repeat && !onPickup()) state.down(event.code, action, { x: 0, y: 0 });
+    } else if (keymap.weaponStep(action) || keymap.weaponSlot(action)) {
+      // Holding the key must not spin through the weapons.
+      if (!event.repeat) switchWeapon({ step: keymap.weaponStep(action), slot: keymap.weaponSlot(action) });
+    } else if (PRESS_ACTION.test(action) && !event.repeat) state.down(event.code, action, { x: 0, y: 0 });
   });
   listen(window, "keyup", (event) => {
-    state.keys.delete(event.code);
+    heldCodes.delete(event.code);
+    const action = keymap.actionFor(event.code);
+    // A second key for the same move (W and Up) keeps it held until both are up.
+    if (action && HELD_ACTION.test(action) && !keymap.codesFor(action).some((code) => heldCodes.has(code))) state.keys.delete(action);
     state.up(event.code);
   });
 
@@ -423,6 +448,7 @@ export function attachInput({
     multiTouch = false;
     lastTap = -Infinity;
     state.clear({ keepMovement });
+    if (!keepMovement) heldCodes.clear();
     mouse = null;
     for (const element of document.querySelectorAll(".pressed")) {
       if (keepMovement && element.id === "move") continue;
@@ -438,6 +464,8 @@ export function attachInput({
   }
   listen(window, "blur", clear);
   listen(document, "visibilitychange", clear);
+  // A tap on a HUD button (weapon tile, menu, Pick up) made while the move thumb is down gets no browser click: see tap-fallback.js.
+  listeners.push(installTapFallback({ target: document }));
   return {
     state,
     clear,

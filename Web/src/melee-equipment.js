@@ -1,5 +1,16 @@
 import { createBoneSaw } from "./engine/bone-saw-view.js";
 import { MELEE_VARIANTS, CLEAVER_MOVES } from "./engine/melee-equipment-data.js";
+// Quaternion [x, y, z, w] of an XYZ Euler rotation given in degrees (three's setFromEuler order), so this file needs no renderer import.
+function eulerXYZ(degrees) {
+  const [c1, c2, c3] = degrees.map((d) => Math.cos((d * Math.PI) / 360)),
+    [s1, s2, s3] = degrees.map((d) => Math.sin((d * Math.PI) / 360));
+  return [
+    s1 * c2 * c3 + c1 * s2 * s3,
+    c1 * s2 * c3 - s1 * c2 * s3,
+    c1 * c2 * s3 + s1 * s2 * c3,
+    c1 * c2 * c3 - s1 * s2 * s3,
+  ];
+}
 export { MELEE_VARIANTS, CLEAVER_MOVES } from "./engine/melee-equipment-data.js";
 export function selectedMeleeVariant(g) {
   const special = g.world?.bossEquipmentData?.surgicalKnife,
@@ -29,9 +40,6 @@ export function syncMeleeEquipment(g) {
   g.staminaCosts = profile.costs;
   return profile;
 }
-export function meleeModelRef(g) {
-  return selectedMeleeVariant(g).modelRef ?? null;
-}
 // Clone only the rigid weapon subtree; the live player rig, mixer and body buffers stay owners.
 export function cloneMeleeWeapon(source, variantId) {
   const profile = MELEE_VARIANTS[variantId],
@@ -44,7 +52,9 @@ export function cloneMeleeWeapon(source, variantId) {
   )
     throw Error("Melee equipment source/contact mismatch");
   const root = weapon.clone(true),
+    grip = source.description?.knifeGripDegrees, // the body's hand bone is oriented differently from the hero's: tilt as equipDonorPlayer does
     materials = [];
+  if (grip) root.quaternion.premultiply(root.quaternion.clone().set(...eulerXYZ(grip)));
   let meshes = 0;
   try {
     root.traverse((node) => {

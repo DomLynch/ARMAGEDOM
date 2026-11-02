@@ -3,7 +3,8 @@ import{fixture}from'./helpers/rifle-fixture.js';import{stepGame}from'../src/comb
 import{validateAreaMetadata}from'../src/engine/area-content.js';import{publicAreaRegistry}from'../src/area-registry.js';
 import{BOSS_EQUIPMENT_PROFILES}from'../src/engine/boss-equipment-data.js';
 import{combatTargetHeight}from'../src/pistol-targeting.js';
-const raw=()=>JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url)));
+import{withLegacySafehouse}from'./helpers/legacy-safehouse.js';
+const raw=()=>withLegacySafehouse(JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))));
 function setup(distance=2.5){
  const f=fixture({areaId:'westminster',extraWorld:{safehouseData:raw().safehouse}}),g=f.g,e=g.enemies.find(e=>e.placementKey==='boss-witch-v1');g.enemies=[e];
  // Controlled source-level positioning only; native acceptance uses ordinary input.
@@ -14,7 +15,7 @@ function setup(distance=2.5){
 }
 function warning(s){for(let n=0;n<240&&!s.e.bossWeapon;n++)s.step();assert.equal(s.e.bossWeapon?.phase,'warning');return s.e.bossWeapon.startTick;}
 test('actual Witch alone opts into validated flame capability and expanded wake; Surgeon retains its separate saw capability',()=>{
- const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,6);assert.equal(c.bossData.profiles.witch.homeLeash,8);
+ const r=raw(),c=validateAreaMetadata(r,publicAreaRegistry);assert.equal(c.bossData.profiles.witch.wakeDistance,10);assert.equal(c.bossData.profiles.witch.homeLeash,18);
  assert.equal(c.bossData.profiles.witch.weapon.modelRef,BOSS_EQUIPMENT_PROFILES.emberProjector.modelRef);for(const[id,p]of Object.entries(c.bossData.profiles))if(id==='surgeon')assert.equal(p.weapon.kind,'saw');else if(id!=='witch')assert.equal(p.weapon,undefined);
  for(const mutate of[w=>w.kind='invented',w=>w.modelRef='foreign-model',w=>w.damage=5,w=>w.windupTicks=1,w=>w.activeTicks=25,w=>w.intervalTicks=1,w=>w.recoveryTicks=1,w=>w.windupTicks=5,w=>w.recoveryTicks=31,w=>w.range=4.861,w=>w.coneDegrees=180]){const b=raw();mutate(b.bosses.profiles.witch.weapon);assert.throws(()=>validateAreaMetadata(b,publicAreaRegistry));}
 });

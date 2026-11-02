@@ -1,6 +1,10 @@
 import { areaDisplayName } from "../area-registry.js";
+import { rigCapability } from "../rig-capabilities.js";
+import { GAME_DATA, fillText } from "./game-data.js";
 // Presentation only: authored road edges and safe paths never add collision or travel links.
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+import { distance } from "./shared-checks.js";
+// The guidance numbers (reach, clearance, rail, arrow and sign geometry) live in visual.json `routeGuidance`.
+const tune = () => GAME_DATA.visual.routeGuidance;
 const pointOnSegment = (p, a, b) => {
   const dx = b.x - a.x,
     dz = b.z - a.z,
@@ -13,10 +17,36 @@ const enters = (p, c) =>
   );
 export function capsuleSegmentClear(g, a, b) {
   if (!g.lineClear(a, b)) return false;
-  const steps = Math.max(1, Math.ceil(distance(a, b) / 0.1));
+  const { clearance, sampleStep } = tune(),
+    steps = Math.max(1, Math.ceil(distance(a, b) / sampleStep));
   for (let i = 0; i <= steps; i++)
-    if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, 0.4)) return false;
+    if (!g.clear({ x: a.x + ((b.x - a.x) * i) / steps, z: a.z + ((b.z - a.z) * i) / steps }, clearance)) return false;
   return true;
+}
+const TUTORIAL_AREA = "westminster";
+// The arrow fades slowly in and out so it is easier to notice: cos squared is a smooth cycle between minOpacity and peakOpacity.
+const arrowOpacity = (seconds) => {
+  const { minOpacity, peakOpacity, pulseSeconds } = tune().arrow;
+  const wave = Math.cos((Math.PI * seconds) / pulseSeconds);
+  return minOpacity + (peakOpacity - minOpacity) * wave * wave;
+};
+// After the shelter the tutorial sends the player after Westminster's two named kills, one at a time: the roaming
+// giant salamander, then the Ember Matron whose drop is the flamethrower. Both are followed at their live position.
+// Nothing is shown once the Ember Projector is owned (or collected the legacy way), or for a kill that is not in this area.
+export function huntTarget(g) {
+  if (!g?.enemies || g.flameFuel?.collected || g.bossEquipment?.emberProjector?.status === "owned") return null;
+  const live = (e) => e.hp > 0,
+    salamander = g.enemies.find((e) => live(e) && rigCapability(e.rig, "tutorialHunt")),
+    matron = g.enemies.find((e) => live(e) && e.bossProfile?.name === "Ember Matron"); // text-ok: boss profile name used as a lookup key, never shown
+  const text = GAME_DATA.visual.routeGuidance.text;
+  if (salamander) return { pos: salamander.pos, label: text.killSalamander };
+  if (matron) return { pos: matron.pos, label: text.killMatron };
+  // The Matron is dead and her drop is still on the ground: the arrow leads to it instead of falling through to the exit.
+  const ember = g.bossEquipment?.emberProjector,
+    source = g.world?.bossEquipmentData?.emberProjector?.source;
+  return ember?.status === "pending" && ember.dropPosition && source?.areaId === g.world.areaId
+    ? { pos: ember.dropPosition, label: text.walkToProjector }
+    : null;
 }
 export function validateGuidance(layout, g, links = null) {
   const rows = layout.guidance ?? [];
@@ -27,7 +57,13 @@ export function validateGuidance(layout, g, links = null) {
   return rows.map((row) => {
     if (
       !row ||
-      Object.keys(row).some((k) => !["id", "kind", "to", "path", "edge", "segment"].includes(k)) ||
+      Object.keys(row).some((k) => !["id", "kind", "to", "path", "edge", "segment", "sign"].includes(k)) ||
+      (row.sign !== undefined &&
+        (row.kind !== "exit" ||
+          !Array.isArray(row.sign) ||
+          row.sign.length < 1 ||
+          row.sign.length > 2 ||
+          row.sign.some((line) => typeof line !== "string" || !/^[A-Z0-9 ·→-]{1,22}$/.test(line)))) ||
       typeof row.id !== "string" ||
       !/^[a-z0-9-]+$/.test(row.id) ||
       ids.has(row.id) ||
@@ -42,7 +78,7 @@ export function validateGuidance(layout, g, links = null) {
     ids.add(row.id);
     const path = row.path.map(g.ground);
     if (
-      path.some((p) => !g.clear(p, 0.4)) ||
+      path.some((p) => !g.clear(p, tune().clearance)) ||
       path.slice(1).some((p, i) => distance(path[i], p) < 0.1 || !capsuleSegmentClear(g, path[i], p))
     )
       throw Error("Blocked route guidance path");
@@ -83,23 +119,27 @@ export function validateTutorialPath(layout, g) {
   )
     throw Error("Invalid shelter tutorial path");
   const points = path.map(g.ground);
-  if (points.some((p) => !g.clear(p, 0.4)) || points.slice(1).some((p, i) => !capsuleSegmentClear(g, points[i], p)))
+  if (points.some((p) => !g.clear(p, tune().clearance)) || points.slice(1).some((p, i) => !capsuleSegmentClear(g, points[i], p)))
     throw Error("Blocked shelter tutorial path");
   return { id: "westminster-shelter-tutorial", kind: "tutorial", to: "westminster", path: points };
 }
 export function resolveGuidance(rows, g, position) {
+  const { boundaryReach, exitReach, boundaryStartReach } = tune();
   let selected = null;
   for (const row of rows) {
     const gap =
       row.kind === "boundary"
         ? distance(position, pointOnSegment(position, ...row.segment))
         : Math.min(...row.path.slice(1).map((p, i) => distance(position, pointOnSegment(position, row.path[i], p))));
-    if (gap > (row.kind === "boundary" ? 3.5 : 5) || (distance(position, row.path[0]) > 7 && row.kind === "boundary"))
+    if (
+      gap > (row.kind === "boundary" ? boundaryReach : exitReach) ||
+      (distance(position, row.path[0]) > boundaryStartReach && row.kind === "boundary")
+    )
       continue;
     // Choose a visible-in-collision-space waypoint; never point through a prop or across the road edge.
     let index = -1;
     for (let i = row.path.length - 1; i >= 0; i--)
-      if (distance(position, row.path[i]) > 0.5 && capsuleSegmentClear(g, position, row.path[i])) {
+      if (distance(position, row.path[i]) > tune().waypointMin && capsuleSegmentClear(g, position, row.path[i])) {
         index = i;
         break;
       }
@@ -111,15 +151,20 @@ export function resolveGuidance(rows, g, position) {
   }
   return selected;
 }
+// The exits this module marks with its own ring: the Central Safehouse side entrance and any row that asks for a `sign`. The exit rings
+// (exit-rings.js) skip these so an exit never carries two rings.
+const SAFEHOUSE_ENTRANCE = "central-hub";
+export const markedTargets = (rows) => new Set(rows.filter((row) => row.sign || row.to === SAFEHOUSE_ENTRANCE).map((row) => row.to));
 export function createRouteGuidance(world) {
   const rows = validateGuidance(world.layout, world.geometry),
     tutorial = validateTutorialPath(world.layout, world.geometry);
   if (!rows.length && !tutorial) return null;
   const { THREE, geometry: g } = world,
     group = new THREE.Group();
-  group.name = "Registered road guidance";
+  group.name = "Registered road guidance"; // text-ok: internal mesh name
   world.group.add(group);
-  const positions = [],
+  const { rail, marker: markerShape } = tune(),
+    positions = [],
     colors = [],
     indices = [],
     box = new THREE.BoxGeometry(1, 1, 1),
@@ -144,96 +189,135 @@ export function createRouteGuidance(world) {
       dx = b.x - a.x,
       dz = b.z - a.z,
       length = distance(a, b),
-      mid = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
+      mid = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 }; // tuning-ok: midpoint
     let nx = -dz / length,
       nz = dx / length;
-    if (g.clear({ x: mid.x + nx * 0.3, z: mid.z + nz * 0.3 }, 0)) {
+    if (g.clear({ x: mid.x + nx * rail.sideProbe, z: mid.z + nz * rail.sideProbe }, 0)) {
       nx = -nx;
       nz = -nz;
     }
-    const at = (t, y) => world.toRender({ x: a.x + dx * t + nx * 0.12, z: a.z + dz * t + nz * 0.12 }, y),
+    const at = (t, y) =>
+        world.toRender({ x: a.x + dx * t + nx * rail.sideOffset, z: a.z + dz * t + nz * rail.sideOffset }, y),
       yaw = Math.atan2(dz, dx);
-    for (let i = 0; i < 8; i++)
-      cuboid(at((i + 0.5) / 8, 0.72), [length / 8, 0.28, 0.12], yaw, i % 2 ? 0x252522 : 0xd0a943);
-    for (const t of [0, 0.5, 1]) cuboid(at(t, 0.53), [0.12, 1.06, 0.12], 0, 0x363b3a);
+    for (let i = 0; i < rail.segments; i++)
+      cuboid(
+        at((i + 0.5) / rail.segments, rail.centreHeight), // tuning-ok: centre of the segment cell
+        [length / rail.segments, rail.thickness, rail.depth],
+        yaw,
+        `#${rail.colours[i % 2]}`, // tuning-ok: alternate the two rail colours
+      );
+    for (const t of rail.post.along)
+      cuboid(at(t, rail.post.centreHeight), [rail.post.width, rail.post.height, rail.post.width], 0, `#${rail.post.colour}`);
   }
   box.dispose();
   let barrier = null;
   if (positions.length) {
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); // tuning-ok: x, y, z per vertex
+    geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3)); // tuning-ok: r, g, b per vertex
     geo.setIndex(indices);
     barrier = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, toneMapped: false }));
-    barrier.name = "Road closed rail outside authored boundary";
+    barrier.name = "Road closed rail outside authored boundary"; // text-ok: internal mesh name
     group.add(barrier);
   }
-  const arrowGeometry = new THREE.BufferGeometry();
+  // The tutorial's ground arrow (Westminster only): it points at the current step's target (the shelter, then the salamander, then the
+  // matron) and is hidden once resolve() has nothing left to show. Its shape, gap and pulse are visual.json routeGuidance.arrow.
+  const arrowShape = tune().arrow,
+    arrowGeometry = new THREE.BufferGeometry();
   arrowGeometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(
-      [
-        -0.13, 0, -0.35, 0.13, 0, -0.35, 0.13, 0, 0.1, -0.13, 0, -0.35, 0.13, 0, 0.1, -0.13, 0, 0.1, -0.32, 0, 0.02,
-        0.32, 0, 0.02, 0, 0, 0.48,
-      ],
-      3,
-    ),
+    new THREE.Float32BufferAttribute(arrowShape.triangles.flat(Infinity), arrowShape.triangles[0][0].length),
   );
   const arrow = new THREE.Mesh(
     arrowGeometry,
-    new THREE.MeshBasicMaterial({ color: 0xf1d28c, side: THREE.DoubleSide, depthWrite: false, toneMapped: false }),
+    new THREE.MeshBasicMaterial({
+      color: new THREE.Color(`#${GAME_DATA.visual.dropMarker.ringColour}`),
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      toneMapped: false,
+      transparent: true,
+    }),
   );
-  arrow.name = "Safe route direction";
+  arrow.name = "safe-route-direction";
   arrow.visible = false;
   group.add(arrow);
-  // Mark the actual side threshold; the marker never expands its trigger.
-  const entrance = rows.find((row) => row.to === "central-hub"),
-    marker = entrance ? new THREE.Group() : null;
-  if (marker) {
-    const at = entrance.path.at(-1);
-    marker.name = "Central Safehouse side entrance";
-    marker.position.copy(world.toRender(at, 0.045));
+  // Mark the actual threshold of an exit (a gold ring and a sign); the marker never expands its trigger. The Central Safehouse side
+  // entrance has always had one; any other exit row can ask for one with `sign: [line, line]`.
+  const markers = [];
+  function addMarker(row, name, lines) {
+    const marker = new THREE.Group(),
+      at = row.path.at(-1);
+    marker.name = name;
+    marker.position.copy(world.toRender(at, markerShape.height));
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(0.48, 0.62, 32),
-      new THREE.MeshBasicMaterial({ color: 0xdfba59, side: THREE.DoubleSide, depthWrite: false, toneMapped: false }),
+      new THREE.RingGeometry(markerShape.ring.inner, markerShape.ring.outer, markerShape.ring.segments),
+      new THREE.MeshBasicMaterial({
+        color: `#${markerShape.ring.colour}`,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        toneMapped: false,
+      }),
     );
-    ring.rotation.x = -Math.PI / 2;
+    ring.rotation.x = -Math.PI / 2; // tuning-ok: lay the ring flat
     marker.add(ring);
     if (typeof document !== "undefined") {
       const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 128;
+      const card = markerShape.sign;
+      [canvas.width, canvas.height] = card.canvas;
       const ctx = canvas.getContext?.("2d");
       if (ctx) {
         ctx.fillStyle = "rgba(22,23,20,.92)";
-        ctx.fillRect(0, 0, 512, 128);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = "#dfba59";
-        ctx.lineWidth = 5;
-        ctx.strokeRect(3, 3, 506, 122);
+        ctx.lineWidth = card.borderWidth;
+        ctx.strokeRect(...card.border);
         ctx.textAlign = "center";
         ctx.fillStyle = "#f1d28c";
-        ctx.font = "bold 34px sans-serif";
-        ctx.fillText("CENTRAL SAFEHOUSE", 256, 53);
-        ctx.font = "26px sans-serif";
-        ctx.fillText("SIDE ENTRANCE", 256, 96);
+        ctx.font = card.fonts[0];
+        ctx.fillText(lines[0], card.textX, card.lineY[0]);
+        ctx.font = card.fonts[1];
+        ctx.fillText(lines[1] ?? "", card.textX, card.lineY[1]);
         const map = new THREE.CanvasTexture(canvas);
         map.colorSpace = THREE.SRGBColorSpace;
         const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map, depthWrite: false, toneMapped: false }));
-        sign.scale.set(3.6, 0.9, 1);
-        sign.position.y = 1.65;
+        sign.scale.set(...card.size, 1);
+        sign.position.y = card.height;
         marker.add(sign);
       }
     }
     group.add(marker);
+    markers.push({ marker, at });
   }
+  const entrance = rows.find((row) => row.to === SAFEHOUSE_ENTRANCE);
+  if (entrance) addMarker(entrance, "Central Safehouse side entrance", tune().text.entranceSign); // text-ok: internal mesh name
+  for (const row of rows.filter((r) => r.sign && r !== entrance))
+    addMarker(row, `${areaDisplayName(row.to)} exit marker`, row.sign); // text-ok: internal mesh name
   let cachedPosition = null,
     cached = null,
     disposed = false,
     tutorialActive = false,
+    pistolTarget = null,
+    hunt = null,
     arrival = null;
   function setTutorial(active) {
     if (tutorialActive !== !!active) {
       tutorialActive = !!active;
+      cachedPosition = null;
+    }
+  }
+  // The uncollected starting pistol is the first stop of the opening tutorial, ahead of the shelter.
+  function setPistolTarget(position) {
+    const next = position ? { x: position.x, z: position.z } : null;
+    if (next?.x !== pistolTarget?.x || next?.z !== pistolTarget?.z) {
+      pistolTarget = next;
+      cachedPosition = null;
+    }
+  }
+  // The salamander/Ember Matron target follows a moving enemy, so a change of position drops the cached cue.
+  function setHuntTarget(next) {
+    const to = next ? { pos: { x: next.pos.x, z: next.pos.z }, label: next.label } : null;
+    if (to?.pos.x !== hunt?.pos.x || to?.pos.z !== hunt?.pos.z || to?.label !== hunt?.label) {
+      hunt = to;
       cachedPosition = null;
     }
   }
@@ -244,7 +328,25 @@ export function createRouteGuidance(world) {
   function resolve(position) {
     if (!cachedPosition || distance(cachedPosition, position) > 1e-8) {
       cachedPosition = { ...position };
-      if (arrival && distance(position, arrival.position) > 4) arrival = null;
+      if (arrival && distance(position, arrival.position) > tune().arrivalRadius) arrival = null;
+      const toPistol = tutorialActive && pistolTarget ? distance(position, pistolTarget) : 0;
+      if (toPistol > tune().pistolArrived &&capsuleSegmentClear(g, position, pistolTarget))
+        return (cached = {
+          row: { id: "pistol-first", kind: "pistol", to: "westminster" },
+          target: pistolTarget,
+          index: 0,
+          gap: 0,
+          remaining: toPistol,
+        });
+      const toHunt = !tutorialActive && hunt ? distance(position, hunt.pos) : 0;
+      if (toHunt > tune().huntArrived)
+        return (cached = {
+          row: { id: "hunt", kind: "hunt", to: "westminster", label: hunt.label },
+          target: hunt.pos,
+          index: 0,
+          gap: 0,
+          remaining: toHunt,
+        });
       cached = resolveGuidance(
         tutorialActive && tutorial ? [tutorial] : rows.filter((row) => row.to !== arrival?.from),
         g,
@@ -254,17 +356,17 @@ export function createRouteGuidance(world) {
     return cached;
   }
   function update(position, activeWorld = world) {
-    if (marker) marker.visible = distance(position, entrance.path.at(-1)) < 9;
+    for (const { marker, at } of markers) marker.visible = distance(position, at) < markerShape.showDistance;
     const cue = activeWorld.travelAt(position) ? null : resolve(position);
-    arrow.visible = !!cue;
-    if (!cue) return;
+    arrow.visible = !!cue && activeWorld.areaId === TUTORIAL_AREA; // the tutorial ends in Westminster: no route arrows elsewhere
+    if (!arrow.visible) return;
     const dx = cue.target.x - position.x,
       dz = cue.target.z - position.z,
       length = Math.hypot(dx, dz),
-      step = Math.min(0.9, length * 0.5),
-      p = g.move(position, { x: (dx / length) * step, z: (dz / length) * step }, 0.4);
-    arrow.position.copy(world.toRender(p, 0.04));
+      p = g.move(position, { x: (dx / length) * arrowShape.tailGap, z: (dz / length) * arrowShape.tailGap }, tune().clearance);
+    arrow.position.copy(world.toRender(p, arrowShape.height));
     arrow.rotation.y = Math.atan2(dx, -dz);
+    arrow.material.opacity = arrowOpacity((globalThis.performance?.now?.() ?? 0) / 1000);
   }
   function hint(position, activeWorld = world) {
     const cue = resolve(position);
@@ -273,12 +375,26 @@ export function createRouteGuidance(world) {
     const a = activeWorld.toRender(position).project(activeWorld.camera),
       b = activeWorld.toRender(cue.target).project(activeWorld.camera),
       angle = Math.atan2(b.y - a.y, b.x - a.x),
-      arrows = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
-      direction = arrows[(Math.round(angle / (Math.PI / 4)) + 8) % 8],
-      name = cue.row.kind === "tutorial" ? "WESTMINSTER SHELTER" : areaDisplayName(cue.row.to).toUpperCase();
-    if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < 1.2)
-      return `EXIT → ${name}`;
-    return `${cue.row.kind === "boundary" ? "ROAD CLOSED · " : ""}${direction} ${name} · ${Math.ceil(cue.remaining)}m`;
+      text = tune().text,
+      marks = text.compass.length, // one compass mark per equal slice of the circle
+      direction = text.compass[(Math.round((angle / (Math.PI + Math.PI)) * marks) + marks) % marks],
+      name =
+        cue.row.kind === "pistol"
+          ? text.pistol
+          : cue.row.kind === "hunt"
+            ? cue.row.label
+            : cue.row.kind === "tutorial"
+              ? text.ahead
+              : areaDisplayName(cue.row.to).toUpperCase();
+    if (cue.row.kind === "exit" && cue.index === cue.row.path.length - 1 && cue.remaining < markerShape.exitHintRemaining)
+      return fillText(text.exit, { area: name });
+    if (activeWorld.areaId !== TUTORIAL_AREA) return ""; // outside Westminster only the exit label above is shown
+    return fillText(text.cue, {
+      closed: cue.row.kind === "boundary" ? text.roadClosed : "",
+      direction,
+      name,
+      metres: Math.ceil(cue.remaining),
+    });
   }
   return {
     rows,
@@ -289,6 +405,8 @@ export function createRouteGuidance(world) {
     hint,
     resolve,
     setTutorial,
+    setPistolTarget,
+    setHuntTarget,
     arrive,
     allowsExitHint: (to) => !tutorialActive && to !== arrival?.from,
     dispose() {

@@ -2,7 +2,8 @@ import { clearBossRanged } from "./engine/boss-ranged.js";
 import { clearMarkedHunters } from "./engine/marked-hunters.js";
 import { resetBossPursuit } from "./engine/area-bosses.js";
 import { stopBossFlame } from "./engine/boss-flame.js";
-import { initializeAreaResidents } from "./combat.js";
+import { initializeAreaResidents, reviveAreaResidents } from "./combat.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // Thin orchestration for the existing three-area pilot. World owns atomic loading.
 export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   if (!isCurrent()) return null;
@@ -45,7 +46,7 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   game.encounterCleared = parked?.cleared ?? false;
   game.encounterActive = !game.encounterCleared && (game.areaResidents || request.areaId === "westminster");
   game.wave = parked?.wave ?? (game.areaResidents ? 0 : game.wave);
-  game.nextWave = parked?.nextWave ?? game.time + 2;
+  game.nextWave = parked?.nextWave ?? game.time + GAME_DATA.areaRuntime.travel.firstWaveDelay;
   game.nextEnemyAttackAt = parked?.nextEnemyAttackAt ?? game.time;
   if (parked) {
     const elapsed = game.time - parked.parkedAt;
@@ -79,8 +80,8 @@ export async function travelTo(game, request, { isCurrent = () => true } = {}) {
   p.dodgeUntil = p.invulnerableUntil = game.time;
   p.response = null;
   p.ready = Math.min(p.ready, game.time);
-  game.message = `${request.areaId.toUpperCase()} · ${game.encounterCleared ? "Cleared · keep exploring." : "Explore London."}`;
-  game.messageUntil = game.time + 4;
+  // After the player is placed, so nobody respawns within the guard distance of the arrival point.
+  reviveAreaResidents(game);
   return { ...position };
 }
 

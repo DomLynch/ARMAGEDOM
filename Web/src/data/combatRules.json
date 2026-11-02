@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "hitFlashSeconds": 0.12,
+  "player": { "radius": 0.4, "damage": 20, "spawn": { "x": 0, "z": -6 } },
+  "startingPistol": { "x": -0.85, "z": -6.15 },
+  "bodyRadius": 0.4,
+  "safehouseBodyPadding": 0.03,
+  "aim": { "targetConeDegrees": 45, "mobSizeReachFactor": 0.31 },
+  "movement": {
+    "sidestepFraction": 0.25,
+    "patrolArrive": 0.15,
+    "patrolMove": 0.05,
+    "returnArrive": 0.2,
+    "homeLeash": 12
+  },
+  "awareness": { "ratContactDistance": 6, "sightDistance": 6 },
+  "bossWeapon": {
+    "moveThreshold": 0.01,
+    "grenadeLandingClearance": 0.05,
+    "grenadeAimHeight": 0.08,
+    "rocketAimHeight": 0.05,
+    "grenadeThrowRanges": [3, 5, 8],
+    "defaultThrowRange": 5,
+    "grenadeAim": {
+      "leadScale": 1,
+      "maxLead": 4,
+      "minSpeed": 0.2,
+      "maxSpeed": 12,
+      "velocityBlend": 0.6,
+      "maxSampleGap": 0.25,
+      "backoffSteps": 4,
+      "cursorSnapRadius": 2.5,
+      "rangeMargin": 0.001
+    }
+  },
+  "spawning": {
+    "distances": [4, 6, 8],
+    "laterals": [0, 1.4, -1.4, 2.8, -2.8],
+    "clearance": 0.35,
+    "minForward": 2,
+    "minDistance": 2,
+    "knifeOffsets": [
+      [0, 4],
+      [4, 0],
+      [-4, 0],
+      [0, -4],
+      [3, 3],
+      [-3, 3],
+      [3, -3],
+      [-3, -3]
+    ]
+  },
+  "enemyAI": {
+    "goblinSpeedFactor": 1.2,
+    "attackSpacing": 0.1,
+    "knifeAimDot": 0.96,
+    "animalBiteAimDot": 0.99,
+    "animalBiteReach": 0.95,
+    "animalContactReach": 0.35,
+    "ratMoveSpeed": 2.1,
+    "ratLowFootHeight": 0.06
+  },
+  "reactions": {
+    "blockImpactTicks": 12,
+    "defaultStaggerSeconds": 0.3,
+    "swingAssistTicks": 8,
+    "droneDeath": { "clip": "drone_death", "ticks": 48 },
+    "breathStartTicks": 56
+  },
+  "legacy": {
+    "player": {
+      "bufferSeconds": 0.12,
+      "guardRecoverSeconds": 0.45,
+      "dodge": { "seconds": 0.22, "invulnerableSeconds": 0.25, "cooldownSeconds": 1.05, "speed": 16 },
+      "walkSpeed": 4.2,
+      "guardMoveScale": 0.4,
+      "accelerate": 48,
+      "decelerate": 34,
+      "turnRate": 720,
+      "guard": {
+        "arc": 140,
+        "parryWindowSeconds": 0.16,
+        "regenPerSecond": 35,
+        "blockedDamageFactor": 0.25,
+        "blockCostFactor": 3,
+        "brokenSeconds": 0.9,
+        "parryStunSeconds": 0.9
+      }
+    },
+    "waveClearHeal": 25,
+    "hitKnockback": 0.18,
+    "kinds": [
+      {
+        "hp": 55,
+        "radius": 0.4,
+        "damage": 9,
+        "swingRadius": 1.8,
+        "swingArc": 90,
+        "windupSeconds": 0.4,
+        "recoverSeconds": 0.45,
+        "readySeconds": 1.2,
+        "moveSpeed": 2.8
+      },
+      {
+        "hp": 95,
+        "radius": 0.4,
+        "damage": 23,
+        "swingRadius": 2.8,
+        "swingArc": 110,
+        "windupSeconds": 1.05,
+        "recoverSeconds": 0.95,
+        "readySeconds": 1.9,
+        "moveSpeed": 1.65
+      },
+      {
+        "hp": 50,
+        "radius": 0.4,
+        "damage": 12,
+        "swingRadius": 1.8,
+        "swingArc": 90,
+        "windupSeconds": 0.65,
+        "recoverSeconds": 0.45,
+        "readySeconds": 1.9,
+        "moveSpeed": 2.8
+      },
+      {
+        "hp": 400,
+        "radius": 0.65,
+        "damage": 25,
+        "swingRadius": 3.5,
+        "swingArc": 90,
+        "windupSeconds": 1.05,
+        "recoverSeconds": 0.95,
+        "readySeconds": 1.9,
+        "moveSpeed": 2.1
+      }
+    ],
+    "wideSwing": { "radius": 4, "arc": 360 },
+    "alertDistance": 12,
+    "rangedReach": 8,
+    "reachSlack": 0.25,
+    "aimDot": 0.96,
+    "swingSeconds": 0.28,
+    "boltSpeed": 8,
+    "boltHitRadius": 0.6,
+    "formation": { "columns": 5, "xSpacing": 1.7, "zSpacing": 2.4, "centerColumn": 2 },
+    "waves": {
+      "firstWaveSeconds": 2,
+      "messageSeconds": 4,
+      "clearDelaySeconds": 4,
+      "boltLifeSeconds": 4,
+      "finalWave": 3,
+      "baseCount": 4,
+      "kindCycle": 3,
+      "rangedKind": 2,
+      "warlordKind": 3,
+      "widePattern": 1,
+      "rangedPattern": 2,
+      "patternCount": 3,
+      "boltSpreadPiDivisor": 10,
+      "retreatDistance": 4,
+      "retreatSpeed": 2
+    },
+    "loot": {
+      "every": 2,
+      "kinds": 3,
+      "maxTier": 2,
+      "pickupRadius": 1.3,
+      "blade": { "base": 0.1, "step": 0.025 },
+      "armour": { "base": 15, "step": 5 },
+      "tonic": { "base": 30, "step": 10 }
+    }
+  }
+}

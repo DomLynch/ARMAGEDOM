@@ -1,0 +1,664 @@
+{
+  "schema_version": 1,
+  "survivorVariants": [
+    { "id": "azure", "garment": [0.55, 0.8, 1.0], "accent": [0.2, 0.55, 1.0] },
+    { "id": "jade", "garment": [0.6, 1.0, 0.7], "accent": [0.1, 0.85, 0.45] },
+    { "id": "amber", "garment": [1.0, 0.85, 0.45], "accent": [1.0, 0.75, 0.15] },
+    { "id": "violet", "garment": [0.8, 0.65, 1.0], "accent": [0.6, 0.35, 1.0] },
+    { "id": "snow", "garment": [1.15, 1.15, 1.2], "accent": [0.85, 0.95, 1.0] },
+    { "id": "lime", "garment": [0.85, 1.0, 0.5], "accent": [0.6, 0.95, 0.15] }
+  ],
+  "faces": {
+    "version": "armagedom-face-v1",
+    "heads": [
+      { "id": "narrow", "width": 0.87, "height": 1.035 },
+      { "id": "broad", "width": 1.12, "height": 0.98 }
+    ],
+    "hairs": ["buzz", "rough-crop", "crest", "back-crop", "messy"],
+    "skins": [
+      { "id": "light", "photo": [1.3, 1.22, 1.12] },
+      { "id": "tan", "photo": [1.02, 0.91, 0.78] },
+      { "id": "olive", "photo": [0.8, 0.79, 0.62] },
+      { "id": "brown", "photo": [0.62, 0.43, 0.3] },
+      { "id": "deep", "photo": [0.43, 0.29, 0.2] }
+    ],
+    "weathering": ["dust", "stubble", "scar", "ash", "grime"]
+  },
+  "clothing": {
+    "version": "armagedom-clothing-033-v1",
+    "minTonalGap": 0.035,
+    "tops": [
+      ["charcoal", "24272a", "353a3b", "4b4d49", "62655f"],
+      ["ash", "70746e", "878c84", "a0a198", "b4b8ac"],
+      ["earth", "514637", "685341", "806751", "977e66"],
+      ["tobacco", "57422f", "72583c", "8e714a", "a68b61"],
+      ["rust", "633e32", "7c4e3e", "976348", "ad7b5c"],
+      ["oxblood", "4d3036", "633a43", "7d4e54", "94666a"],
+      ["olive", "394332", "536044", "6b7857", "86916c"],
+      ["khaki", "626049", "7e7959", "99916e", "afa985"],
+      ["dirty-ochre", "736037", "8d7947", "a5905c", "bda976"],
+      ["sand", "918271", "a89881", "bfaf98", "d0c0a7"],
+      ["faded-navy", "273644", "3a4b5a", "536577", "72808e"],
+      ["blue-grey", "4a5860", "63737b", "839198", "a2adb0"],
+      ["muted-plum", "5b4655", "886875"]
+    ],
+    "trousers": [
+      ["charcoal", "202326", "303333", "41453f", "55584e"],
+      ["ash", "62665e", "74796d", "858b7b", "989d8d"],
+      ["earth", "423a30", "554735", "6a5842", "82715b"],
+      ["tobacco", "493728", "624c33", "7a6140", "947b53"],
+      ["rust", "54392e", "6a4736", "82583f", "9a7154"],
+      ["oxblood", "402b31", "56353e", "6b434b", "82575e"],
+      ["olive", "303929", "455039", "5b6848", "73805d"],
+      ["khaki", "55533f", "6c684d", "85805f", "9d9675"],
+      ["dirty-ochre", "625231", "79663c", "907c4b", "a69360"],
+      ["sand", "80715e", "95836a", "aa977a", "bdae91"],
+      ["faded-navy", "22303d", "33424e", "495968", "64727f"],
+      ["blue-grey", "3b4a51", "516168", "6a797f", "89969a"],
+      ["muted-plum", "4a3947", "705663"]
+    ],
+    "partners": {
+      "charcoal": ["ash", "khaki", "sand", "tobacco", "earth"],
+      "ash": ["charcoal", "earth", "tobacco", "faded-navy", "oxblood"],
+      "earth": ["charcoal", "ash", "khaki", "olive", "faded-navy"],
+      "tobacco": ["charcoal", "ash", "olive", "faded-navy", "blue-grey"],
+      "rust": ["charcoal", "ash", "olive", "faded-navy", "blue-grey"],
+      "oxblood": ["charcoal", "ash", "earth", "khaki", "blue-grey"],
+      "olive": ["charcoal", "ash", "tobacco", "sand", "earth", "rust"],
+      "khaki": ["charcoal", "earth", "oxblood", "faded-navy", "blue-grey"],
+      "dirty-ochre": ["charcoal", "earth", "faded-navy", "blue-grey", "olive"],
+      "sand": ["charcoal", "earth", "tobacco", "faded-navy", "muted-plum"],
+      "faded-navy": ["ash", "khaki", "sand", "tobacco", "earth", "dirty-ochre"],
+      "blue-grey": ["charcoal", "earth", "tobacco", "khaki", "oxblood"],
+      "muted-plum": ["charcoal", "ash", "earth", "khaki", "faded-navy"]
+    }
+  },
+  "effects": {
+    "swingColours": { "slash": "e3e9ec", "stab": "e3e9ec", "heavy": "ffa64c", "special": "e8bc65" },
+    "lootColours": ["dca64d", "48b9c5", "70c66e"],
+    "feedback": {
+      "pools": { "particles": 48, "tracers": 16 },
+      "viewportFallback": { "width": 852, "height": 393 },
+      "lootGemRadius": 0.21,
+      "flameWidthScale": { "witch": 2, "salamander": 2 },
+      "tracer": { "colour": "f5d498", "opacity": 0.8, "defaultSeconds": 0.065 },
+      "muzzleFlashColour": "ffedb0",
+      "particle": { "palette": "ffca85", "gravity": 8, "minLife": 0.001, "dimBase": 0.6, "dimSpan": 0.4 },
+      "finisherDrop": {
+        "speedBase": 0.6,
+        "speedSpread": 0.4,
+        "speedStride": 7,
+        "liftShare": 0.1,
+        "liftCycle": 3,
+        "baseLift": 0.3,
+        "tailSpeedShare": 0.75,
+        "tailTravelShare": 0.65
+      },
+      "burst": {
+        "counts": { "off": 1, "low": 3, "killed": 12, "hit": 8 },
+        "lifeSeconds": { "off": 0.12, "killed": 0.42, "hit": 0.3 },
+        "sizes": { "off": 0.14, "low": 0.055, "killed": 0.16, "hit": 0.12 },
+        "spread": 1.8,
+        "liftBase": 1.3,
+        "liftStep": 0.7,
+        "liftCycle": 3
+      },
+      "pickupGun": { "tilt": 0.45, "height": 0.15, "scale": 1.8, "contourColour": "f1d28c" },
+      "reticle": {
+        "barLength": 0.42,
+        "barThickness": 0.055,
+        "outlinePad": 0.06,
+        "cornerNear": 0.39,
+        "cornerFar": 0.5,
+        "cornerLength": 0.22,
+        "cornerThickness": 0.045,
+        "outlineColour": "161b1d",
+        "cueColour": "f2eee4",
+        "accentColour": "dca64d",
+        "accentTriangle": [-0.13, 0.1, 0, 0, -0.1, 0, 0.13, 0.1, 0],
+        "accentY": 0.76,
+        "renderOrders": { "outline": 101, "cue": 102, "accent": 103 }
+      },
+      "line": { "defaultHeight": 0.08, "ringArcDegrees": 359, "steps": 36, "opacity": 0.9 },
+      "frame": { "maxStep": 0.05, "recoilDecay": 12, "recoilSettle": 0.001, "offRecoilShare": 0.2 },
+      "events": {
+        "railgun": { "seconds": 0.16, "colour": "ffcb72", "flashScale": [0.25, 0.25, 0.35], "flashSeconds": 0.06 },
+        "warningColour": "ffbd62",
+        "attackColours": { "specialKind": 3, "special": "f9a83b", "other": "e45735" },
+        "confirmationSeconds": 0.2,
+        "lineSeconds": 0.12,
+        "lowLine": {
+          "biteReach": 0.6,
+          "dogBiteReach": 0.9,
+          "otherReach": 1.2,
+          "roachBiteHeight": 0.159,
+          "dogBiteHeight": 1.05,
+          "midSlashShare": 0.7,
+          "midSlashScaleFallback": 1.6729625,
+          "height": 0.15
+        },
+        "special": { "reach": 1.3, "combatScaleFallback": 1.265, "height": 1.1 },
+        "stab": { "height": 1.1, "length": 1.8, "opacity": 0.85 },
+        "melee": { "specialReach": 4.2, "heavyReach": 1.8, "slashReach": 1.5, "arc": 120, "height": 1.1 },
+        "defence": { "reach": 1.05, "arc": 120, "seconds": 0.18, "colours": { "parry": "76d4df", "block": "c4a665", "break": "e95737" } }
+      },
+      "shot": {
+        "originHeight": 1.05,
+        "flash": {
+          "high": { "scale": [0.4, 0.35, 0.43], "seconds": 0.06 },
+          "low": { "scale": [0.25, 0.22, 0.27], "seconds": 0.045 }
+        }
+      },
+      "hitMarker": { "sideMargin": 36, "topMax": 220, "topShare": 0.32, "bottomShare": 0.7 },
+      "pickupPulse": { "base": 2.4, "swing": 1.2, "rate": 4, "phoneWidth": 480, "phoneScale": 2 },
+      "cue": {
+        "edgeMargin": 52,
+        "minViewport": 53,
+        "clampZ": 0.99,
+        "pixels": { "target": 24, "ground": 16 },
+        "fallbackScale": { "target": 0.6, "ground": 0.2 },
+        "opacity": { "readyTarget": 0.95, "ready": 0.75, "notReady": 0.65 },
+        "outlineOpacity": 0.9
+      },
+      "loot": { "spinRate": 1.5, "height": 0.3 },
+      "audio": {
+        "frequencies": { "attack": 180, "hit": 95, "parry": 660, "block": 260, "dodge": 120, "loot": 880, "death": 55, "wave": 330 },
+        "seconds": { "death": 0.25, "other": 0.08 },
+        "sineEvents": ["loot", "parry"],
+        "minFrequency": 30,
+        "rampShare": 0.55,
+        "gain": 0.035,
+        "gainEnd": 0.001
+      }
+    },
+    "targetHeights": {
+      "burst": {
+        "default": { "scaled": 1.1 },
+        "original-wolf": { "fixed": 1.625 },
+        "original-elephant": { "fixed": 2.7 },
+        "low-hover-drone": { "drone": true },
+        "original-rat": { "scaled": 0.18 },
+        "original-dog": { "scaled": 0.35 },
+        "original-roach": { "scaled": 0.08 },
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 },
+        "giant-centipede": { "scaled": 0.08 }
+      },
+      "confirm": {
+        "default": { "scaled": 2 },
+        "original-wolf": { "fixed": 1.625 },
+        "original-elephant": { "fixed": 2.7 },
+        "low-hover-drone": { "drone": true },
+        "original-rat": { "scaled": 0.18 },
+        "original-dog": { "scaled": 0.35 },
+        "original-roach": { "scaled": 0.08 },
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 },
+        "giant-centipede": { "scaled": 0.08 }
+      },
+      "tracer": {
+        "default": {},
+        "original-wolf": { "fixed": 1.625 },
+        "original-elephant": { "fixed": 2.7 },
+        "low-hover-drone": { "drone": true },
+        "original-rat": { "scaled": 0.18 },
+        "original-dog": { "scaled": 0.35 },
+        "original-roach": { "scaled": 0.08 },
+        "giant-salamander": { "scaled": 0.18 },
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 },
+        "giant-centipede": { "scaled": 0.08 }
+      },
+      "reticle": {
+        "default": { "scaled": 1.15 },
+        "giant-salamander": { "cue": true },
+        "original-wolf": { "cue": true },
+        "original-elephant": { "cue": true },
+        "low-hover-drone": { "drone": true },
+        "original-rat": { "scaled": 0.18 },
+        "original-dog": { "scaled": 0.35 },
+        "original-roach": { "scaled": 0.08 },
+        "original-crow": { "scaled": 0.18 },
+        "original-spider": { "scaled": 0.1 },
+        "giant-centipede": { "scaled": 0.08 }
+      }
+    }
+  },
+  "dropMarker": {
+    "shape": "brackets",
+    "bracketArm": 0.3,
+    "ringInner": 0.94,
+    "ringOuter": 1.05,
+    "glowOuter": 1.45,
+    "glowOpacity": 0.25,
+    "peakOpacity": 0.45,
+    "labelBackingOpacity": 0.8,
+    "ringPulse": 0.16,
+    "ringColour": "f2a93b",
+    "labelColour": "ffe3a6",
+    "labelBacking": "0b0b09",
+    "pulseSeconds": 1.3,
+    "minOpacity": 0.6,
+    "itemPulse": 0.07,
+    "labelHeight": 1.6,
+    "labelWidth": 3.4,
+    "label": { "canvasWidth": 384, "canvasHeight": 64, "textY": 34, "textMaxWidth": 360, "opacityBase": 0.75, "opacitySwing": 0.25, "borderPx": 3, "renderOrder": 10 },
+    "glow": {
+      "canvasPx": 256,
+      "groundY": 0.04,
+      "clearShare": 0.8,
+      "clearAlpha": 0.05,
+      "innerAlpha": 0.45,
+      "bandAlpha": 0.6,
+      "outerAlpha": 0.45,
+      "tailShare": 0.35,
+      "tailAlpha": 0.18
+    },
+    "ringY": 0.045,
+    "ringSegments": 48
+  },
+  "expeditionHud": {
+    "atlas": { "cell": 100, "gutter": 3, "columns": 3, "rows": 3, "lanes": [100, 200] },
+    "caseScale": 1.35,
+    "guardLabelDistance": 10
+  },
+  "remotePlayers": {
+    "capsule": { "bodyHeight": 1, "radius": 0.3, "capSegments": 4, "radialSegments": 8, "saturation": 0.45, "lightness": 0.55, "hueStep": 47 },
+    "head": { "radius": 0.2, "widthSegments": 12, "heightSegments": 8 },
+    "tag": {
+      "height": 2.05,
+      "scale": [1.6, 0.4],
+      "canvas": [256, 64],
+      "band": [0, 8, 256, 48],
+      "textX": 128,
+      "textY": 33,
+      "fonts": ["bold 30px sans-serif"]
+    }
+  },
+  "bossView": {
+    "labelRange": 12,
+    "hazard": {
+      "ringInner": 0.91,
+      "segments": 48,
+      "height": 0.025,
+      "initialFillOpacity": 0.14,
+      "initialEdgeOpacity": 0.9,
+      "warning": { "colour": "ffcb59", "fillOpacity": 0.1, "edgeBase": 0.65, "edgeSwing": 0.3, "pulseRate": 10 },
+      "active": { "colour": "8ed04d", "fillOpacity": 0.24, "edgeOpacity": 0.9 }
+    }
+  },
+  "pickupModel": {
+    "fitDiameter": 0.72,
+    "groundLift": 0.025
+  },
+  "bossEquipmentView": {
+    "loadFailureSeconds": 4,
+    "claimMessageSeconds": 3,
+    "grenade": {
+      "startHeight": 1.15,
+      "landHeight": 0.05,
+      "arcHeight": 1.2,
+      "flightSeconds": 0.35,
+      "spinPi": 3,
+      "ring": {
+        "inner": 2.92,
+        "outer": 3,
+        "segments": 40,
+        "colour": "ffbc58",
+        "opacity": 0.45,
+        "height": 0.018,
+        "pulseBase": 0.25,
+        "pulseSwing": 0.35,
+        "pulseRate": 6
+      },
+      "blast": {
+        "seconds": 0.35,
+        "colour": "ffe5a0",
+        "startScale": 0.2,
+        "growth": 0.8,
+        "opacity": 0.8
+      }
+    }
+  },
+  "areaNames": {
+    "overrides": { "central-hub": "Central Safehouse" },
+    "numbered": "Area {number}"
+  },
+  "travelText": {
+    "travelling": "Traveling to {area}…",
+    "recoveryFailed": "Travel recovery failed. Reload the page to continue.",
+    "loadFailed": "Could not load that area. Move away and try the exit again."
+  },
+  "exitRings": {
+    "inner": 0.48,
+    "outer": 0.62,
+    "segments": 32,
+    "colour": "dfba59",
+    "opacity": 1,
+    "lockedColour": "dfba59",
+    "lockedOpacity": 0.7,
+    "height": 0.045,
+    "anchor": { "x": 0.5, "y": 0.5 },
+    "centring": { "radius": 2.5, "roomStep": 0.5, "pictureStep": 0.005, "margin": 0.002, "clearance": 2 },
+    "flatRotation": -1.5707963267948966,
+    "offsets": {
+      "central-hub>westminster": { "x": 1.9, "z": 0 },
+      "central-hub>east": { "x": -1.9, "z": 0 },
+      "central-hub>area7": { "x": 0, "z": -22 },
+      "central-hub>south": { "x": 0, "z": 1.9 }
+    },
+    "scales": { "central-hub>area7": 2 }
+  },
+  "input": {
+    "knobPadPx": 106,
+    "knobTravelShare": 0.34,
+    "stickRadiusPx": 46,
+    "runTilt": 1.4,
+    "aimStartPx": 12,
+    "doubleTapMs": 350,
+    "worldTapMaxMs": 350,
+    "worldTapSlopPx": 10
+  },
+  "touchTarget": { "paddingPx": 8 },
+  "routeGuidance": {
+    "clearance": 0.4,
+    "sampleStep": 0.1,
+    "boundaryReach": 3.5,
+    "exitReach": 5,
+    "boundaryStartReach": 7,
+    "waypointMin": 0.5,
+    "arrivalRadius": 4,
+    "pistolArrived": 0.3,
+    "huntArrived": 1.5,
+    "tutorialArrived": 1.5,
+    "arrow": {
+      "height": 0.04,
+      "tailGap": 1,
+      "peakOpacity": 0.6,
+      "minOpacity": 0.35,
+      "pulseSeconds": 1.3,
+      "triangles": [
+        [[-0.13, 0, 0], [0.13, 0, 0], [0.13, 0, 1.05]],
+        [[-0.13, 0, 0], [0.13, 0, 1.05], [-0.13, 0, 1.05]],
+        [[-0.32, 0, 0.97], [0.32, 0, 0.97], [0, 0, 1.43]]
+      ]
+    },
+    "text": {
+      "killSalamander": "KILL THE SALAMANDER",
+      "killMatron": "KILL THE EMBER MATRON",
+      "walkToProjector": "WALK TO THE EMBER PROJECTOR",
+      "pistol": "PISTOL",
+      "ahead": "AHEAD",
+      "exit": "EXIT → {area}",
+      "roadClosed": "ROAD CLOSED · ",
+      "cue": "{closed}{direction} {name} · {metres}m",
+      "compass": ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"],
+      "entranceSign": ["CENTRAL SAFEHOUSE", "SIDE ENTRANCE"]
+    },
+    "rail": {
+      "sideProbe": 0.3,
+      "sideOffset": 0.12,
+      "segments": 8,
+      "centreHeight": 0.72,
+      "thickness": 0.28,
+      "depth": 0.12,
+      "colours": ["d0a943", "252522"],
+      "post": { "centreHeight": 0.53, "height": 1.06, "width": 0.12, "colour": "363b3a", "along": [0, 0.5, 1] }
+    },
+    "marker": {
+      "height": 0.045,
+      "showDistance": 9,
+      "exitHintRemaining": 1.2,
+      "ring": { "inner": 0.48, "outer": 0.62, "segments": 32, "colour": "dfba59" },
+      "sign": {
+        "canvas": [512, 128],
+        "borderWidth": 5,
+        "border": [3, 3, 506, 122],
+        "textX": 256,
+        "lineY": [53, 96],
+        "fonts": ["bold 34px sans-serif", "26px sans-serif"],
+        "size": [3.6, 0.9],
+        "height": 1.65
+      }
+    }
+  },
+  "severBlood": {
+    "jet": { "capacity": 2, "duration": 0.5, "length": 1.2, "radius": 0.075 },
+    "pool": { "settleSeconds": 0.1, "capacity": 4, "lifetime": 4, "spreadSeconds": 0.4, "radius": 0.5, "opacity": 0.7 },
+    "headDropletLifetime": 1.25,
+    "headDropletGravity": 4
+  },
+  "motion": {
+    "posePhase": { "windupShare": 0.45, "minSeconds": 0.01 },
+    "gait": {
+      "walkStride": 1.31,
+      "otherStride": 3.5,
+      "fullRunSpeed": 1.3,
+      "runBlendSeconds": 0.14,
+      "strikeBlendSeconds": 0.08,
+      "guardBlendSeconds": 0.1,
+      "minStepSeconds": 0.001
+    },
+    "swingFallback": { "windupSeconds": 0.14, "recoverSeconds": 0.28 },
+    "stab": { "startExtension": 0.05, "peakExtension": 0.9, "sideOffset": 0.08, "drop": 0.2 },
+    "heavyWindup": { "forward": 0.25, "up": 0.2, "aimForward": 0.25 },
+    "guard": { "forward": 0.28, "sideOffset": 0.12, "drop": 0.2, "aimSide": 0.3 },
+    "bigLift": 0.6,
+    "soleWeight": 0.6,
+    "armBendDrop": 0.5,
+    "plant": {
+      "minSpeed": 0.3,
+      "minRunWeight": 0.8,
+      "groundClearance": 0.012,
+      "maxDrift": 0.45,
+      "contactWindows": {
+        "walking": [[0.05, 0.45], [0.55, 0.95]],
+        "other": [[0.03, 0.2], [0.55, 0.74]]
+      }
+    }
+  },
+  "flameEffect": {
+    "texture": { "falloffPower": 1.6, "peakAlpha": 240 },
+    "alphaTest": 0.01,
+    "renderOrder": 2,
+    "cyclesPerSecond": 4,
+    "floorClearance": 0.02,
+    "spread": { "radiusShare": 0.55, "jitterRate": 19.3 },
+    "phaseClamp": [0.03, 0.97],
+    "corpseDeathFallbackSeconds": 2.4,
+    "burnSurface": { "maxOffset": 0.8, "defaultRadius": 0.4, "margin": 0.05 },
+    "burnWisp": { "spacing": 0.24, "baseHeight": 0.13, "wobbleRate": 14, "wobbleHeight": 0.08 },
+    "particles": {
+      "emitterCount": 24,
+      "reducedCount": 6,
+      "burnSlots": 6,
+      "burnPerVictim": 2,
+      "burnSeconds": 0.35,
+      "textureSize": 32,
+      "emitterWidth": [0.26, 0.5],
+      "burnWidth": [0.5, 0.7],
+      "burnAspect": 1.65,
+      "palette": ["fff6ce", "ffb843", "f15a10"]
+    }
+  },
+  "safehouseView": {
+    "cue": { "period": 3.5, "reducedOpacity": 0.75, "pulseExponent": 8, "floor": { "selected": 0.82, "near": 0.7, "idle": 0.4 } },
+    "patchRenderOrder": -99,
+    "contour": { "colour": "ddba70", "linewidth": 2, "opacity": 0.4, "renderOrder": -98 },
+    "amountDigits": 2,
+    "silhouettes": {
+      "locker": [[0.09, 0.05], [0.91, 0], [1, 0.86], [0.77, 1], [0, 0.88]],
+      "comms": [[0, 0.31], [0.76, 0], [1, 0.23], [0.96, 0.84], [0.25, 1], [0.02, 0.82]],
+      "map": [[0, 0.13], [0.91, 0], [1, 0.84], [0.08, 1]]
+    }
+  },
+  "wantedPoster": {
+    "canvas": { "width": 384, "height": 768 },
+    "titleX": 192,
+    "portrait": { "alpha": 0.86, "x": 64, "y": 170, "width": 256, "height": 320 },
+    "amount": { "x": 192, "y": 625, "fontPx": 92, "maxWidth": 300 },
+    "rules": { "alpha": 0.4, "thickness": 2, "top": { "x": 40, "y": 125, "width": 304 }, "bottom": { "x": 64, "y": 655, "width": 256 } },
+    "specks": { "count": 140, "stepX": 193, "offsetX": 31, "spanX": 384, "stepY": 271, "offsetY": 67, "spanY": 700, "alpha": 0.1, "alphaStep": 0.06, "alphaSteps": 4, "sizeSteps": 3 },
+    "scratches": { "count": 9, "x": 25, "stepX": 71, "spanX": 250, "y": 140, "stepY": 51, "width": 45, "widthStep": 9, "widthSteps": 4 },
+    "meshColour": "dce2ca",
+    "renderOrder": -95,
+    "flickerHz": [17, 43]
+  },
+  "arcGun": {
+    "maxLinks": 4,
+    "maxStuns": 4,
+    "coreColour": 16777215,
+    "coreOpacity": 1,
+    "coreWidth": 3.5,
+    "haloColour": 7320831,
+    "haloOpacity": 0.75,
+    "haloWidth": 11,
+    "jagSegments": 7,
+    "jitter": 0.09,
+    "forks": 2,
+    "forkLength": 0.3,
+    "forkSegments": 3,
+    "boltSeconds": 0.18,
+    "reJags": 2,
+    "hopDelay": 0.05,
+    "sparkCount": 6,
+    "sparkSeconds": 0.18,
+    "sparkSpeed": 3,
+    "sparkSize": 3,
+    "sparkColour": 16777215,
+    "stunColour": 10473727,
+    "stunOpacity": 0.9,
+    "stunCoreWidth": 1.5,
+    "stunHaloWidth": 5,
+    "stunRadius": 0.4,
+    "stunSegments": 6,
+    "stunFlickerSeconds": 0.06
+  },
+  "finisherImpact": {
+    "trailSeconds": 0.18,
+    "headSeverTrailSeconds": 0.28,
+    "trailLength": 0.22,
+    "headSeverTrailLength": 0.34,
+    "dropSize": 0.055,
+    "headDropSize": 0.1,
+    "headSeverDropSize": 0.13,
+    "gravity": 8
+  },
+  "weaponViews": {
+    "rocket": {
+      "blast": {
+        "seconds": 0.35,
+        "fallbackRadius": 3,
+        "ringInnerRatio": 0.9733333333,
+        "ringSegments": 40,
+        "ringColour": "ffc064",
+        "ringOpacity": 0.8,
+        "coreRadius": 0.25,
+        "coreWidthSegments": 8,
+        "coreHeightSegments": 6,
+        "coreColour": "ffd797",
+        "coreOpacity": 0.85,
+        "coreHeight": 0.25,
+        "groundLift": 0.025,
+        "startScale": 0.2,
+        "growScale": 0.8
+      }
+    },
+    "flame": {
+      "pickup": { "fitSize": 0.72, "lift": 0.025 },
+      "ring": { "radius": 0.35, "tube": 0.025, "radialSegments": 4, "tubularSegments": 20, "colour": "ffbd62", "lift": 0.025 },
+      "messageSeconds": 4
+    },
+    "rifle": { "pickup": { "fitSize": 0.72, "lift": 0.025 }, "messageSeconds": 4, "loadFailedSeconds": 5 },
+    "uniqueReward": { "pickup": { "fitSize": 0.72, "lift": 0.025 }, "messageSeconds": 4, "loadFailedSeconds": 5 },
+    "marked": { "headTotalSeconds": 2.5 }
+  },
+  "combatImpact": {
+    "settleBelow": 0.001,
+    "lowEnergy": 0.4,
+    "waveRate": 45,
+    "holdSeconds": { "death": 0.08, "pistol": 0.05, "other": 0.04 },
+    "kick": { "death": 8, "hit": 4, "shot": 3, "max": 8 },
+    "decayRate": { "shotPistol": 12, "shotOther": 18, "camera": 18, "reaction": 12, "reactionKilled": 10 },
+    "reactionHoldSeconds": { "hit": 0.045, "killed": 0.08 }
+  },
+  "worldGeometry": {
+    "imageWidth": 1672,
+    "imageHeight": 941,
+    "wallMargin": 0.061,
+    "defaultRadius": 0.4,
+    "minCorridorWidth": 1.5,
+    "minExitDepth": 0.4,
+    "stepRadiusShare": 0.5,
+    "minStep": 0.025,
+    "maxStep": 0.2
+  },
+  "tapFallback": { "graceMs": 80, "slopPx": 10 },
+  "firstTimeHints": { "seconds": 5 },
+  "waterEffect": {
+    "imageWidth": 1672,
+    "imageHeight": 941,
+    "ndcDepth": 0.5,
+    "planeDistance": 99,
+    "renderOrder": -85,
+    "maxStepSeconds": 0.1
+  },
+  "weaponTiles": { "pistolCapacity": 6, "tapSlopPx": 10, "flashSeconds": 5, "emptyMessageSeconds": 4, "pageSize": 3, "pageWidthPx": 168 },
+  "bossLabel": { "marginPx": 8, "gapPx": 8 },
+  "pickupFlash": { "seconds": 0.7, "colour": "e1bb65", "peakOpacity": 0.5, "events": ["auto-equip", "pickup", "supply-pickup", "vest-pickup", "loot"] },
+  "hud": { "heavyFallbackSeconds": 1.6, "dodgeFallbackSeconds": 1.05, "pistolInteractRadius": 1.3, "grenadeDefaultRange": 5, "equipMessageSeconds": 3 },
+  "flamePresentation": {
+    "mountOffset": { "x": -0.01262174057948523, "y": 0.07164552251435374, "z": 0.014197067151910436 },
+    "pitchUpDegrees": 30
+  },
+  "explosion": {
+    "maxActive": 3,
+    "texture": { "size": 64, "edge": 0.55, "falloffPower": 1.1 },
+    "renderOrder": 3,
+    "groundLift": 0.03,
+    "goldenAngle": 2.399963229728653,
+    "flash": { "seconds": 0.16, "diameterRatio": 1.8, "colour": "fffbe6", "lift": 0.3 },
+    "fireball": {
+      "lobes": 5,
+      "seconds": 0.7,
+      "startDiameterRatio": 0.3,
+      "peakDiameterRatio": 1.5,
+      "lobeShrink": 0.9,
+      "spreadRatio": 0.45,
+      "lift": 0.3,
+      "liftStep": 0.14,
+      "colourStart": "ffd36b",
+      "colourEnd": "e8400c",
+      "opacity": 1,
+      "easePower": 2.2,
+      "fadePower": 1
+    },
+    "smoke": {
+      "count": 5,
+      "seconds": 1.6,
+      "delay": 0.1,
+      "fadeInSeconds": 0.2,
+      "startDiameterRatio": 0.55,
+      "endDiameterRatio": 1.4,
+      "spreadRatio": 0.5,
+      "riseSpeed": 1.2,
+      "colour": "7d746a",
+      "opacity": 0.75
+    },
+    "sparks": {
+      "count": 14,
+      "seconds": 0.65,
+      "speedRatio": 3,
+      "speedStep": 0.7,
+      "gravity": 4.5,
+      "sizeRatio": 0.1,
+      "liftRatio": 0.15,
+      "elevationMin": 0.3,
+      "elevationMax": 1.2,
+      "elevationStride": 0.618,
+      "colour": "ffc46b"
+    },
+    "scorch": { "seconds": 3, "fadeStart": 0.4, "diameterRatio": 1.6, "opacity": 0.8, "colour": "0a0806" }
+  },
+  "grenadeView": { "groundHeight": 0.05, "flightSeconds": 0.35, "arcHeight": 1.2 }
+}

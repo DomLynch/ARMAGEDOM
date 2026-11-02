@@ -1,30 +1,56 @@
 import { closed, freeze } from "./content-schema.js";
 import { creatureCatalogue } from "./creature-catalogue.js";
-import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
+import { AREA_MOB_SPAWNS, appearanceRefOn } from "../area-mob-spawns.js";
 import { AREA_DRONE_SPAWNS } from "../area-drone-spawns.js";
+import { rigCapability, rigText } from "../rig-capabilities.js";
+import { GAME_DATA } from "./game-data.js";
+import { activeDay, variedHostiles } from "./spawn-variation.js";
 const fail = () => {
   throw Error("Invalid registered area population");
 };
-const foundations = ["original-rat", "original-dog", "original-roach", "low-hover-drone", "giant-salamander"];
+// A population slot may hold the rat, dog, roach, drone or salamander (populationSlot in rig-capabilities.json), not the wolf.
+const isDrone = (foundationRef) => rigText(foundationRef, "brain") === "drone";
+// Optional: absent means no hostile respawn. `seconds` is the play time a killed ordinary hostile stays down; excluded areas
+// (the Westminster tutorial) never respawn. Bosses, the unique-reward holder and drones are kept permanent in code.
+function validateRespawn(respawn, registry) {
+  if (respawn === undefined) return;
+  closed(respawn, ["seconds", "minPlayerDistance", "offscreenDistance", "excludedAreas"]);
+  const { seconds, minPlayerDistance, offscreenDistance, excludedAreas } = respawn;
+  if (![minPlayerDistance, offscreenDistance].every(Number.isFinite) || minPlayerDistance < 1 || offscreenDistance < minPlayerDistance)
+    fail();
+  if (!Number.isFinite(seconds) || seconds < 30 || seconds > 86400) fail();
+  if (!Array.isArray(excludedAreas) || new Set(excludedAreas).size !== excludedAreas.length) fail();
+  if (excludedAreas.some((id) => !registry.ids.includes(id))) fail();
+}
 // Keep the complete source identity/loot registry. Only fresh combat residents
 // consume this policy, so removed placements in old death/award ledgers stay valid.
 export function validatePopulationData(input, registry, residents, uniqueRewardData = null) {
   if (input === undefined) return null;
-  closed(input, ["version", "maxHostilesPerArea", "areas"]);
-  if (input.version !== 1 || input.maxHostilesPerArea !== 6) fail();
+  closed(input, ["version", "maxHostilesPerArea", "areas"], ["respawn"]);
+  // maxHostilesPerArea is the ceiling; an area may lower its own cap with `maxHostiles` (Westminster keeps its tuned tutorial roster).
+  if (
+    input.version !== 1 ||
+    !Number.isInteger(input.maxHostilesPerArea) ||
+    input.maxHostilesPerArea < 1 ||
+    input.maxHostilesPerArea > 10
+  )
+    fail();
+  validateRespawn(input.respawn, registry);
   const populated = registry.ids.filter(
     (id) => (residents[id] ?? AREA_MOB_SPAWNS[id] ?? []).length || (AREA_DRONE_SPAWNS[id] ?? []).length,
   );
   closed(input.areas, populated);
   for (const [id, policy] of Object.entries(input.areas)) {
-    closed(policy, ["activePlacementIds", "creatureSlot", "allowDroneFallback"]);
+    closed(policy, ["activePlacementIds", "creatureSlot", "allowDroneFallback"], ["maxHostiles"]);
+    const cap = policy.maxHostiles ?? input.maxHostilesPerArea;
+    if (!Number.isInteger(cap) || cap < 1 || cap > input.maxHostilesPerArea) fail();
     const rows = residents[id] ?? AREA_MOB_SPAWNS[id] ?? [],
       drones = AREA_DRONE_SPAWNS[id] ?? [],
       active = policy.activePlacementIds;
     if (
       !Array.isArray(active) ||
       active.length < 1 ||
-      active.length > input.maxHostilesPerArea ||
+      active.length > cap ||
       new Set(active).size !== active.length ||
       active.some((key) => typeof key !== "string" || ![...rows, ...drones].some((row) => row.key === key))
     )
@@ -35,20 +61,31 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
     closed(slot, ["placementKey", "cycles"]);
     closed(slot.cycles, ["A", "B"]);
     if (!active.includes(slot.placementKey) || protectedRows.some((row) => row.key === slot.placementKey)) fail();
-    for (const spec of Object.values(slot.cycles)) {
-      closed(spec, ["foundationRef", "recipeRef"]);
-      if (!foundations.includes(spec.foundationRef)) fail();
-      if (spec.foundationRef === "low-hover-drone") {
+    const checkSpec = (spec, optional) => {
+      closed(spec, ["foundationRef", "recipeRef"], optional);
+      // An appearance model must be a rig-matching animal recipe row in appearance.json (the Rat King's `rat-king`).
+      if (
+        spec.appearanceRef !== undefined &&
+        !GAME_DATA.appearance.animals.some((row) => row.id === spec.appearanceRef && row.foundation === spec.foundationRef)
+      )
+        fail();
+      if (!rigCapability(spec.foundationRef, "populationSlot")) fail();
+      if (isDrone(spec.foundationRef)) {
         if (spec.recipeRef !== null || !drones.some((row) => row.key === slot.placementKey)) fail();
       } else if (
         typeof spec.recipeRef !== "string" ||
         creatureCatalogue.forRecipe(spec.recipeRef).runtimeIdentity !== spec.foundationRef
       )
         fail();
+    };
+    for (const spec of Object.values(slot.cycles)) {
+      checkSpec(spec, ["off", "appearanceRef"]);
+      // `off`: the creature the slot holds when its monster is switched off (default: the cycle A creature, see populationPlacements).
+      if (spec.off) checkSpec(spec.off, []);
     }
-    const drone = slot.cycles.A.foundationRef === "low-hover-drone";
+    const drone = isDrone(slot.cycles.A.foundationRef);
     if (
-      drone !== (slot.cycles.B.foundationRef === "low-hover-drone") ||
+      drone !== isDrone(slot.cycles.B.foundationRef) ||
       typeof policy.allowDroneFallback !== "boolean" ||
       policy.allowDroneFallback !== drone ||
       active.some((key) => drones.some((row) => row.key === key) && key !== slot.placementKey)
@@ -57,22 +94,43 @@ export function validatePopulationData(input, registry, residents, uniqueRewardD
   }
   return freeze(structuredClone(input));
 }
-export function populationPlacements(policy, areaId, cycle, canonical) {
+// A rig row with `optionalMonster` is a monster Dom may drop: its row's `enabled` flag, or the page's ?<offParam>=1, puts the cycle A creature
+// back in its slot (creatures.json rigCapabilities; the crow's row is `enabled: true`, `offParam: "nocrow"`).
+const monsterOff = (rig, search) =>
+  rigCapability(rig, "optionalMonster") &&
+  (!rigCapability(rig, "enabled") || new URLSearchParams(search).get(rigText(rig, "offParam")) === "1");
+export function populationPlacements(policy, areaId, cycle, rows, search = globalThis.location?.search ?? "") {
   const area = policy?.areas[areaId];
+  // The daily re-roll swaps which hand-placed point each plain resident stands on (data/spawnVariation.json); keys and kinds stay.
+  const canonical = variedHostiles(rows, areaId, cycle ?? "A", activeDay());
   if (!area) return canonical;
   const active = new Set(area.activePlacementIds),
     slot = area.creatureSlot,
-    spec = slot.cycles[cycle ?? "A"];
+    chosen = slot.cycles[cycle ?? "A"],
+    // A spec dressed in an appearance model (the Rat King) is also off when that model is switched off (ratKing.json).
+    isOff = (s) =>
+      monsterOff(s.foundationRef, search) || (s.appearanceRef !== undefined && !appearanceRefOn(s.appearanceRef, search)),
+    // The fallback (cycle A) goes through the same off logic, so a switched-off king never survives as the fallback of another cycle.
+    resolve = (s) => (isOff(s) ? (s.off ?? slot.cycles.A) : s);
+  let spec = chosen && resolve(chosen);
+  if (spec && spec !== chosen && isOff(spec)) spec = spec.off ?? spec;
   if (!spec) fail();
   return canonical
     .filter((row) => active.has(row.key))
     .map((row) => {
-      if (row.key === slot.placementKey)
-        return { ...row, foundationRef: spec.foundationRef, recipeRef: spec.recipeRef };
+      if (row.key === slot.placementKey) {
+        const { appearanceRef } = spec;
+        return {
+          ...row,
+          foundationRef: spec.foundationRef,
+          recipeRef: spec.recipeRef,
+          ...(appearanceRef !== undefined && appearanceRefOn(appearanceRef, search) ? { appearanceRef } : {}),
+        };
+      }
       if (
         areaId === "east" &&
         row.key === "east-roamer-8" &&
-        row.foundationRef === "original-wolf" &&
+        rigText(row.foundationRef, "species") === "wolf" &&
         row.recipeRef === "wolf-east-guard"
       )
         return row;

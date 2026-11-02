@@ -2,13 +2,19 @@ import { lockerStored } from "./locker-core.js";
 import * as T from "three";
 import { setFlameEquipped, stopFlame, flameCanAct } from "./flame-runtime.js";
 import { addPickupGlow } from "../pickup-glow.js";
+import { markDrop } from "./drop-marker.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { WEAPON_VIEWS } from "./weapon-view-data.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+const FLAME = WEAPON_VIEWS.flame;
+const TEXT = GAME_DATA.weaponViewText.flame;
 const paint = (el, text) => {
   if (el.textContent !== text) el.textContent = text;
 };
 export function createFlamePickupView(source) {
   const root = new T.Group(),
     contours = [];
-  root.name = "Flamethrower world pickup";
+  root.name = "Flamethrower world pickup"; // text-ok: three.js group name, never shown
   let ring = null;
   if (source?.scene) {
     const display = source.scene.clone(true);
@@ -16,11 +22,11 @@ export function createFlamePickupView(source) {
     root.updateMatrixWorld(true);
     let box = new T.Box3().setFromObject(display),
       size = box.getSize(new T.Vector3());
-    display.scale.setScalar(Math.min(1, 0.72 / Math.hypot(size.x, size.z)));
+    display.scale.setScalar(Math.min(1, FLAME.pickup.fitSize / Math.hypot(size.x, size.z)));
     root.updateMatrixWorld(true);
     box = new T.Box3().setFromObject(display);
     const center = box.getCenter(new T.Vector3());
-    display.position.set(-center.x, 0.025 - box.min.y, -center.z);
+    display.position.set(-center.x, FLAME.pickup.lift - box.min.y, -center.z);
     const meshes = [];
     display.traverse((mesh) => {
       if (mesh.isMesh) meshes.push(mesh);
@@ -28,11 +34,11 @@ export function createFlamePickupView(source) {
     for (const mesh of meshes) contours.push(addPickupGlow(mesh));
   } else {
     ring = new T.Mesh(
-      new T.TorusGeometry(0.35, 0.025, 4, 20),
-      new T.MeshBasicMaterial({ color: 0xffbd62, depthTest: true }),
+      new T.TorusGeometry(FLAME.ring.radius, FLAME.ring.tube, FLAME.ring.radialSegments, FLAME.ring.tubularSegments),
+      new T.MeshBasicMaterial({ color: `#${FLAME.ring.colour}`, depthTest: true }),
     );
-    ring.rotation.x = -Math.PI / 2;
-    ring.position.y = 0.025;
+    ring.rotation.x = -Math.PI / 2; // tuning-ok: quarter turn lays the ring flat on the ground
+    ring.position.y = FLAME.ring.lift;
     root.add(ring);
   }
   let disposed = false;
@@ -100,19 +106,25 @@ export function createFlameView(s, persistence) {
       );
       if (!result.ok) return;
     } else stopFlame(g, { unequip: true });
-    s.input?.clear();
+    s.input?.clear({ keepMovement: true });
     s.effects?.clearFlameFeedback?.();
     repaint();
   }
-  async function equip() {
+  async function equip(options) {
     if (lockerStored(s.game, "flamethrower-area8-v1")) return;
     const g = s.game;
     if (!g?.world.flameData || !safe(g) || load) return;
     if (g.flame.equipped && !g.bossEquipment?.emberProjector?.selected) {
-      lower(g);
+      // Equip is a toggle: pressed again it lowers. An automatic switch (raise-only) never lowers.
+      if (options?.raiseOnly !== true) lower(g);
       return;
     }
-    if (!g.flameFuel?.collected || g.flameFuel.fuelUnits <= 0) return;
+    if (!g.flameFuel?.collected) return;
+    if (g.flameFuel.fuelUnits <= 0) {
+      g.message = TEXT.outOfFuel;
+      g.messageUntil = g.time + FLAME.messageSeconds;
+      return;
+    }
     const before = {
       weapon: g.player.weapon,
       variant: g.uniqueReward?.selectedMeleeVariant,
@@ -127,8 +139,8 @@ export function createFlameView(s, persistence) {
       } catch {
         if (!disposed && s.game === g) {
           failed = true;
-          g.message = "Could not load flamethrower. Try Equip again.";
-          g.messageUntil = g.time + 4;
+          g.message = TEXT.loadFailed;
+          g.messageUntil = g.time + FLAME.messageSeconds;
         }
         return;
       } finally {
@@ -158,9 +170,9 @@ export function createFlameView(s, persistence) {
     }
     if (!persistence.persistRun(g)) return;
     if (setFlameEquipped(g, true)) {
-      s.input?.clear();
-      g.message = "Ember Projector ready · hold Flame to fire.";
-      g.messageUntil = g.time + 4;
+      s.input?.clear({ keepMovement: true });
+      g.message = TEXT.ready;
+      g.messageUntil = g.time + FLAME.messageSeconds;
       repaint();
     }
   }
@@ -180,8 +192,14 @@ export function createFlameView(s, persistence) {
     );
     if (result.ok) {
       g.events.push(...result.events);
-      g.message = "Flamethrower collected. Equip it in Gear.";
-      g.messageUntil = g.time + 4;
+      g.message = collectedMessage(TEXT.name);
+      g.messageUntil = g.time + FLAME.messageSeconds;
+      void autoEquipAfterClaim(g, {
+        equip,
+        active: () => !!g.flame?.equipped,
+        itemId: g.world.flameData.pickupId,
+        name: TEXT.name,
+      }).then(repaint);
     }
     repaint();
     return true;
@@ -200,29 +218,38 @@ export function createFlameView(s, persistence) {
     const owned = !!g.flameFuel?.collected,
       fuel = Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / data.capacity) * 100),
       equipped = !!g.flame?.equipped && !g.bossEquipment?.emberProjector?.selected;
-    const benefit = `${data.contact.damage} damage per ${data.contact.interval}s contact · ${data.contact.range}m range`;
+    const benefit = fillText(TEXT.benefit, {
+      damage: data.contact.damage,
+      interval: data.contact.interval,
+      range: data.contact.range,
+    });
     paint(
       status,
       !owned
-        ? `Defeat the Ember Matron to earn the Ember Projector. ${benefit}.`
+        ? fillText(TEXT.stateLocked, { benefit })
         : fuel <= 0
-          ? "Fuel exhausted. Your normal weapon remains available."
-          : `${equipped ? "Equipped" : "Stored"} · ${benefit} · fuel ${fuel}% (${(g.flameFuel.fuelUnits / data.unitsPerSecond).toFixed(1)}s left). Spent fuel stays spent after Retry.`,
+          ? TEXT.stateEmpty
+          : fillText(TEXT.stateOwned, {
+              status: equipped ? TEXT.statusEquipped : TEXT.statusStored,
+              benefit,
+              fuel,
+              seconds: (g.flameFuel.fuelUnits / data.unitsPerSecond).toFixed(1),
+            }),
     );
     button.disabled = lockerStored(g, "flamethrower-area8-v1") || !owned || fuel <= 0 || !safe(g) || !!load;
     paint(
       button,
       lockerStored(g, "flamethrower-area8-v1")
-        ? "Stored in safehouse"
+        ? GAME_DATA.weaponViewText.shared.storedInSafehouse
         : load
-          ? "Loading flamethrower…"
+          ? TEXT.buttonLoading
           : equipped
-            ? "Return to normal weapon"
+            ? TEXT.buttonLower
             : failed
-              ? "Retry loading & equip flamethrower"
+              ? TEXT.buttonRetry
               : fuel <= 0 && owned
-                ? "Empty flamethrower"
-                : "Equip Ember Projector",
+                ? TEXT.buttonEmpty
+                : TEXT.buttonEquip,
     );
     button.setAttribute("aria-pressed", String(equipped));
     const visible = data.groundPickupEnabled === true && available() && !owned && g.world.areaId === data.areaId;
@@ -230,7 +257,7 @@ export function createFlameView(s, persistence) {
       const ready = s.actors.flameReady();
       if (!drop || ready !== dropReady) {
         clearDrop();
-        drop = createFlamePickupView(s.actors.flameAsset());
+        drop = markDrop(createFlamePickupView(s.actors.flameAsset()), TEXT.name);
         dropReady = ready;
         s.scene.add(drop.root);
       }
@@ -244,7 +271,8 @@ export function createFlameView(s, persistence) {
     if (!g?.world.flameData || !nearby(g)) return null;
     return {
       id: g.world.flameData.pickupId,
-      label: "Collect Flamethrower",
+      label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: TEXT.name }),
+      pickup: true,
       position: g.world.flameData.position,
       run: interact,
     };

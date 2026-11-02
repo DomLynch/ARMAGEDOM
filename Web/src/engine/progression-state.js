@@ -7,6 +7,7 @@ import {
   nextProficiencyScore,
 } from "./progression-rules.js";
 import { deathWeaponDescriptor } from "./weapon-credit-policy.js";
+import { GAME_DATA } from "./game-data.js";
 const weaponIds = Object.keys(DEFAULT_PROFICIENCY);
 export function closedData(value, keys) {
   return (
@@ -34,7 +35,7 @@ export const copyProgression = (s) => ({
   proficiency: { ...s.proficiency },
   awards: s.awards.map((row) => ({ ...row })),
 });
-export function createProgressionModel({ data, placements, baseMaxHP = 150, baseMaxStamina = 100 }) {
+export function createProgressionModel({ data, placements, baseMaxHP = GAME_DATA.progressionBase.defaultMaxHP, baseMaxStamina = 100 }) {
   data = validateProgressionPilot(data);
   if (!Number.isFinite(baseMaxHP) || baseMaxHP <= 0 || !Number.isFinite(baseMaxStamina) || baseMaxStamina <= 0)
     throw TypeError("Invalid underlying character caps");
@@ -46,7 +47,7 @@ export function createProgressionModel({ data, placements, baseMaxHP = 150, base
         typeof row?.key !== "string" ||
         !/^[a-z][a-z0-9-]{0,95}$/.test(row.key) ||
         registry.has(row.key) ||
-        registry.size >= 128
+        registry.size >= GAME_DATA.progressionBase.placementRegistryMax
       )
         throw TypeError("Invalid placement registry");
       registry.set(row.key, area);

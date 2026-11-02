@@ -1,15 +1,13 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Original ground insect shell recipes; Combat supplies rhythm and role.
-export const ROACH_APPEARANCES = Object.freeze(
-  [
-    { id: "roach-sewer", name: "Sewer Roach", width: 1, shellTint: [1, 1, 1], patch: 0 },
-    { id: "roach-ash", name: "Ash Roach", width: 1, shellTint: [2.4, 6.0, 24.0], patch: 0.15 },
-    { id: "roach-rust-shell", name: "Rust-shell Roach", width: 1, shellTint: [1.3, 0.76, 0.56], patch: 0.22 },
-    { id: "roach-heavy-shell", name: "Heavy-shell Roach", width: 1.5, shellTint: [0.76, 0.8, 0.88], patch: 0.1 },
-    { id: "roach-skitter", name: "Skitter Roach", width: 0.68, shellTint: [1.08, 0.92, 0.76], patch: 0.15 },
-    { id: "roach-nest-guard", name: "Nest Guard", width: 1, shellTint: [0.85, 0.74, 0.6], patch: 0.36 },
-  ].map(Object.freeze),
-);
+// The six rows (id, name, width, shellTint, patch) live in Web/src/data/appearance.json `roaches` (read through game-data.js).
+export const ROACH_APPEARANCES = GAME_DATA.appearance.roaches;
+// The shell taper band and the wear noise (appearance.json `roachCoat`): wear is a smooth noise of the vertex position.
+const COAT = GAME_DATA.appearance.roachCoat;
 const SHELL = new Set(["abdomen", "thorax"]);
+const SHELL_MATERIAL = GAME_DATA.appearance.meshNames.roachShell;
+const XYZ = 3; // tuning-ok: a colour packed as three floats
+const INFLUENCES = 4; // tuning-ok: a vertex has four skin influences
 export function createRoachAppearanceLibrary(T) {
   const caches = new WeakMap(),
     ownedG = new Set(),
@@ -27,7 +25,7 @@ export function createRoachAppearanceLibrary(T) {
       if (meshes.length !== 1 || meshes[0].name !== "ARM_Original_Infected_Ground_Roach")
         throw Error("Original roach foundation required");
       const m = meshes[0];
-      if (Array.isArray(m.material) || m.material.name !== "Worn rust-brown chitin")
+      if (Array.isArray(m.material) || m.material.name !== SHELL_MATERIAL)
         throw Error("Original roach material required");
       let cache = caches.get(m.geometry);
       if (!cache) caches.set(m.geometry, (cache = new Map()));
@@ -39,23 +37,24 @@ export function createRoachAppearanceLibrary(T) {
           const p = g.attributes.position,
             ix = g.attributes.skinIndex,
             w = g.attributes.skinWeight,
-            c = new Float32Array(p.count * 3),
+            c = new Float32Array(p.count * XYZ),
             original = m.geometry.attributes.color;
           for (let i = 0; i < p.count; i++) {
             let shell = 0;
-            for (let k = 0; k < 4; k++)
+            for (let k = 0; k < INFLUENCES; k++)
               if (SHELL.has(m.skeleton.bones[ix.getComponent(i, k)]?.name)) shell += w.getComponent(i, k);
-            const mask = Math.max(0, Math.min(1, (shell - 0.9) / 0.1)),
+            const mask = Math.max(0, Math.min(1, (shell - COAT.taper.from) / COAT.taper.range)),
               x = p.getX(i),
               y = p.getY(i),
               z = p.getZ(i);
             p.setX(i, x * (1 + (r.width - 1) * mask));
-            const field = Math.sin(z * 63 + Math.cos(x * 45) * 1.6) + Math.sin(y * 99 + z * 24),
-              wear = 1 - r.patch * Math.max(0, Math.min(1, (field - 0.25) / 1.4)) * mask;
-            for (let k = 0; k < 3; k++)
-              c[i * 3 + k] = (original ? original.getComponent(i, k) : 1) * (1 + (r.shellTint[k] - 1) * mask) * wear;
+            const f = COAT.field,
+              field = Math.sin(z * f.z + Math.cos(x * f.cosX) * f.wobble) + Math.sin(y * f.y + z * f.z2),
+              wear = 1 - r.patch * Math.max(0, Math.min(1, (field - COAT.wear.from) / COAT.wear.range)) * mask;
+            for (let k = 0; k < XYZ; k++)
+              c[i * XYZ + k] = (original ? original.getComponent(i, k) : 1) * (1 + (r.shellTint[k] - 1) * mask) * wear;
           }
-          g.setAttribute("color", new T.BufferAttribute(c, 3));
+          g.setAttribute("color", new T.BufferAttribute(c, XYZ));
           mat.vertexColors = true;
           if (r.width !== 1) g.computeVertexNormals();
           g.computeBoundingBox();

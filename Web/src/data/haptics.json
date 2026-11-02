@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "enabledDefault": true,
+  "storageKey": "armagedom.haptics",
+  "offParam": "haptics",
+  "minGapMs": 70,
+  "previewPattern": [40],
+  "intensityDefault": "full",
+  "intensityLevels": [
+    { "id": "light", "scale": 0.5 },
+    { "id": "medium", "scale": 0.75 },
+    { "id": "full", "scale": 1 }
+  ],
+  "lowHealth": { "enabled": true, "fraction": 0.25, "intervalMs": 1400, "pattern": [18, 110, 30] },
+  "rules": [
+    { "id": "player-hurt-light", "on": ["hit"], "actor": "player", "minAmount": 0.01, "priority": 40, "pattern": [25] },
+    { "id": "player-hurt-medium", "on": ["hit"], "actor": "player", "minAmount": 10, "priority": 41, "pattern": [45] },
+    { "id": "player-hurt-heavy", "on": ["hit"], "actor": "player", "minAmount": 25, "priority": 42, "pattern": [40, 40, 70] },
+    { "id": "player-block", "on": ["hit"], "actor": "player", "blocked": true, "minAmount": 0.01, "priority": 43, "pattern": [12] },
+    { "id": "hit-lands", "on": ["hit"], "actor": "enemy", "minAmount": 0.01, "priority": 20, "pattern": [10] },
+    { "id": "kill", "on": ["death"], "actor": "enemy", "priority": 50, "pattern": [35, 30, 45] },
+    { "id": "finisher", "on": ["death"], "actor": "enemy", "finisher": true, "priority": 60, "pattern": [60, 40, 90] },
+    { "id": "boss-kill", "on": ["boss-defeated"], "actor": "any", "priority": 80, "bypassGap": true, "pattern": [120, 60, 120, 60, 260] },
+    { "id": "dodge", "on": ["dodge"], "actor": "player", "priority": 15, "pattern": [14] },
+    { "id": "reload-start", "on": ["reload-start"], "actor": "any", "priority": 10, "pattern": [8] },
+    { "id": "reload-done", "on": ["reload-complete"], "actor": "any", "priority": 11, "pattern": [16] },
+    { "id": "pickup", "on": ["pickup", "supply-pickup", "vest-pickup", "auto-equip"], "actor": "any", "priority": 5, "pattern": [6] },
+    { "id": "player-death", "on": ["death"], "actor": "player", "priority": 100, "bypassGap": true, "pattern": [300, 80, 500] }
+  ],
+  "text": {
+    "on": "Vibration on",
+    "off": "Vibration off",
+    "intensityLabel": "Vibration strength",
+    "levels": { "light": "Light", "medium": "Medium", "full": "Full" }
+  }
+}

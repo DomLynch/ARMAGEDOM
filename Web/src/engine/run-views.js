@@ -1,7 +1,9 @@
 import { createWantedProjection } from "./wanted-projection.js";
 import { createMarkedView } from "./marked-view.js";
+import { createTrapCrateView } from "./trap-crate-view.js";
 import { createReaperView } from "./reaper-view.js";
-import { createWeaponTiles } from "./weapon-tiles.js";
+import { carriedWeaponTiles, createWeaponTiles } from "./weapon-tiles.js";
+import { nextCarriedWeapon, carriedWeaponAt } from "./weapon-cycle.js";
 import { createSafehouseView } from "./safehouse-view.js";
 import { createBossEquipmentView } from "./boss-equipment-view.js";
 import { selectedBossRanged } from "./boss-weapon-runtime.js";
@@ -9,19 +11,34 @@ import { selectedFlameProfile } from "./boss-equipment-data.js";
 import { createRifleView } from "./rifle-view.js";
 import { selectedPistolProfile } from "./expedition-core.js";
 import { selectedMeleeVariant } from "../melee-equipment.js";
+import { webText } from "./web-text.js";
 import { effectiveWeaponDamage } from "./progression-runtime.js";
 import { createFlameView } from "./flame-view.js";
+import { createCursedRelicView } from "./cursed-relic-view.js";
+import { createChainedPitbornView } from "./chained-pitborn-view.js";
 import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
-import { stepPistol } from "../pistol.js";
+import { keySuffix } from "./key-hint.js";
+import { stepPistol, START_PISTOL_ID, START_PISTOL_LABEL, PISTOL_RULES } from "../pistol.js";
 import { VEST_BAG_POSITION } from "./run-state.js";
 import { createRunPersistence } from "./run-core.js";
+import { withWorldJournal } from "./world-events.js";
+import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
 import { createSupplyView } from "../supplies-view.js";
 import { createVestBagView } from "../vest-view.js";
 import { vestAvailable, VEST_RULES } from "../vest.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+import { createHeatTallyView } from "./heat-tally-view.js";
+import { heatShown } from "./heat.js";
+import { createRunHudView } from "./run-hud-view.js";
+import { PISTOL_ITEM_ID } from "../core/pistol-operation.js";
+// The weapon summary lines quote these rows of data/weapons.json, so the text cannot drift from what the weapon does.
+const GRENADE = GAME_DATA.weapons.ranged["standard-grenade-v1"],
+  ROCKET = GAME_DATA.weapons.ranged["borough-butchers-rocket-launcher-v1"],
+  SHOTGUN = GAME_DATA.weapons.ranged["south-stalker-shotgun-v1"];
 export function dispatchEquipmentSelection(g, command, allowed, dispatch) {
   const result = dispatch(g, command, allowed);
   if (result.ok && (command.type === "equip" || command.type === "selectVariant")) stopFlame(g, { unequip: true });
@@ -31,8 +48,11 @@ export function claimStartingPistol(g, dispatch, clearInput) {
   const result = dispatch(g, { type: "claimPickup", pickupId: "westminster-start-pistol-v1" }, true);
   if (result.ok) {
     g.events.push(...result.events);
-    g.message = `Starting Pistol · ${g.pistol.magazine} loaded · ${g.pistol.reserve} spare.`;
-    g.messageUntil = g.time + 3;
+    // Picking the pistol up equips it: say so ("Starting Pistol equipped."), without repeating the rounds the pistol tile shows.
+    g.message = fillText(GAME_DATA.combatText.gear.equipped, {
+      name: g.world.expeditionData?.variants?.[PISTOL_ITEM_ID]?.name ?? webText("summary.pistolDefaultName"),
+    });
+    g.messageUntil = g.time + GAME_DATA.visual.hud.equipMessageSeconds;
     clearInput();
   }
   return true;
@@ -49,16 +69,71 @@ export function nearestInteraction(position, candidates) {
           Number.isFinite(c.position?.z),
       )
       .map((c) => ({ ...c, distance: Math.hypot(position.x - c.position.x, position.z - c.position.z) }))
-      .sort((a, b) => a.distance - b.distance || a.id.localeCompare(b.id))[0] ?? null
+      // The starting pistol wins over everything in reach (the contract giver stands 0.15 m from it), so G and the
+      // shared button at spawn collect the pistol; once claimed, the contract is reachable as before.
+      .sort(
+        (a, b) =>
+          (b.id === START_PISTOL_ID) - (a.id === START_PISTOL_ID) ||
+          a.distance - b.distance ||
+          a.id.localeCompare(b.id),
+      )[0] ?? null
   );
+}
+// The uncollected starting pistol as a pickup candidate: in its area, in reach, in line of sight, and the player free to act.
+export function startingPistolCandidate(g, run) {
+  const p = g.pistol;
+  return p &&
+    !p.collected &&
+    g.world.areaId === p.pickupAreaId &&
+    !g.player.swing &&
+    g.time >= g.player.ready &&
+    g.time >= g.player.hurtUntil &&
+    g.time >= g.player.dodgeUntil &&
+    Math.hypot(g.player.pos.x - p.pickupPos.x, g.player.pos.z - p.pickupPos.z) <= PISTOL_RULES.pickupRadius &&
+    g.world.lineClear(g.player.pos, p.pickupPos)
+    ? { id: START_PISTOL_ID, label: START_PISTOL_LABEL, pickup: true, position: p.pickupPos, run }
+    : null;
+}
+// Walking into the reach of a pickup claims it. `step(position, candidates, time)` runs the nearest candidate marked `pickup: true`
+// that is due and remembers it until the candidate leaves the list (claimed, or out of reach), so a claim still in flight (an async
+// auto-equip) is not repeated every frame. A pickup still listed after its back-off (the claim was refused for a reason that can
+// pass, such as full save storage) is tried again while the player stays in reach: after 1 s, then 2 s, then every 4 s (weapons.json
+// `autoPickupRetry`). Each pickup's own radius, line of sight, loaded and safe-to-act checks decide whether it is a candidate at all.
+// `time` is game time (seconds).
+export function createAutoPickup({ firstSeconds, maxSeconds } = GAME_DATA.weapons.autoPickupRetry) {
+  const started = new Map();
+  return function step(position, candidates, time = 0) {
+    const pickups = candidates.filter((c) => c?.pickup === true);
+    const live = new Set(pickups.map((c) => c.id));
+    for (const id of started.keys()) if (!live.has(id)) started.delete(id);
+    const next = nearestInteraction(
+      position,
+      pickups.filter((c) => !started.has(c.id) || time >= started.get(c.id).retryAt),
+    );
+    if (!next) return false;
+    const wait = started.has(next.id)
+      ? Math.min(started.get(next.id).wait * 2, maxSeconds) // tuning-ok: each retry waits twice as long as the last
+      : firstSeconds;
+    started.set(next.id, { retryAt: time + wait, wait });
+    next.run();
+    return true;
+  };
 }
 export function meleeWeaponSummary(g) {
   const profile = selectedMeleeVariant(g);
   if (profile.modelVariantId === "bone-saw") {
     const r = g.world.bossEquipmentData.surgicalKnife.rules;
-    return `${profile.name} · Hold CUT · ${+effectiveWeaponDamage(g, "knife", r.damage).toFixed(1)} damage / ${r.interval}s contact · slowed while cutting`;
+    return webText("summary.boneSaw", {
+      name: profile.name,
+      damage: +effectiveWeaponDamage(g, "knife", r.damage).toFixed(1),
+      interval: r.interval,
+    });
   }
-  return `${profile.name} · Slash ${+effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1)} · Heavy ${+effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1)}`;
+  return webText("summary.melee", {
+    name: profile.name,
+    slash: +effectiveWeaponDamage(g, "knife", profile.moves.light_right.damage).toFixed(1),
+    heavy: +effectiveWeaponDamage(g, "knife", profile.moves.heavy_overhead.damage).toFixed(1),
+  });
 }
 export function createRunViews(s) {
   let storage;
@@ -69,12 +144,15 @@ export function createRunViews(s) {
     } catch {
       storage = null;
     }
-  const persistence = createRunPersistence({
-    getRun: () => s.game,
-    setRun: (value) => s.setGame(value),
-    createFreshRun: (options) => s.createFreshRun(options),
-    storage,
-  });
+  const persistence = withWorldJournal(
+    createRunPersistence({
+      getRun: () => s.game,
+      setRun: (value) => s.setGame(value),
+      createFreshRun: (options) => s.createFreshRun(options),
+      storage,
+    }),
+    s,
+  );
   const reaperView = createReaperView(s, persistence.dispatchExpedition);
   const bossEquipmentView = createBossEquipmentView(s, persistence.dispatchBossEquipment, () => flameView.equip());
   const bossView = createBossView(s),
@@ -82,12 +160,16 @@ export function createRunViews(s) {
   const rifleView = createRifleView(s, (g, command, allowed) =>
     dispatchEquipmentSelection(g, command, allowed, persistence.dispatchRifle),
   );
-  const uniqueView = createUniqueRewardView(s, (g, command, allowed) => {
-    const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchUniqueReward);
-    if (result.ok && command.type === "equip") resetMobileControls(g);
-    s.updateExpedition?.();
-    return result;
-  });
+  const uniqueView = createUniqueRewardView(
+    s,
+    (g, command, allowed) => {
+      const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchUniqueReward);
+      if (result.ok && command.type === "equip") resetMobileControls(g);
+      s.updateExpedition?.();
+      return result;
+    },
+    { markDrop, createMarkerOnlyDrop },
+  );
   const expeditionView = createExpeditionView(s, (g, command, allowed) => {
     const result = dispatchEquipmentSelection(g, command, allowed, persistence.dispatchExpedition);
     s.updateExpedition?.();
@@ -95,8 +177,13 @@ export function createRunViews(s) {
   });
   const safehouseView = createSafehouseView(s, persistence.dispatchLocker);
   const markedView = createMarkedView(s, persistence.dispatchMarked),
-    wantedProjection = createWantedProjection(s);
-  function interaction() {
+    wantedProjection = createWantedProjection(s),
+    relicView = createCursedRelicView(s),
+    trapCrateView = createTrapCrateView(s),
+    chainedPitbornView = createChainedPitbornView(s);
+  // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
+  // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
+  function interactionCandidates() {
     const g = s.game;
     if (
       !g ||
@@ -108,89 +195,168 @@ export function createRunViews(s) {
       g.runSaveInvalid ||
       g.player.hp <= 0
     )
-      return null;
+      return [];
     const candidates = [safehouseView, flameView, expeditionView, uniqueView, rifleView, bossEquipmentView].flatMap(
       (view) => view.interaction?.() ?? [],
     );
-    const p = g.pistol;
-    if (
-      p &&
-      !p.collected &&
-      g.world.areaId === p.pickupAreaId &&
-      !g.player.swing &&
-      g.time >= g.player.ready &&
-      g.time >= g.player.hurtUntil &&
-      g.time >= g.player.dodgeUntil &&
-      Math.hypot(g.player.pos.x - p.pickupPos.x, g.player.pos.z - p.pickupPos.z) <= 1.3 &&
-      g.world.lineClear(g.player.pos, p.pickupPos)
-    )
-      candidates.push({
-        id: "westminster-start-pistol-v1",
-        label: "Collect Starting Pistol",
-        position: p.pickupPos,
-        run: () => claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear()),
-      });
-    return nearestInteraction(g.player.pos, candidates);
+    const pistol = startingPistolCandidate(g, () =>
+      claimStartingPistol(g, persistence.dispatchPistol, () => s.input.clear({ keepMovement: true })),
+    );
+    if (pistol) candidates.push(pistol);
+    return candidates;
+  }
+  function interaction() {
+    const g = s.game;
+    return g ? nearestInteraction(g.player.pos, interactionCandidates()) : null;
   }
   function interactNearby() {
     const target = interaction();
     return target ? target.run() : !!s.game?.flame?.equipped && flameView.interact();
   }
+  const autoPickup = createAutoPickup();
   function updateInteraction() {
     const field = document.getElementById("pistol-interact"),
-      target = interaction();
+      candidates = interactionCandidates(),
+      position = s.game?.player.pos;
+    if (position) autoPickup(position, candidates, s.game.time);
+    const target = position
+      ? nearestInteraction(
+          position,
+          candidates.filter((c) => !c.pickup),
+        )
+      : null;
     if (!field) return;
     field.hidden = !target;
     field.disabled = false;
     if (target) {
-      field.textContent = target.label + " · G";
+      field.textContent = target.label + keySuffix();
       field.dataset.contextAction = target.id;
     } else field.removeAttribute("data-context-action");
   }
-  const weaponTiles = createWeaponTiles(s, (row) => {
+  const selectWeapon = (row) => {
     const id = row.control;
     if (id === "reaper-equip") return reaperView.equip();
-    if (id.startsWith("melee-variant-")) return uniqueView.equip(id.slice(14));
-    if (id.startsWith("variant-")) return expeditionView.selectVariant(id.slice(8));
+    if (id.startsWith("melee-variant-")) return uniqueView.equip(id.slice("melee-variant-".length));
+    if (id.startsWith("variant-")) return expeditionView.selectVariant(id.slice("variant-".length));
     if (id === "rifle-equip") return rifleView.equip();
     if (id === "flame-equip") return flameView.equip();
-    if (id.startsWith("boss-equip-")) return bossEquipmentView.equip(id.slice(11));
-  });
+    if (id.startsWith("boss-equip-")) return bossEquipmentView.equip(id.slice("boss-equip-".length));
+  };
+  const weaponTiles = createWeaponTiles(s, selectWeapon);
+  // Keyboard weapon switch: the next carried weapon after the active one, in tile order, through the same
+  // select path as a tile tap. The Reaper companion is a deploy/recall toggle, so the cycle skips it.
+  let cycling = false;
+  // { step } picks the next (1) or previous (-1) carried weapon, { slot } the nth; the blocked states are the same as a tile tap.
+  async function switchWeapon({ step = 1, slot = null } = {}) {
+    const g = s.game;
+    if (cycling || !g || s.paused || !s.loaded || s.traveling || s.contextLost || g.finished || g.player.hp <= 0)
+      return;
+    const rows = carriedWeaponTiles(g),
+      next = slot ? carriedWeaponAt(rows, slot) : nextCarriedWeapon(rows, step);
+    if (!next || document.getElementById(next.control)?.disabled !== false) return;
+    cycling = true;
+    try {
+      await selectWeapon(next);
+    } finally {
+      cycling = false;
+      weaponTiles.update();
+    }
+  }
+  // After Retry: a weapon left in the body bag (engine/corpse-run.js) may still be the equipped one in the fresh run. It cannot fire
+  // while withheld, so put the fallback melee in hand through the same select path as a tile tap.
+  async function equipFallbackMelee() {
+    if (!s.game?.corpseBag?.gearId) return;
+    await selectWeapon({ control: `melee-variant-${GAME_DATA.corpseRun.gear.fallbackMelee}` });
+    weaponTiles.update();
+  }
   let vestBag = null;
   function updateVestEquipment() {
     const node = document.getElementById("vest-state"),
       g = s.game;
     if (!node || !g) return;
     const text = g.vest?.equipped
-      ? `Worn vest · ${Math.round(VEST_RULES.reduction * 100)}% hit protection`
-      : `No vest · Westminster stash after ${VEST_RULES.requiredKills} kills; pickup equips it.`;
+      ? webText("summary.vestWorn", { percent: Math.round(VEST_RULES.reduction * 100) })
+      : webText("summary.vestNone", { kills: VEST_RULES.requiredKills });
     if (node.textContent !== text) node.textContent = text;
     const active = document.getElementById("active-weapon");
     if (!active) return;
     let weapon;
     if (g.flame?.equipped) {
       const data = selectedFlameProfile(g);
-      weapon = `${data.name ?? "Flamethrower"} · ${Math.ceil((g.flameFuel.fuelUnits / data.capacity) * 100)}% fuel · ${data.contact.damage} damage per ${data.contact.interval}s contact`;
+      weapon = webText("summary.flame", {
+        name: data.name ?? webText("summary.flameDefaultName"),
+        fuel: Math.ceil((g.flameFuel.fuelUnits / data.capacity) * 100),
+        damage: data.contact.damage,
+        interval: data.contact.interval,
+      });
     } else if (selectedBossRanged(g)) {
       const field = selectedBossRanged(g),
         data = g.world.bossEquipmentData[field],
         state = g.bossEquipment[field];
       weapon =
         field === "commanderPistol"
-          ? `${data.name} · ${data.rules.damage} piercing damage · ${data.rules.range}m · ${data.charge.seconds}s charge · ${state.magazine}/${data.rules.capacity} loaded · ${state.reserve} reserve`
+          ? webText("summary.lmg", {
+              name: data.name,
+              damage: data.rules.damage,
+              range: data.rules.range,
+              magazine: state.magazine,
+              capacity: data.rules.capacity,
+              reserve: state.reserve,
+            })
           : field === "grenade"
-            ? `${data.name} · ${state.magazine} charges · 1s fuse · 3m radius`
+            ? webText("summary.grenade", {
+                name: data.name,
+                magazine: state.magazine,
+                fuse: GRENADE.payload.fuseSeconds,
+                radius: GRENADE.payload.radius,
+              })
             : field === "rocketLauncher"
-              ? `${data.name} · 80 blast damage · 3m radius · ${state.magazine}/1 loaded · ${state.reserve} reserve · 3.2s reload`
-              : `${data.name} · 8 × 8 pellets · ${state.magazine}/2 loaded · ${state.reserve} reserve`;
+              ? webText("summary.rocket", {
+                  name: data.name,
+                  magazine: state.magazine,
+                  reserve: state.reserve,
+                  damage: ROCKET.payload.maxDamage,
+                  radius: ROCKET.payload.radius,
+                  capacity: ROCKET.rules.capacity,
+                  reload: ROCKET.rules.reload,
+                })
+              : webText("summary.shotgun", {
+                  name: data.name,
+                  magazine: state.magazine,
+                  reserve: state.reserve,
+                  pellets: SHOTGUN.payload.pelletCount,
+                  pelletDamage: SHOTGUN.payload.pelletDamage,
+                  capacity: SHOTGUN.rules.capacity,
+                });
     } else if (g.rifle?.selected) {
       const data = g.world.rifleData;
-      weapon = `${data.name} · ${data.rules.damage} damage · ${g.rifle.magazine}/${data.rules.capacity} loaded · ${g.rifle.reserve} reserve`;
+      weapon = webText("summary.rifle", {
+        name: data.name,
+        damage: data.rules.damage,
+        magazine: g.rifle.magazine,
+        capacity: data.rules.capacity,
+        reserve: g.rifle.reserve,
+      });
     } else if (g.pistol?.equipped) {
       const profile = selectedPistolProfile(g);
-      weapon = `${profile.name ?? "Starting Pistol"} · ${+effectiveWeaponDamage(g, "westminster-start-pistol-v1", profile.damage).toFixed(1)} damage · ${g.pistol.magazine}/${profile.capacity} loaded · ${g.pistol.reserve} reserve`;
+      weapon = webText("summary.pistol", {
+        name: profile.name ?? webText("summary.pistolDefaultName"),
+        damage: +effectiveWeaponDamage(g, "westminster-start-pistol-v1", profile.damage).toFixed(1),
+        magazine: g.pistol.magazine,
+        capacity: profile.capacity,
+        reserve: g.pistol.reserve,
+      });
     } else weapon = meleeWeaponSummary(g);
     if (active.textContent !== weapon) active.textContent = weapon;
+  }
+  const runHudView = createRunHudView(s);
+  let heatView = null;
+  // The heat tally (heat.js) above the player's head; gone with the heat, on death and while the run is over or the context is lost.
+  function updateHeatTally() {
+    const shown = s.game && !s.contextLost && !s.game.finished ? heatShown(s.game) : null;
+    if (!shown) return heatView?.update(null);
+    heatView ??= createHeatTallyView(s.scene);
+    heatView?.update(shown, s.world.toRender(s.game.player.pos, GAME_DATA.heat.world.heightMetres));
   }
   function clearVestBag() {
     vestBag?.dispose();
@@ -211,8 +377,6 @@ export function createRunViews(s) {
       vestBag = createVestBagView();
       s.scene.add(vestBag.root);
       vestBag.root.position.copy(s.world.toRender(VEST_BAG_POSITION));
-      s.game.message = "Supply bag by the pistol stash · Worn vest available.";
-      s.game.messageUntil = s.game.time + 4;
     }
     vestBag.update(s.game.time);
   }
@@ -284,24 +448,35 @@ export function createRunViews(s) {
       bossEquipmentView.update();
       safehouseView.update();
       markedView.update();
+      relicView.update();
+      trapCrateView.update();
+      chainedPitbornView.update();
       wantedProjection.update();
       updateInteraction();
       weaponTiles.update();
     },
     interactNearby,
+    switchWeapon,
+    equipFallbackMelee,
     interactSafehouse: safehouseView.interact,
     interactFlame: flameView.interact,
     interactExpedition: expeditionView.interact,
     interactUniqueReward: uniqueView.interact,
     clearVestBag,
     updateVestBag,
+    updateHeatTally,
+    updateRunHud: runHudView.update,
     ...persistence,
     updateSupplies,
     clearSupplies,
     cancelPistol,
     dispose() {
+      runHudView.dispose();
       wantedProjection.dispose();
+      relicView.dispose();
       markedView.dispose();
+      trapCrateView.dispose();
+      chainedPitbornView.dispose();
       weaponTiles.dispose();
       reaperView.dispose();
       safehouseView.dispose();

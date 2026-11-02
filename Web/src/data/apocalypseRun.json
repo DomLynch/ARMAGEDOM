@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "note": "Apocalypse run (Dom, 28 Oct 2026): an opt-in 12 minute run of three stages on the existing zones. The default game stays the open sandbox; a run starts from the hub's menu button or ?run=1 and ?norun=1 turns the whole mode off. engine/apocalypse-run.js is the director: it reads the game clock, moves through the stages, fires each stage's raids through the post-boss raid (engine/post-boss-raid.js, capped by postBossRaid.maxSimultaneous) and scales the heat gain (engine/heat.js). The run seed (the day plus the run count, see spawn-variation.js) picks one row of each variants list, so every run differs in objective, assault size and hazard. Client-only and session-only: g.run is never saved or sent.",
+  "enabled": true,
+  "startSwitch": { "param": "run", "value": "1" },
+  "offSwitch": { "param": "norun", "value": "1" },
+  "startZone": "central-hub",
+  "seed": { "fallbackDay": "sandbox", "separator": ":", "salt": "apocalypse-run" },
+  "bannerSeconds": 6,
+  "scaleValuables": true,
+  "raidZones": ["east", "south", "east-bridge", "elephant-and-castle", "lambeth", "area7", "area8"],
+  "stages": [
+    {
+      "id": "scavenge",
+      "seconds": 240,
+      "banner": "STAGE 1 · SCAVENGE",
+      "bannerLine": "Loot and explore. The heat is low.",
+      "heatScale": 0.5,
+      "raids": [],
+      "objectiveFrom": "scavenge"
+    },
+    {
+      "id": "invasion",
+      "seconds": 240,
+      "banner": "STAGE 2 · AI INVASION",
+      "bannerLine": "The hunters are coming for you.",
+      "heatScale": 2,
+      "raids": [{ "atSeconds": 10 }, { "atSeconds": 130 }],
+      "objectiveFrom": "assault"
+    },
+    {
+      "id": "finale",
+      "seconds": 240,
+      "banner": "STAGE 3 · BOSS OR ESCAPE",
+      "bannerLine": "End it. Kill the boss or reach the safehouse.",
+      "heatScale": 1.5,
+      "raids": [{ "atSeconds": 30 }],
+      "objectiveFrom": "finale"
+    }
+  ],
+  "variants": {
+    "scavenge": [
+      { "id": "crates", "objective": "Search the roads for crates. Stay quiet." },
+      { "id": "arms", "objective": "Find weapons and rounds. Avoid fights." },
+      { "id": "dressings", "objective": "Stock up on dressings and ammunition." }
+    ],
+    "assault": [
+      { "id": "patrol", "objective": "Hunters are sweeping the roads. Hold out.", "hunterCount": 6, "durationSeconds": 90 },
+      { "id": "swarm", "objective": "A swarm is coming. Keep moving.", "hunterCount": 10, "durationSeconds": 100 },
+      { "id": "siege", "objective": "A siege. Make a stand and thin them out.", "hunterCount": 8, "durationSeconds": 110 }
+    ],
+    "hazard": [
+      { "id": "clear", "label": "Clear sky", "heatScale": 1 },
+      { "id": "fallout", "label": "Fallout", "heatScale": 1.25 },
+      { "id": "curfew", "label": "Curfew", "heatScale": 1.5 }
+    ],
+    "finale": [
+      { "id": "boss", "kind": "boss", "objective": "A boss has found you. Kill it." },
+      { "id": "escape", "kind": "escape", "objective": "Make for the exit to the hub. Stand in the circle there." }
+    ]
+  },
+  "boss": { "spawnDistance": 9, "attempts": 24, "arrived": "A boss has found you." },
+  "escape": { "arrived": "Reach the safehouse." },
+  "extraction": {
+    "note": "The escape row is one timed zone (Dom, 30 Oct 2026): a circle at the mouth of the exit home in each raid zone; stand in it holdSeconds and the run ends with the bonus.",
+    "note2": "A flare marks it; stepping in calls a raid and the area boss walks to it (converge.js, the airdrop pull). holdDecayPerSecond 0 = leaving never drains it.",
+    "note3": "The bonus is a session-only score on the results card, never cash. ?noextract=1 or enabled false: instant exit.",
+    "enabled": true,
+    "offSwitch": { "param": "noextract", "value": "1" },
+    "holdSeconds": 5,
+    "zoneDistance": 10,
+    "zoneTurns": 16,
+    "zoneClearRadius": 1,
+    "zoneExitClearance": 6,
+    "holdRadius": 4,
+    "holdDecayPerSecond": 0,
+    "raidMinSeconds": 30,
+    "heatScale": 1.5,
+    "pull": { "engageRadius": 12, "leashPadding": 12, "arriveRadius": 2.5 },
+    "view": {
+      "note": "First-time-player legibility (Dom's phone pass, 29 Oct 2026): a ground circle at the hold spot the size of holdRadius, and a big progress ring on screen. The ring text is webText extraction.ringLabel.",
+      "ring": { "segments": 64, "width": 0.6, "colour": "e8a35a", "opacity": 0.9, "outsideShare": 0.45 },
+      "hud": {
+        "sizePx": 120,
+        "strokeUnits": 8,
+        "radiusUnits": 46,
+        "percentScale": 1.6,
+        "topPercent": 22,
+        "trackColour": "2a2418",
+        "fillColour": "e8a35a",
+        "textPx": 13
+      }
+    },
+    "bonus": {
+      "base": 500,
+      "curve": [
+        { "minHeatPeak": 0, "scale": 1 },
+        { "minHeatPeak": 2, "scale": 1.5 },
+        { "minHeatPeak": 4, "scale": 2 },
+        { "minHeatPeak": 6, "scale": 3 }
+      ]
+    }
+  },
+  "outcomes": {
+    "escaped": "You escaped.",
+    "boss": "Boss killed.",
+    "died": "You died.",
+    "timeout": "Time ran out."
+  },
+  "text": {
+    "timer": "{stage} · {time}",
+    "hazard": " · {label}",
+    "startButton": "Start the apocalypse run",
+    "startHint": "Twelve minutes: scavenge, survive the invasion, then kill the boss or escape.",
+    "resultsTitle": "RUN RESULTS",
+    "rowOutcome": "Outcome",
+    "rowKills": "Kills",
+    "rowTime": "Time",
+    "rowHeat": "Heat peak",
+    "continue": "Continue"
+  }
+}

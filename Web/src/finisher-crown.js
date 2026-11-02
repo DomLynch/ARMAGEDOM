@@ -1,4 +1,16 @@
 import * as T from "three";
+import { GAME_DATA } from "./engine/game-data.js";
+// The vertex budget, the cut colour, how far the halves open, the build slice and the cap loop weld precision (cut-plane positions equal to a
+// hundred-thousandth of a metre are one point) are appearance.json `crownSplit`.
+const CROWN = GAME_DATA.appearance.crownSplit;
+const { headNames: HEAD_NAMES } = GAME_DATA.appearance.faceMesh;
+const HAIR_NAME = GAME_DATA.appearance.meshNames.hair;
+const KEY_PRECISION = CROWN.weldPrecision;
+const SLICE_MS = CROWN.sliceMs;
+const XYZ = 3; // tuning-ok: a point or normal packed as three floats
+const UV = 2; // tuning-ok: a texture coordinate packed as two floats
+const CORNERS = 3; // tuning-ok: a triangle has three corners
+const MAX_NEIGHBOURS = 2; // tuning-ok: a point on a closed or open contour touches at most two others
 
 // Owned static skull buffers only. The caller's prepared head materials/maps,
 // private actor skeleton and original model remain borrowed and unchanged.
@@ -9,12 +21,12 @@ export function prepareSplitCrown(head, options) {
     if (step.done) return step.value;
   }
 }
-export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
+export function* prepareSplitCrownSteps(head, { maxVertices = CROWN.maxVertices } = {}) {
   if (!head?.group || !head.center || !Number.isSafeInteger(maxVertices) || maxVertices < 1)
     throw Error("Invalid crown preparation");
-  const names = [...(head.headParts ?? ["Photo", "PhotoEyes", "PhotoTeeth"]), "Scavenger hair"];
+  const names = [...(head.headParts ?? HEAD_NAMES), HAIR_NAME];
   const nodes = head.group.children.filter((n) => n.isMesh && names.includes(n.name));
-  const photo = nodes.find((n) => n.name === "Photo");
+  const photo = nodes.find((n) => n.name === HEAD_NAMES[0]);
   if (!photo) throw Error("Crown requires an authored human head");
   photo.geometry.computeBoundingBox();
   const bounds = photo.geometry.boundingBox,
@@ -22,12 +34,17 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
     hinge = bounds.min.y;
   if (!(plane > bounds.min.x && plane < bounds.max.x)) throw Error("Crown plane outside supported head");
   const group = new T.Group();
-  group.name = "Prepared Split Crown";
+  group.name = "Prepared Split Crown"; // text-ok: a scene-graph label for debugging, never shown to the player
   group.position.copy(head.center);
   const geometries = [],
     caps = [],
     halves = [],
-    cut = new T.MeshStandardMaterial({ name: "Owned crown cut", color: 0x49251f, roughness: 1, side: T.DoubleSide });
+    cut = new T.MeshStandardMaterial({
+      name: "Owned crown cut", // text-ok: a material label for debugging, never shown to the player
+      color: CROWN.cutColor,
+      roughness: 1,
+      side: T.DoubleSide,
+    });
   let vertices = 0,
     triangles = 0,
     capTriangles = 0,
@@ -47,7 +64,7 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
   try {
     for (const side of [-1, 1]) {
       const half = new T.Group();
-      half.name = side < 0 ? "Crown left" : "Crown right";
+      half.name = side < 0 ? "Crown left" : "Crown right"; // text-ok: scene-graph labels for debugging, never shown to the player
       half.position.set(plane, hinge, 0);
       group.add(half);
       halves.push(half);
@@ -77,24 +94,24 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
               values[1] -= hinge;
             }
             if (name === "normal" || name === "tangent") {
-              const n = new T.Vector3(...values.slice(0, 3)).normalize();
-              values.splice(0, 3, ...n.toArray());
+              const n = new T.Vector3(...values.slice(0, XYZ)).normalize();
+              values.splice(0, XYZ, ...n.toArray());
             }
             output[name].push(...values);
           }
         };
         const materialAt = (i) => source.groups.find((g) => i >= g.start && i < g.start + g.count)?.materialIndex ?? 0;
-        for (let offset = 0; offset < (index?.count ?? position.count); offset += 3) {
-          if (offset % 384 === 0 && performance.now() - since >= 4) {
+        for (let offset = 0; offset < (index?.count ?? position.count); offset += CORNERS) {
+          if (offset % CORNERS === 0 && performance.now() - since >= SLICE_MS) {
             yield "crown-cut";
             since = performance.now();
           }
-          const tri = [0, 1, 2].map((k) => vertex(index ? index.getX(offset + k) : offset + k)),
+          const tri = Array.from({ length: CORNERS }, (_, k) => vertex(index ? index.getX(offset + k) : offset + k)),
             polygon = [],
             cross = [];
-          for (let k = 0; k < 3; k++) {
+          for (let k = 0; k < CORNERS; k++) {
             const a = tri[k],
-              b = tri[(k + 1) % 3],
+              b = tri[(k + 1) % CORNERS],
               da = distance(a),
               db = distance(b),
               inside = da >= -eps,
@@ -117,8 +134,8 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
             for (const v of [polygon[0], polygon[k], polygon[k + 1]]) push(v);
             const materialIndex = materialAt(offset),
               last = groups.at(-1);
-            if (last && last.materialIndex === materialIndex) last.count += 3;
-            else groups.push({ start, count: 3, materialIndex });
+            if (last && last.materialIndex === materialIndex) last.count += CORNERS;
+            else groups.push({ start, count: CORNERS, materialIndex });
           }
         }
         if (output.position.length) {
@@ -130,18 +147,21 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
           geometry.computeBoundingBox();
           geometry.computeBoundingSphere();
           vertices += geometry.attributes.position.count;
-          triangles += geometry.attributes.position.count / 3;
+          triangles += geometry.attributes.position.count / CORNERS;
           const mesh = new T.Mesh(geometry, node.material);
           mesh.name = node.name + (side < 0 ? " left" : " right");
           mesh.frustumCulled = false;
           half.add(mesh);
         }
+        // The geometry above, the contour walk and each cap triangulation below were one 12-35 ms step.
+        yield "crown-cut";
+        since = performance.now();
         // Weld slice endpoints only, preserving exterior UV seams. Triangulate each
         // corresponding cut contour, including the original open neck-rim closure.
         if (segments.length) {
           const points = new Map(),
             edges = new Map(),
-            key = (p) => [p.y, p.z].map((v) => Math.round(v * 1e5)).join("/");
+            key = (p) => [p.y, p.z].map((v) => Math.round(v * KEY_PRECISION)).join("/");
           for (const [a, b] of segments) {
             const ka = key(a),
               kb = key(b);
@@ -158,12 +178,14 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
             adjacency.get(a).add(b);
             adjacency.get(b).add(a);
           }
-          if ([...adjacency.values()].some((s) => s.size > 2)) throw Error("Branched crown slice");
+          if ([...adjacency.values()].some((s) => s.size > MAX_NEIGHBOURS)) throw Error("Branched crown slice");
           const remaining = new Set(edges.keys()),
             capPositions = [],
             capNormals = [],
             capUV = [];
           while (remaining.size) {
+            yield "crown-cut";
+            since = performance.now();
             const first = edges.get(remaining.values().next().value),
               component = new Set(),
               todo = [first[0]];
@@ -210,17 +232,19 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
             }
           }
           if (capPositions.length) {
+            yield "crown-cut";
+            since = performance.now();
             const g = new T.BufferGeometry();
             geometries.push(g);
-            g.setAttribute("position", new T.Float32BufferAttribute(capPositions, 3));
-            g.setAttribute("normal", new T.Float32BufferAttribute(capNormals, 3));
-            g.setAttribute("uv", new T.Float32BufferAttribute(capUV, 2));
+            g.setAttribute("position", new T.Float32BufferAttribute(capPositions, XYZ));
+            g.setAttribute("normal", new T.Float32BufferAttribute(capNormals, XYZ));
+            g.setAttribute("uv", new T.Float32BufferAttribute(capUV, UV));
             g.computeBoundingSphere();
             vertices += g.attributes.position.count;
-            triangles += g.attributes.position.count / 3;
-            capTriangles += g.attributes.position.count / 3;
+            triangles += g.attributes.position.count / CORNERS;
+            capTriangles += g.attributes.position.count / CORNERS;
             const mesh = new T.Mesh(g, cut);
-            mesh.name = node.name + " crown cap";
+            mesh.name = node.name + " crown cap"; // text-ok: a scene-graph label for debugging, never shown to the player
             mesh.frustumCulled = false;
             half.add(mesh);
             caps.push(mesh);
@@ -239,8 +263,8 @@ export function* prepareSplitCrownSteps(head, { maxVertices = 100000 } = {}) {
         const t = T.MathUtils.clamp(amount, 0, 1);
         halves.forEach((h, i) => {
           const side = i ? 1 : -1;
-          h.rotation.z = -side * 0.19 * t;
-          h.position.x = plane + side * 0.008 * t;
+          h.rotation.z = -side * CROWN.openRadians * t;
+          h.position.x = plane + side * CROWN.openMetres * t;
         });
       },
       stats() {

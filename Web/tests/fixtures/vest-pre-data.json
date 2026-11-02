@@ -1,0 +1,7 @@
+{
+ "itemId": "westminster-worn-vest-v1",
+ "areaId": "westminster",
+ "requiredKills": 2,
+ "pickupRadius": 1.3,
+ "reduction": 0.1
+}

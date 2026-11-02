@@ -1,0 +1,660 @@
+{
+ "release": 222,
+ "sha": "6cc1bcbd784594691e51fd4f64f975d1958ac928",
+ "reason": "Recorded once from the frozen release build so the current tree can be shown to load real saves written by it (alpha: saves survive an upgrade). Do not regenerate without a written reason.",
+ "cases": [
+  {
+   "name": "ordinary",
+   "world": "westminster",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":133,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":0,\"westminster-start-pistol-v1\":0},\"awards\":[]},\"expedition\":{\"version\":1,\"visitedIds\":[\"westminster\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":false,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":0,\"bank\":0,\"bounty\":0}}"
+    ]
+   ],
+   "expected": {
+    "hp": 133,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 0,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": []
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": false,
+     "fuelUnits": 0
+    }
+   }
+  },
+  {
+   "name": "boss-drop-pending",
+   "world": "westminster",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":20,\"westminster-start-pistol-v1\":0},\"awards\":[{\"placementKey\":\"boss-witch-v1\",\"areaId\":\"westminster\",\"weaponId\":\"knife\"}]},\"expedition\":{\"version\":1,\"visitedIds\":[\"westminster\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":false,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"pending\",\"dropPosition\":{\"x\":17.18287315952707,\"z\":3.774258450589379},\"rewardReceipt\":null,\"selected\":false},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":200,\"bank\":0,\"bounty\":200}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 20,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": [
+      {
+       "placementKey": "boss-witch-v1",
+       "areaId": "westminster",
+       "weaponId": "knife"
+      }
+     ]
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "pending",
+      "dropPosition": {
+       "x": 17.18287315952707,
+       "z": 3.774258450589379
+      },
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": false,
+     "fuelUnits": 0
+    }
+   }
+  },
+  {
+   "name": "rifle-drop-pending",
+   "world": "bridge",
+   "records": [
+    [
+     "armagedom:rifle-run:v9",
+     "{\"version\":9,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[\"boss-warden-v1\"],\"collected\":[],\"pending\":[{\"id\":\"area-supply-v2:boss-warden-v1\",\"areaId\":\"east-bridge\",\"placementKey\":\"boss-warden-v1\",\"kind\":\"rounds\",\"position\":{\"x\":-5.391797996865284,\"z\":2.400484795851785},\"remaining\":3}],\"rolls\":[{\"placementKey\":\"boss-warden-v1\",\"tableRef\":\"boss-rounds-v1\",\"tableStamp\":\"[[\\\"rounds\\\",3,1,[\\\"pistol-owned\\\",\\\"reserve-space\\\"]]]\",\"outcomeIndex\":0}]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":20,\"westminster-start-pistol-v1\":0},\"awards\":[{\"placementKey\":\"boss-warden-v1\",\"areaId\":\"east-bridge\",\"weaponId\":\"knife\"}]},\"expedition\":{\"version\":1,\"visitedIds\":[\"east-bridge\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":false,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"pending\",\"dropPosition\":{\"x\":-5.391797996865284,\"z\":2.400484795851785},\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 20,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": [
+      {
+       "placementKey": "boss-warden-v1",
+       "areaId": "east-bridge",
+       "weaponId": "knife"
+      }
+     ]
+    },
+    "rifle": {
+     "version": 1,
+     "status": "pending",
+     "dropPosition": {
+      "x": -5.391797996865284,
+      "z": 2.400484795851785
+     },
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": false,
+     "fuelUnits": 0
+    }
+   }
+  },
+  {
+   "name": "east8-alive",
+   "world": "east",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":0,\"westminster-start-pistol-v1\":0},\"awards\":[]},\"expedition\":{\"version\":1,\"visitedIds\":[\"east\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":false,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":0,\"bank\":0,\"bounty\":0}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 0,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": []
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": false,
+     "fuelUnits": 0
+    },
+    "east8": {
+     "hp": 40
+    }
+   }
+  },
+  {
+   "name": "east8-dead",
+   "world": "east",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":20,\"westminster-start-pistol-v1\":0},\"awards\":[{\"placementKey\":\"east-roamer-8\",\"areaId\":\"east\",\"weaponId\":\"knife\"}]},\"expedition\":{\"version\":1,\"visitedIds\":[\"east\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":false,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":100,\"bank\":0,\"bounty\":100}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 20,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": [
+      {
+       "placementKey": "east-roamer-8",
+       "areaId": "east",
+       "weaponId": "knife"
+      }
+     ]
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": false,
+     "fuelUnits": 0
+    },
+    "east8": null
+   }
+  },
+  {
+   "name": "flame-partly-spent",
+   "world": "westminster",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":20,\"westminster-start-pistol-v1\":0},\"awards\":[{\"placementKey\":\"boss-witch-v1\",\"areaId\":\"westminster\",\"weaponId\":\"knife\"}]},\"expedition\":{\"version\":1,\"visitedIds\":[\"westminster\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":true,\"fuelUnits\":983.3333333333371},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"owned\",\"dropPosition\":null,\"rewardReceipt\":\"boss-witch-v1:ember-flamethrower-v1\",\"selected\":true},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":200,\"bank\":0,\"bounty\":200}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 20,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": [
+      {
+       "placementKey": "boss-witch-v1",
+       "areaId": "westminster",
+       "weaponId": "knife"
+      }
+     ]
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "owned",
+      "dropPosition": null,
+      "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+      "selected": true
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": true,
+     "fuelUnits": 983.3333333333371
+    }
+   }
+  },
+  {
+   "name": "flame-empty",
+   "world": "westminster",
+   "records": [
+    [
+     "armagedom:marked-run:v18",
+     "{\"version\":18,\"pistol\":{\"version\":1,\"pickupId\":\"westminster-start-pistol-v1\",\"collected\":false,\"equipped\":false,\"magazine\":0,\"reserve\":0},\"hp\":150,\"supplies\":{\"version\":2,\"issued\":[],\"collected\":[],\"pending\":[],\"rolls\":[]},\"vest\":{\"version\":1,\"itemId\":\"westminster-worn-vest-v1\",\"equipped\":false},\"droneDeaths\":[],\"animalCycle\":\"A\",\"progression\":{\"version\":1,\"rulesStamp\":\"[1,20,100,0.001,2,1,0.01,[\\\"knife\\\",\\\"strength\\\"],[\\\"westminster-start-pistol-v1\\\",\\\"dexterity\\\"]]\",\"attributes\":{\"vitality\":10,\"strength\":10,\"dexterity\":10,\"endurance\":10,\"intelligence\":10},\"proficiency\":{\"knife\":20,\"westminster-start-pistol-v1\":0},\"awards\":[{\"placementKey\":\"boss-witch-v1\",\"areaId\":\"westminster\",\"weaponId\":\"knife\"}]},\"expedition\":{\"version\":1,\"visitedIds\":[\"westminster\"],\"status\":\"available\",\"rewardReceipt\":null,\"selectedPistolVariant\":\"westminster-start-pistol-v1\"},\"uniqueReward\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selectedMeleeVariant\":\"knife\"},\"flameFuel\":{\"version\":1,\"collected\":true,\"fuelUnits\":0},\"rifle\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"bossEquipment\":{\"shotgun\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"grenade\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"surgicalKnife\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"selected\":false},\"commanderPistol\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false},\"emberProjector\":{\"version\":1,\"status\":\"owned\",\"dropPosition\":null,\"rewardReceipt\":\"boss-witch-v1:ember-flamethrower-v1\",\"selected\":true},\"rocketLauncher\":{\"version\":1,\"status\":\"eligible\",\"dropPosition\":null,\"rewardReceipt\":null,\"magazine\":0,\"reserve\":0,\"selected\":false}},\"locker\":{\"version\":1,\"weapons\":[],\"ammo\":{\"railgun-reserve\":0,\"pistol-reserve\":0,\"rifle-reserve\":0,\"shotgun-reserve\":0,\"rocket-reserve\":0,\"grenade-charges\":0,\"flame-fuel\":0}},\"openingStory\":{\"commsRead\":false,\"bountyStage\":0},\"marked\":{\"version\":1,\"carried\":200,\"bank\":0,\"bounty\":200}}"
+    ]
+   ],
+   "expected": {
+    "hp": 150,
+    "progression": {
+     "version": 1,
+     "rulesStamp": "[1,20,100,0.001,2,1,0.01,[\"knife\",\"strength\"],[\"westminster-start-pistol-v1\",\"dexterity\"]]",
+     "attributes": {
+      "vitality": 10,
+      "strength": 10,
+      "dexterity": 10,
+      "endurance": 10,
+      "intelligence": 10
+     },
+     "proficiency": {
+      "knife": 20,
+      "westminster-start-pistol-v1": 0
+     },
+     "awards": [
+      {
+       "placementKey": "boss-witch-v1",
+       "areaId": "westminster",
+       "weaponId": "knife"
+      }
+     ]
+    },
+    "bossEquipment": {
+     "shotgun": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "grenade": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "surgicalKnife": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "selected": false
+     },
+     "commanderPistol": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     },
+     "emberProjector": {
+      "version": 1,
+      "status": "owned",
+      "dropPosition": null,
+      "rewardReceipt": "boss-witch-v1:ember-flamethrower-v1",
+      "selected": true
+     },
+     "rocketLauncher": {
+      "version": 1,
+      "status": "eligible",
+      "dropPosition": null,
+      "rewardReceipt": null,
+      "magazine": 0,
+      "reserve": 0,
+      "selected": false
+     }
+    },
+    "rifle": {
+     "version": 1,
+     "status": "eligible",
+     "dropPosition": null,
+     "rewardReceipt": null,
+     "magazine": 0,
+     "reserve": 0,
+     "selected": false
+    },
+    "flameFuel": {
+     "version": 1,
+     "collected": true,
+     "fuelUnits": 0
+    }
+   }
+  }
+ ]
+}

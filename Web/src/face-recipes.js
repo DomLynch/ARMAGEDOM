@@ -1,35 +1,37 @@
 // Authored ingredients only; World allocates these IDs from the full roster.
-export const FACE_APPEARANCE_VERSION = "armagedom-face-v1";
+import { GAME_DATA } from "./engine/game-data.js";
+// The ingredient rows live in Web/src/data/visual.json `faces` (read through game-data.js); the recipes below are derived from them.
+const FACES = GAME_DATA.visual.faces;
+export const FACE_APPEARANCE_VERSION = FACES.version;
 export const ORIGINAL_FACE_ID = "face-original";
 const freeze = (o) => Object.freeze(o);
-export const FACE_HEADS = freeze([
-  freeze({ id: "narrow", width: 0.87, height: 1.035 }),
-  freeze({ id: "broad", width: 1.12, height: 0.98 }),
-]);
-export const FACE_HAIRS = freeze(["buzz", "rough-crop", "crest", "back-crop", "messy"]);
-export const FACE_SKINS = freeze([
-  freeze({ id: "light", photo: freeze([1.3, 1.22, 1.12]) }),
-  freeze({ id: "tan", photo: freeze([1.02, 0.91, 0.78]) }),
-  freeze({ id: "olive", photo: freeze([0.8, 0.79, 0.62]) }),
-  freeze({ id: "brown", photo: freeze([0.62, 0.43, 0.3]) }),
-  freeze({ id: "deep", photo: freeze([0.43, 0.29, 0.2]) }),
-]);
-export const FACE_WEATHERING = freeze(["dust", "stubble", "scar", "ash", "grime"]);
+export const FACE_HEADS = FACES.heads;
+export const FACE_HAIRS = FACES.hairs;
+export const FACE_SKINS = FACES.skins;
+export const FACE_WEATHERING = FACES.weathering;
 // Alternate head shapes and stride through complexion/hair contrasts. Every
 // approved combination appears once; ordering is part of this library version.
+// One recipe per head x hair x skin (2 x 5 x 5 = 50); the strides below cycle the hair, skin and weathering lists, whose sizes are the moduli.
+// The stride and shift numbers are appearance.json `faceRecipeCycle`.
+const HAIRS = FACE_HAIRS.length,
+  SKINS = FACE_SKINS.length,
+  WEATHERS = FACE_WEATHERING.length,
+  HEADS = FACE_HEADS.length,
+  CYCLE = GAME_DATA.appearance.faceRecipeCycle;
 export const FACE_RECIPES = freeze(
-  Array.from({ length: 50 }, (_, i) => {
-    const side = i % 2,
+  Array.from({ length: HEADS * HAIRS * SKINS }, (_, i) => {
+    const side = i % HEADS,
       head = FACE_HEADS[side],
-      k = Math.floor(i / 2),
-      hair = FACE_HAIRS[((k % 5) * 2 + side * 3) % 5],
-      skin = FACE_SKINS[(Math.floor(k / 5) * 2 + (k % 5) + side * 3) % 5];
+      k = Math.floor(i / HEADS),
+      hair = FACE_HAIRS[((k % HAIRS) * CYCLE.hairStride + side * CYCLE.sideShift) % HAIRS],
+      skin = FACE_SKINS[(Math.floor(k / HAIRS) * CYCLE.skinStride + (k % HAIRS) + side * CYCLE.sideShift) % SKINS];
     return freeze({
       id: `face-${head.id}-${hair}-${skin.id}`,
       headPreset: head.id,
       hairPreset: hair,
       skinPreset: skin.id,
-      weatheringPreset: FACE_WEATHERING[(Math.floor(k / 5) + (k % 5) + side * 2) % 5],
+      weatheringPreset:
+        FACE_WEATHERING[(Math.floor(k / HAIRS) + (k % HAIRS) + side * CYCLE.weatherSideShift) % WEATHERS],
     });
   }),
 );

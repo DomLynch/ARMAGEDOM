@@ -1,0 +1,168 @@
+{
+  "presets": {
+    "baseline": {
+      "speedFactor": 1,
+      "recoveryAdd": 0
+    },
+    "cautious": {
+      "speedFactor": 0.85,
+      "recoveryAdd": 0.15
+    },
+    "brisk": {
+      "speedFactor": 1.1,
+      "recoveryAdd": 0
+    },
+    "gaunt-thrust": {
+      "speedFactor": 1,
+      "recoveryAdd": 0,
+      "attackPattern": [
+        "stab"
+      ]
+    },
+    "stocky-heavy": {
+      "speedFactor": 0.85,
+      "recoveryAdd": 0.15,
+      "attackPattern": [
+        "heavy"
+      ]
+    }
+  },
+  "recipeBehaviours": {
+    "human-street-scavenger": "baseline",
+    "human-crooked-hollow": "baseline",
+    "human-gaunt-skulker": "gaunt-thrust",
+    "human-stocky-brute": "stocky-heavy",
+    "human-ragged-runner": "brisk",
+    "human-wounded-straggler": "cautious",
+    "human-scarred-veteran": "cautious",
+    "salamander-ember-guard": "baseline",
+    "wolf-east-guard": "baseline",
+    "rat-sewer": "baseline",
+    "rat-ash": "brisk",
+    "rat-heavy": "cautious",
+    "dog-street-mongrel": "baseline",
+    "dog-ash-coated": "baseline",
+    "dog-stocky-yard": "cautious",
+    "roach-sewer": "baseline",
+    "roach-ash": "baseline",
+    "roach-rust-shell": "baseline",
+    "roach-heavy-shell": "cautious"
+  },
+  "intents": {
+    "baseline": {
+      "wakeDistance": 6,
+      "homeLeash": 12,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "ambush": {
+      "wakeDistance": 2,
+      "homeLeash": 12,
+      "holdUntilWake": true,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "territorial": {
+      "wakeDistance": 4,
+      "homeLeash": 5,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "area-pursuit": {
+      "wakeDistance": 6,
+      "homeLeash": 8,
+      "holdUntilWake": true,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0,
+      "pursuitScope": "area"
+    },
+    "withdraw": {
+      "wakeDistance": 6,
+      "homeLeash": 12,
+      "holdUntilWake": false,
+      "retreatSeconds": 0.55,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "companion": {
+      "wakeDistance": 2.5,
+      "homeLeash": 12,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 6,
+      "isolationDistance": 2,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "skitter": {
+      "wakeDistance": 6,
+      "homeLeash": 12,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0.45,
+      "pauseSeconds": 0.35
+    },
+    "short-burst": {
+      "wakeDistance": 6,
+      "homeLeash": 12,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0.75,
+      "pauseSeconds": 0.65
+    }
+  },
+  "recipeIntents": {
+    "human-street-scavenger": "baseline",
+    "human-crooked-hollow": "baseline",
+    "human-gaunt-skulker": "withdraw",
+    "human-stocky-brute": "baseline",
+    "human-limping-lurker": "short-burst",
+    "human-tunnel-dweller": "ambush",
+    "human-ragged-runner": "baseline",
+    "human-corner-ambusher": "ambush",
+    "human-territorial-brawler": "territorial",
+    "human-pack-scavenger": "companion",
+    "human-wounded-straggler": "baseline",
+    "human-scarred-veteran": "baseline",
+    "salamander-ember-guard": "area-pursuit",
+    "wolf-east-guard": "territorial",
+    "rat-sewer": "withdraw",
+    "rat-ash": "baseline",
+    "rat-soot": "ambush",
+    "rat-mangy": "baseline",
+    "rat-heavy": "baseline",
+    "rat-nest-defender": "territorial",
+    "dog-street-mongrel": "baseline",
+    "dog-gaunt-hound": "withdraw",
+    "dog-stocky-yard": "baseline",
+    "dog-ash-coated": "baseline",
+    "dog-mangy-stray": "baseline",
+    "dog-pack-chaser": "companion",
+    "roach-sewer": "baseline",
+    "roach-ash": "baseline",
+    "roach-rust-shell": "baseline",
+    "roach-heavy-shell": "baseline",
+    "roach-skitter": "skitter",
+    "roach-nest-guard": "territorial"
+  }
+}

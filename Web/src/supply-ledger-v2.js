@@ -3,7 +3,7 @@ const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const object = (x) => x && Object.getPrototypeOf(x) === Object.prototype;
 const closed = (x, fields) =>
   object(x) && Object.keys(x).length === fields.length && fields.every((k) => Object.hasOwn(x, k));
-export const lootTableStamp = (rule) =>
+const lootTableStamp = (rule) =>
   JSON.stringify(rule.outcomes.map((o) => [o.itemId, o.quantity, o.weight, o.conditions]));
 export function isExtendedSupplies(s, rules) {
   if (!rules || !closed(s, ["version", "issued", "collected", "pending", "rolls"]) || s.version !== 2) return false;
@@ -95,11 +95,11 @@ export function issueExtendedSupply(state, { areaId, placementKey, position, hp,
   )
     return { state, drop: null };
   const rule = rules[placementKey];
-  let seed = 2166136261;
+  let seed = 2166136261; // tuning-ok: FNV-1a offset basis (a hash constant, not tuning)
   for (const char of placementKey + ":" + rule.tableRef + ":" + cycle)
-    seed = Math.imul(seed ^ char.charCodeAt(0), 16777619) >>> 0;
+    seed = Math.imul(seed ^ char.charCodeAt(0), 16777619) >>> 0; // tuning-ok: FNV-1a prime (a hash constant, not tuning)
   const sum = rule.outcomes.reduce((n, o) => n + o.weight, 0);
-  let value = (seed / 4294967296) * sum,
+  let value = (seed / 4294967296) * sum, // tuning-ok: 2^32, the 32-bit hash range
     index = rule.outcomes.length - 1;
   for (let i = 0; i < rule.outcomes.length; i++) {
     value -= rule.outcomes[i].weight;

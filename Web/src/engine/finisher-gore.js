@@ -1,10 +1,12 @@
 import * as T from "three";
 import { FINISHER_DATA, goreProfile } from "./finisher-data.js";
 import { createLocalWound } from "./local-wound.js";
+const SKIN_INFLUENCES = 4; // tuning-ok: bone influences per skinned vertex (glTF skinIndex/skinWeight are vec4)
 // Small fixed samples of the real render mesh are prepared at actor load. Lethal
 // presentation selects a posed skin vertex; it never copies/cuts the body mesh.
 export function createFinisherGore({ root, model, rig, camera }) {
   const data = FINISHER_DATA.gore,
+    place = data.placement,
     anatomy = data.rigs.find((r) => r.id === rig);
   if (!anatomy || !camera?.isCamera) return null;
   const groups = { body: [], head: [] },
@@ -44,16 +46,16 @@ export function createFinisherGore({ root, model, rig, camera }) {
       for (let i = 0; i < count; i += step) {
         let weight = anatomy.material === "machine" ? 1 : 0;
         if (mesh.isSkinnedMesh && indices && weights)
-          for (let k = 0; k < 4; k++)
+          for (let k = 0; k < SKIN_INFLUENCES; k++)
             if (names.has(mesh.skeleton.bones[indices.getComponent(i, k)]?.name)) weight += weights.getComponent(i, k);
-        if (weight >= 0.5) groups[region].push({ mesh, index: i });
+        if (weight >= place.influenceWeightMin) groups[region].push({ mesh, index: i });
       }
     }
   });
   // A small semantic zone may fall between the coarse whole-mesh samples.
   // Refill only sparse zones at preparation, then retain the same fixed64 budget.
   for (const region of ["body", "head"])
-    if (groups[region].length < data.sampleLimit / 4) {
+    if (groups[region].length < data.sampleLimit / place.sparseZoneDivisor) {
       const names = new Set(anatomy[region + "Bones"]),
         dense = [];
       for (const mesh of eligibleMeshes) {
@@ -62,10 +64,10 @@ export function createFinisherGore({ root, model, rig, camera }) {
         for (let i = 0; i < mesh.geometry.attributes.position.count; i++) {
           let weight = anatomy.material === "machine" ? 1 : 0;
           if (mesh.isSkinnedMesh && indices && weights)
-            for (let k = 0; k < 4; k++)
+            for (let k = 0; k < SKIN_INFLUENCES; k++)
               if (names.has(mesh.skeleton.bones[indices.getComponent(i, k)]?.name))
                 weight += weights.getComponent(i, k);
-          if (weight >= 0.5) dense.push({ mesh, index: i });
+          if (weight >= place.influenceWeightMin) dense.push({ mesh, index: i });
         }
       }
       groups[region] = dense;
@@ -129,18 +131,18 @@ export function createFinisherGore({ root, model, rig, camera }) {
       const ix = mesh.geometry.attributes.skinIndex,
         w = mesh.geometry.attributes.skinWeight;
       skin.elements.fill(0);
-      for (let k = 0; k < 4; k++) {
+      for (let k = 0; k < SKIN_INFLUENCES; k++) {
         const weight = w.getComponent(index, k);
         if (!weight) continue;
-        joint.fromArray(mesh.skeleton.boneMatrices, ix.getComponent(index, k) * 16);
-        for (let j = 0; j < 16; j++) skin.elements[j] += joint.elements[j] * weight;
+        joint.fromArray(mesh.skeleton.boneMatrices, ix.getComponent(index, k) * 16); // tuning-ok: 4x4 matrix elements
+        for (let j = 0; j < 16; j++) skin.elements[j] += joint.elements[j] * weight; // tuning-ok: 4x4 matrix elements
       }
       skin.premultiply(mesh.bindMatrixInverse).multiply(mesh.bindMatrix);
       worldSkin.copy(mesh.matrixWorld).multiply(skin);
     } else worldSkin.copy(mesh.matrixWorld);
     normalMatrix.getNormalMatrix(worldSkin);
     n.copy(localNormal).applyMatrix3(normalMatrix).normalize();
-    return Number.isFinite(p.lengthSq()) && Number.isFinite(n.lengthSq()) && n.lengthSq() > 0.9;
+    return Number.isFinite(p.lengthSq()) && Number.isFinite(n.lengthSq()) && n.lengthSq() > place.normalMinLengthSq;
   }
   function preparePose() {
     model.updateWorldMatrix(true, true);
@@ -163,22 +165,22 @@ export function createFinisherGore({ root, model, rig, camera }) {
     }
     tangent.normalize();
     vertical.crossVectors(normal, tangent).normalize();
-    const limit = anatomy.radius * 2 * data.wound.maxZoneFraction,
+    const limit = anatomy.radius * 2 * data.wound.maxZoneFraction, // tuning-ok: radius to diameter
       width = Math.min(style.width, limit),
       height = Math.min(style.height, limit),
       bottom =
         position.y +
         normal.y * data.wound.surfaceOffset -
-        Math.abs(tangent.y) * width * 0.555 -
-        Math.abs(vertical.y) * height * 0.555 -
-        0.03 * style.reliefScale * Math.max(0, -normal.y);
+        Math.abs(tangent.y) * width * place.footprintHalf -
+        Math.abs(vertical.y) * height * place.footprintHalf -
+        place.reliefDrop * style.reliefScale * Math.max(0, -normal.y);
     return {
       surfaceValidated: true,
       position,
       normal,
       tangent: tangent.clone(),
       surfaceRadius: anatomy.radius,
-      visible: bottom >= 0.004,
+      visible: bottom >= place.visibleBottom,
     };
   }
   function choose(region, style) {
@@ -198,9 +200,11 @@ export function createFinisherGore({ root, model, rig, camera }) {
         offset = delta.clone().addScaledVector(toward, -delta.dot(toward)).length(),
         score =
           region === "body" && anatomy.material === "flesh"
-            ? -delta.length() / anatomy.radius - (offset / anatomy.radius) * 0.5 + hit.normal.dot(toward) * 0.15
-            : delta.dot(toward) - offset * 0.35;
-      if (hit.visible && hit.normal.dot(toward) > 0.05) candidates.push({ sample, hit, score });
+            ? -delta.length() / anatomy.radius -
+              (offset / anatomy.radius) * place.fleshOffsetWeight +
+              hit.normal.dot(toward) * place.fleshFacingWeight
+            : delta.dot(toward) - offset * place.otherOffsetWeight;
+      if (hit.visible && hit.normal.dot(toward) > place.facingMin) candidates.push({ sample, hit, score });
       const along = delta.dot(d);
       if (along > far) {
         far = along;
@@ -214,10 +218,10 @@ export function createFinisherGore({ root, model, rig, camera }) {
     for (const candidate of candidates.sort((a, b) => b.score - a.score)) {
       rayDirection.copy(candidate.hit.position).sub(cameraOrigin);
       const distance = rayDirection.length();
-      if (distance < 0.01) continue;
+      if (distance < place.rayMinDistance) continue;
       surfaceRay.set(cameraOrigin, rayDirection.divideScalar(distance));
       surfaceRay.near = 0;
-      surfaceRay.far = distance - 0.005;
+      surfaceRay.far = distance - place.rayBackoff;
       visibilityRays++;
       const visibleMeshes = occluders.filter((m) => {
         for (let a = m; a && a !== model.parent; a = a.parent) if (!a.visible) return false;

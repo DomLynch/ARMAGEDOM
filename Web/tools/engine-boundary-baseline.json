@@ -67,6 +67,7 @@
     "world.js"
   ],
   "publicEntries": [
+    "engine/game-data.js",
     "engine/index.js",
     "engine/server.js"
   ],

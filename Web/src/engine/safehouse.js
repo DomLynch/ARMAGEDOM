@@ -1,8 +1,8 @@
 import { insidePolygon, segmentsIntersect } from "../world-geometry.js";
 import { closed, freeze } from "./content-schema.js";
-const finite = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+import { GAME_DATA } from "./game-data.js";
+import { finite, point } from "./shared-checks.js";
 const art = (p) => p && closed(p, ["x", "y"]) !== false && finite(p.x, 0, 1) && finite(p.y, 0, 1);
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const distance = (p, a, b) => {
   const x = b.x - a.x,
     z = b.z - a.z,
@@ -137,7 +137,7 @@ export function safehouseCrosses(g, a, b) {
   return safehouseBlocksSegment(g, a, b);
 }
 export function safehouseWeaponBlocked(g) {
-  return safehouseTouches(g, g.player.pos, g.player.radius ?? 0.4);
+  return safehouseTouches(g, g.player.pos, g.player.radius ?? GAME_DATA.combatRules.player.radius);
 }
 export function safehouseAnchor(g) {
   const r = region(g);
@@ -152,7 +152,7 @@ export function safehouseInteraction(g) {
     g.player.hp > 0 &&
     !g.finished &&
     !g.runSaveInvalid &&
-    r.geometry.clear(g.player.pos, g.player.radius ?? 0.4) &&
+    r.geometry.clear(g.player.pos, g.player.radius ?? GAME_DATA.combatRules.player.radius) &&
     g.world.lineClear(g.player.pos, safehouseAnchor(g))
   );
 }

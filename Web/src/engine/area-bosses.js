@@ -1,5 +1,10 @@
 import { closed, freeze } from "./content-schema.js";
+import { GAME_DATA } from "./game-data.js";
 import { AREA_MOB_SPAWNS } from "../area-mob-spawns.js";
+import { fillText } from "./game-data-combat-text.js";
+import { areaDisplayName } from "../area-registry.js";
+const EXIT_TEXT = GAME_DATA.combatText.exitGate; // data/combatText.json: the exit-gate prompts
+const HAZARD_PLACEMENT =GAME_DATA.areaRuntime.bossHazard; // data/areaRuntime.json: clearance and entry gap for a boss hazard
 const fail = () => {
   throw TypeError("Invalid area boss catalogue");
 };
@@ -53,8 +58,8 @@ export function validateAreaBosses(input, registry, residents = {}) {
       ["health", 40, 140],
       ["radius", 0.35, 0.6],
       ["moveSpeed", 0.7, 2.5],
-      ["wakeDistance", 2, 6],
-      ["homeLeash", 3, 8],
+      ["wakeDistance", 2, 12],
+      ["homeLeash", 3, 20],
       ["recoveryDelay", 0.4, 2.5],
       ["contactScale", 0.2, 3],
     ])
@@ -288,7 +293,7 @@ export function bossExitGate(game, target = null) {
   if (!link) return null;
   const key = link.requiresDefeat,
     placement = world.bossData?.placements?.find((row) => row.key === key),
-    name = world.bossData?.profiles?.[placement?.profileRef]?.name ?? "the boss";
+    name = world.bossData?.profiles?.[placement?.profileRef]?.name ?? "boss";
   const field =
     key &&
     Object.keys(world.bossEquipmentData ?? {}).find(
@@ -298,18 +303,17 @@ export function bossExitGate(game, target = null) {
       !key ||
       (field !== undefined && ["pending", "owned", "legacy-dead"].includes(game.bossEquipment?.[field]?.status)),
     visited = !link.requiresVisited || game.expedition?.visitedIds?.includes(link.to) === true;
-  const allowed = !game.runSaveInvalid && defeated && visited,
-    destination = link.to.replaceAll("-", " ");
+  const allowed = !game.runSaveInvalid && defeated && visited;
   return {
     allowed,
     key,
     message: allowed
       ? ""
       : !defeated
-        ? `Defeat ${name} to open the ${destination} exit.`
+        ? fillText(EXIT_TEXT.needsKill, { name })
         : !visited
-          ? `Discover ${destination} on foot before using this safehouse exit.`
-          : "Saving unavailable. Exit remains locked.",
+          ? fillText(EXIT_TEXT.needsVisit, { destination: areaDisplayName(link.to) })
+          : EXIT_TEXT.saveUnavailable,
   };
 }
 export function bossHazardPosition(game, actor) {
@@ -329,9 +333,9 @@ export function bossHazardPosition(game, actor) {
     if (
       p &&
       Math.hypot(p.x - actor.home.x, p.z - actor.home.z) <= actor.bossProfile.homeLeash &&
-      w.geometry.clear(p, h.radius + 0.4) &&
+      w.geometry.clear(p, h.radius + HAZARD_PLACEMENT.bodyClearance) &&
       !w.travelAt?.(p) &&
-      entries.every((e) => Math.hypot(p.x - e.x, p.z - e.z) > h.radius + 2)
+      entries.every((e) => Math.hypot(p.x - e.x, p.z - e.z) > h.radius + HAZARD_PLACEMENT.entryGap)
     )
       return { ...p };
   return null;
@@ -353,7 +357,11 @@ export function validateBossGeometry(data, areaId, g, registry) {
       clearRadius = p.hazard ? Math.max(p.radius, p.hazard.radius + 0.4) : p.radius;
     if (
       !g.clear(row.pos, clearRadius) ||
-      entries.some((e) => Math.hypot(e.x - row.pos.x, e.z - row.pos.z) <= p.homeLeash + 0.8)
+      // A player arriving by any entry must start outside the wake distance of the boss's spot and of every patrol goal
+      // (a goal may sit up to 0.8 m from the spot). The leash alone cannot wake a boss.
+      entries.some((e) =>
+        [row.pos, ...row.patrol].some((at) => Math.hypot(e.x - at.x, e.z - at.z) <= p.wakeDistance + 0.5),
+      )
     )
       throw Error("Unsafe optional boss pocket");
     for (const goal of row.patrol) {

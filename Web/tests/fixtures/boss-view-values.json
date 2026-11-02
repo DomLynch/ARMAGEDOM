@@ -1,0 +1,1221 @@
+{
+ "frames": [
+  {
+   "time": 5,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard warning",
+     "visible": true,
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.1,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.670652169,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      -4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      3,
+      3,
+      3
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    }
+   ]
+  },
+  {
+   "time": 5.4,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard warning",
+     "visible": true,
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.1,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.74367356,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      -4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      3,
+      3,
+      3
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    }
+   ]
+  },
+  {
+   "time": 5.8,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard warning",
+     "visible": true,
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.1,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 16763737,
+     "opacity": 0.945738829,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      -4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      3,
+      3,
+      3
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    }
+   ]
+  },
+  {
+   "time": 6.1,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      -4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      3,
+      3,
+      3
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    }
+   ]
+  },
+  {
+   "time": 7,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      2.5,
+      2.5,
+      2.5
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Group",
+     "name": "Area hazard active",
+     "visible": true,
+     "position": [
+      -4,
+      0.025,
+      -2
+     ],
+     "rotation": [
+      -1.570796327,
+      0,
+      0
+     ],
+     "scale": [
+      3,
+      3,
+      3
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "radius": 1,
+      "segments": 48,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.24,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    },
+    {
+     "type": "Mesh",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": {
+      "innerRadius": 0.91,
+      "outerRadius": 1,
+      "thetaSegments": 48,
+      "phiSegments": 1,
+      "thetaStart": 0,
+      "thetaLength": 6.283185307
+     },
+     "colour": 9359437,
+     "opacity": 0.9,
+     "transparent": true,
+     "depthWrite": false,
+     "side": 2
+    }
+   ]
+  },
+  {
+   "time": 21,
+   "labels": [
+    {
+     "text": "Boss a",
+     "cls": "boss-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    },
+    {
+     "text": "",
+     "cls": "boss-world-label",
+     "hidden": true
+    },
+    {
+     "text": "HUNTER",
+     "cls": "boss-world-label hunter-world-label",
+     "hidden": false,
+     "left": "370px",
+     "top": "177px"
+    }
+   ],
+   "scene": [
+    {
+     "type": "Scene",
+     "name": "",
+     "visible": true,
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "rotation": [
+      0,
+      0,
+      0
+     ],
+     "scale": [
+      1,
+      1,
+      1
+     ],
+     "geometry": null,
+     "colour": null,
+     "opacity": null,
+     "transparent": null,
+     "depthWrite": null,
+     "side": null
+    }
+   ]
+  }
+ ],
+ "far": [
+  true,
+  true,
+  true
+ ]
+}

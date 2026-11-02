@@ -1,4 +1,7 @@
+import { GAME_DATA } from "./engine/game-data.js";
 // Presentation only. Caller keeps gameplay/finisher dt unchanged and owns transforms.
+// Kick, hold and decay numbers: data/visual.json `combatImpact`.
+const IMPACT = GAME_DATA.visual.combatImpact;
 const finite = (value) => (Number.isFinite(value) ? value : 0);
 const seconds = (value) => Math.max(0, finite(value));
 const strength = (value) => (value === undefined ? 1 : Math.max(0, Math.min(1, finite(value))));
@@ -14,7 +17,7 @@ function direction(x, y) {
 }
 const decay = (value, dt, rate) => {
   const next = value * Math.exp(-dt * rate);
-  return Math.abs(next) < 0.001 ? 0 : next;
+  return Math.abs(next) < IMPACT.settleBelow ? 0 : next;
 };
 function settings({ mode = "high", reducedMotion = false } = {}) {
   let requested = mode,
@@ -26,7 +29,7 @@ function settings({ mode = "high", reducedMotion = false } = {}) {
       if (next.mode !== undefined) requested = next.mode;
       if (next.reducedMotion !== undefined) reduced = !!next.reducedMotion;
     },
-    energy: () => (effective() === "off" ? 0 : effective() === "low" ? 0.4 : 1),
+    energy: () => (effective() === "off" ? 0 : effective() === "low" ? IMPACT.lowEnergy : 1),
   };
 }
 
@@ -43,7 +46,7 @@ export function createCombatImpact(options) {
     pistol = true;
   }
   function snapshot() {
-    const wave = Math.cos(cameraAge * 45);
+    const wave = Math.cos(cameraAge * IMPACT.waveRate);
     return { mode: config.mode(), shot, hold, cameraX: cameraX * wave, cameraY: cameraY * wave };
   }
   return {
@@ -55,17 +58,20 @@ export function createCombatImpact(options) {
       if (type === "shot") {
         pistol = !!isPistol;
         shot = config.energy() * amount;
-      } else if (config.mode() === "high") hold = Math.max(hold, type === "death" ? 0.08 : isPistol ? 0.05 : 0.04);
+      } else if (config.mode() === "high") {
+        const { death, pistol: gun, other } = IMPACT.holdSeconds;
+        hold = Math.max(hold, type === "death" ? death : isPistol ? gun : other);
+      }
       if (config.mode() === "high") {
         const [dx, dy] = direction(x, y);
-        const kick = (type === "death" ? 8 : type === "hit" ? 4 : 3) * amount;
+        const kick = (type === "death" ? IMPACT.kick.death : type === "hit" ? IMPACT.kick.hit : IMPACT.kick.shot) * amount;
         // Same sign for shot and hit: opposing impulses cancelled the donor cue.
         cameraX -= dx * kick;
         cameraY -= dy * kick;
         const length = Math.hypot(cameraX, cameraY);
-        if (length > 8) {
-          cameraX *= 8 / length;
-          cameraY *= 8 / length;
+        if (length > IMPACT.kick.max) {
+          cameraX *= IMPACT.kick.max / length;
+          cameraY *= IMPACT.kick.max / length;
         }
         cameraAge = 0;
       }
@@ -76,11 +82,12 @@ export function createCombatImpact(options) {
         dt = seconds(dt);
         const visualDt = Math.max(0, dt - hold);
         hold = Math.max(0, hold - dt);
-        shot = decay(shot, visualDt, pistol ? 12 : 18);
-        cameraX = decay(cameraX, dt, 18);
-        cameraY = decay(cameraY, dt, 18);
+        shot = decay(shot, visualDt, pistol ? IMPACT.decayRate.shotPistol : IMPACT.decayRate.shotOther);
+        cameraX = decay(cameraX, dt, IMPACT.decayRate.camera);
+        cameraY = decay(cameraY, dt, IMPACT.decayRate.camera);
         // Once settled, avoid unbounded phase or Infinity for extreme finite dt.
-        cameraAge = cameraX || cameraY ? (cameraAge + dt) % ((2 * Math.PI) / 45) : 0;
+        const period = (2 * Math.PI) / IMPACT.waveRate; // tuning-ok: 2 * pi is one full turn in radians
+        cameraAge = cameraX || cameraY ? (cameraAge + dt) % period : 0;
       }
       return snapshot();
     },
@@ -111,7 +118,7 @@ export function createHitReaction(options) {
       [x, z] = direction(dx, dz);
       killed = !!lethal;
       energy = config.energy() * amount;
-      hold = config.mode() === "high" ? (killed ? 0.08 : 0.045) : 0;
+      hold = config.mode() === "high" ? (killed ? IMPACT.reactionHoldSeconds.killed : IMPACT.reactionHoldSeconds.hit) : 0;
       return true;
     },
     update(dt, { paused = false } = {}) {
@@ -119,7 +126,7 @@ export function createHitReaction(options) {
         dt = seconds(dt);
         const visualDt = Math.max(0, dt - hold);
         hold = Math.max(0, hold - dt);
-        energy = decay(energy, visualDt, killed ? 10 : 12);
+        energy = decay(energy, visualDt, killed ? IMPACT.decayRate.reactionKilled : IMPACT.decayRate.reaction);
       }
       return { mode: config.mode(), energy, hold, x, z, killed };
     },

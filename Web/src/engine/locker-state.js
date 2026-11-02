@@ -1,19 +1,11 @@
+import { GAME_DATA } from "./game-data.js";
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
-export const LOCKER_WEAPON_IDS = Object.freeze([
-  "westminster-start-pistol-v1",
-  "bridge-warden-rifle-v1",
-  "flamethrower-area8-v1",
-  "hale-pitborn-cleaver-v1",
-  "south-stalker-shotgun-v1",
-  "standard-grenade-v1",
-  "surgeons-knife-v1",
-  "borough-butchers-rocket-launcher-v1",
-  "watchmans-pistol-v1",
-  "borough-marshals-pistol-v1",
-]);
+// The ten saved weapon ids, in saved order, come from data/locker.json (weaponIds).
+export const LOCKER_WEAPON_IDS = Object.freeze([...GAME_DATA.locker.weaponIds]);
 const weaponIdsAllowed = LOCKER_WEAPON_IDS;
-const resourceOwner = {
+// Which saved weapon owns each carried resource (ground ammo only tops up weapons the player actually owns).
+export const resourceOwner = {
   "railgun-reserve": weaponIdsAllowed[9],
   "pistol-reserve": weaponIdsAllowed[0],
   "rifle-reserve": weaponIdsAllowed[1],
@@ -23,27 +15,19 @@ const resourceOwner = {
   "flame-fuel": weaponIdsAllowed[2],
 };
 const resources = Object.keys(resourceOwner);
-export const LOCKER_RESOURCE_RULES = Object.freeze(
-  Object.fromEntries(
-    Object.entries({
-      "railgun-reserve": 3,
-      "pistol-reserve": 12,
-      "rifle-reserve": 16,
-      "shotgun-reserve": 12,
-      "rocket-reserve": 3,
-      "grenade-charges": 3,
-      "flame-fuel": 1000,
-    }).map(([key, cap]) => [key, Object.freeze({ carryCap: cap, stashCap: cap, integer: key !== "flame-fuel" })]),
-  ),
-);
-const closed = (value, keys) =>
-  !!value &&
-  Object.getPrototypeOf(value) === Object.prototype &&
-  Reflect.ownKeys(value).length === keys.length &&
-  keys.every((key) => {
-    const d = Object.getOwnPropertyDescriptor(value, key);
-    return d?.enumerable && "value" in d;
-  });
+// Carry and stash caps live in data/locker.json (resourceCaps). The server's own caps (arma_record_caps) stay the authority for saves;
+// tests/data-locker.test.js checks the client copy against them.
+const lockerRules = (caps) =>
+  Object.freeze(
+    Object.fromEntries(
+      Object.entries(caps).map(([key, cap]) => [
+        key,
+        Object.freeze({ carryCap: cap, stashCap: cap, integer: key !== "flame-fuel" }),
+      ]),
+    ),
+  );
+export const LOCKER_RESOURCE_RULES = lockerRules(GAME_DATA.locker.resourceCaps);
+import { closed } from "./shared-checks.js";
 const dense = (rows) =>
   Array.isArray(rows) &&
   Object.getPrototypeOf(rows) === Array.prototype &&

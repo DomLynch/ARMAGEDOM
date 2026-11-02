@@ -1,25 +1,16 @@
+import { AREA_DRONE_SPAWNS } from "./area-drone-spawns.js";
+import { GAME_DATA } from "./engine/game-data.js";
 // One finite phase selector for existing resident movement + projectile authority.
-export const DRONE_RULES = Object.freeze({
-  hoverHeight: 0.9,
-  hp: 20,
-  radius: 1.1,
-  moveSpeed: 1.6,
-  wakeDistance: 6,
-  homeLeash: 12,
-  attackRange: 3,
-  warningSeconds: 0.6,
-  recoverySeconds: 1.4,
-  damage: 6,
-  boltSpeed: 8,
-  boltRange: 6,
-});
-export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(time * 3) * 0.025;
-export const DRONE_KEYS = Object.freeze({
-  "westminster-drone-1": "westminster",
-  "east-drone-1": "east",
-  "south-drone-1": "south",
-});
-const point = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.z);
+// The numbers live in Web/src/data/creatures.json `drone` (read through game-data.js).
+export const DRONE_RULES = GAME_DATA.creatures.drone;
+// The hover bob (rate and swing) is creatures.json `droneHover`.
+const HOVER = GAME_DATA.creatures.droneHover;
+export const droneHoverHeight = (time) => DRONE_RULES.hoverHeight + Math.sin(time * HOVER.rate) * HOVER.swing;
+// placement key -> area, derived from the one spawn table so the two cannot drift
+export const DRONE_KEYS = Object.freeze(
+  Object.fromEntries(Object.entries(AREA_DRONE_SPAWNS).flatMap(([area, rows]) => rows.map((row) => [row.key, area]))),
+);
+import { point } from "./engine/shared-checks.js";
 const live = (a) => a && Number.isFinite(a.hp) && a.hp > 0 && point(a.pos);
 const copy = (p) => ({ x: p.x, z: p.z });
 export function createDroneState() {

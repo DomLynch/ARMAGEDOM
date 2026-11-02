@@ -1,8 +1,8 @@
 import { stepBossRanged, stepBossRockets, stopBossRanged, clearBossRanged } from "./engine/boss-ranged.js";
 import { stepPlayerHealth } from "./engine/player-health.js";
-import { rigCapability } from "./rig-capabilities.js";
+import { rigCapability, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
-import { stopRailgun } from "./engine/railgun.js";
+import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
   BONE_SAW_RULES,
@@ -22,106 +22,66 @@ import {
   prepareSafehouseStep,
 } from "./engine/safehouse.js";
 import { stepRockets } from "./engine/rocket-runtime.js";
+import { stepTrapCrates } from "./engine/trap-crate.js";
 import { bossEquipmentIntent, selectedBossRanged, stepBossGrenades } from "./engine/boss-weapon-runtime.js";
 import { bossEquipmentClock } from "./engine/boss-equipment-data.js";
 import { rifleActionState } from "./engine/rifle-runtime.js";
 import { FINISHER_DATA } from "./engine/finisher-data.js";
 import { FLAME_VISUAL_DATA } from "./engine/flame-data.js";
 import { initializeFlame, flameIntent, stepFlame, stopFlame } from "./engine/flame-runtime.js";
-import { WOLF_BITE, wolfResponse, wolfBiteDirection } from "./wolf-native.js";
-import { SALAMANDER_BITE, SALAMANDER_BREATH, salamanderResponse } from "./salamander-native.js";
-import { populationPlacements, populationAllowsDrone } from "./engine/area-population.js";
+import { wolfBiteDirection } from "./wolf-native.js";
+import { SALAMANDER_BREATH } from "./salamander-native.js";
+import { rigResponse } from "./rig-response.js";
+import { CREATURE_MOVES } from "./creature-moves.js";
+import { GAME_DATA, fillText } from "./engine/game-data.js";
+import { recordResidentKill } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
-import { applyBossProfile, bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
-import { createAreaHazard, stepAreaHazards } from "./engine/area-hazards.js";
+import { bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
+import { createAreaHazard, applyAreaHazards } from "./engine/area-hazards.js";
+import { stepAirdrop, airdropPull } from "./engine/airdrop.js";
 import { selectedPistolProfile } from "./engine/expedition-core.js";
 import { initializeProgression, effectiveWeaponDamage, stageProgressionDeath } from "./engine/progression-runtime.js";
 import { PISTOL_ITEM_ID } from "./core/pistol-operation.js";
-import {
-  creatureCatalogue,
-  animalFoundationParameters,
-  ENGINE_CREATURE_CAPABILITIES,
-} from "./engine/creature-catalogue.js";
 import { ratMeleeDefinition } from "./rat-melee-definition.js";
-import { resolveBoundAnimalRole, nativeAttackCompletion } from "./animal-role-bindings.js";
-import { resolveRoachNestGuard, territoryHomeStep } from "./roach-territory.js";
-import { gauntHumanRecipe } from "./gaunt-human-bindings.js";
+import { nativeAttackCompletion } from "./animal-role-bindings.js";
+import { territoryHomeStep } from "./roach-territory.js";
 import {
-  resolveResidentIntent,
   canWakeResident,
   recoveryMovement,
   approachRhythm,
   observeResidentCompanions,
 } from "./creature-behaviour-intents.js";
-import { animalPlacement } from "./animal-cycle.js";
-import { AREA_DRONE_SPAWNS } from "./area-drone-spawns.js";
-import { DRONE_KEYS, DRONE_RULES, createDroneState, droneIntent, recordDroneDeath } from "./drone-mechanics.js";
+import { DRONE_RULES, createDroneState, droneIntent, recordDroneDeath } from "./drone-mechanics.js";
 import { createBridgeSteering } from "./bridge-steering.js";
-import { createMobileAimState, stepMobileAim } from "./mobile-combat-aim.js";
+import { createMobileAimState } from "./mobile-combat-aim.js";
 import { selectFinisher } from "./finisher-selection.js";
-import { allocateMobSizes } from "./mob-size-allocation.js";
-import { mobSizeProfile } from "./mob-size.js";
+import { starDamage } from "./engine/star-variants.js";
 import { createSuppliesState, issueSupply } from "./supplies.js";
 import { createVestState, damageAfterVest } from "./vest.js";
-import { AREA_MOB_SPAWNS, residentEncounterHealth } from "./area-mob-spawns.js";
-import { selectCombatTarget, resolvePistolShot, resolveRangedAim, selectedRangedProfile } from "./pistol-targeting.js";
-import { createPistolState, stepPistol, tracePistol } from "./pistol.js";
+import { selectCombatTarget, resolveRangedAim } from "./pistol-targeting.js";
+import { meleeCandidates, chainedSight, bodies } from "./pistol-targeting.js";
+import { createPistolState, stepPistol } from "./pistol.js";
 import { createHollowEncounter } from "./hollow-encounter.js";
 import { KNIFE_RULES as R, KNIFE_MOVES, KNIFE_COOLDOWNS, KNIFE_STAMINA_COSTS, bladeContact } from "./donor/knife.js";
+import { knifeEnergy, knifeAffordable, knifeSpend, knifeRegen } from "./engine/knife-stamina.js";
+import {
+  hollowActor,
+  markedHunter,
+  initializeAreaResidents,
+  reviveAreaResidents,
+  DOG_RIG,
+} from "./engine/area-residents.js";
+import { mobileControl, resetMobileControls } from "./engine/mobile-control.js";
+import { enemy, legacyKind, mag, NEGLIGIBLE_DISTANCE, nextSerial, validDirection } from "./engine/enemy-core.js";
+export { initializeAreaResidents, reviveAreaResidents, resetMobileControls, enemy, validDirection };
+const HUD_TEXT = GAME_DATA.combatText.hud; // data/combatText.json: the HUD messages this module raises
 // Port of the pinned Unity Westminster encounter. Domain x/z stays in Unity metres.
-export const attacks = {
-  slash: { windup: 0.14, recovery: 0.28, range: 2.6, arc: 100, multiplier: 1, stagger: 0.1, cooldown: 0 },
-  stab: {
-    windup: 0.12,
-    recovery: 0.24,
-    range: 3.1,
-    arc: 24,
-    multiplier: 1.2,
-    stagger: 0.12,
-    cooldown: 0,
-    single: true,
-  },
-  heavy: { windup: 0.36, recovery: 0.42, range: 3.2, arc: 130, multiplier: 2.1, stagger: 0.3, cooldown: 1.6 },
-  special: { windup: 0.2, recovery: 0.38, range: 4.2, arc: 360, multiplier: 2.2, stagger: 0.3, cooldown: 7 },
-};
-const PACK_CHASER = resolveResidentIntent("dog-pack-chaser", {
-  behaviourCapabilities: ["home", "lineOfSight", "eligibleCompanions", "collisionMove"],
-});
-const RAT_LOW = Object.freeze({
-  ...KNIFE_MOVES.light_right,
-  moveId: "rat_low",
-  clip: "RatLowSlash",
-  path: null,
-  native: true,
-  ratLow: true,
-  windupTicks: 20,
-  activeTicks: 6,
-  recoveryTicks: 28,
-  windup: 20 / 60,
-  active: 6 / 60,
-  recovery: 28 / 60,
-  stepIn: 0,
-  knockback: 0,
-});
-const RAT_BITE = Object.freeze({
-  ...RAT_LOW,
-  moveId: "rat_bite",
-  clip: "rat_bite",
-  ratLow: false,
-  ratBite: true,
-  windupTicks: 15,
-  activeTicks: 6,
-  recoveryTicks: 15,
-  windup: 15 / 60,
-  active: 6 / 60,
-  recovery: 15 / 60,
-  damage: 6,
-  staminaDamage: 6,
-  stamina: 0,
-  parryable: false,
-  range: 0.95,
-});
-const RAT_BITE_LOW = Object.freeze({ ...RAT_BITE, clip: "rat_bite_low" });
+// Legacy (non-pilot) attacks: data/creatures.json `playerAttacks`.
+export const attacks = GAME_DATA.creatures.playerAttacks;
+// The bite and low-strike moves are rows of Web/src/data/creatures.json, resolved in creature-moves.js.
+const RAT_LOW = CREATURE_MOVES.rat_low;
+export const RAT_BITE = CREATURE_MOVES.rat_bite;
+const RAT_BITE_LOW = CREATURE_MOVES.rat_bite_low;
 const droneLow = (def) => ({
   ...RAT_LOW,
   clip: "DogMidSlash",
@@ -132,70 +92,35 @@ const droneLow = (def) => ({
   stagger: def.stagger,
   cooldown: def.cooldown,
 });
-const ROACH_LOW = Object.freeze({ ...RAT_LOW, moveId: "roach_low" });
-const ROACH_BITE = Object.freeze({
-  ...RAT_BITE,
-  moveId: "roach_bite",
-  clip: "roach_bite",
-  damage: 4,
-  staminaDamage: 4,
-  range: 0.93,
-});
-const ROACH_BITE_SCALED = Object.freeze({ ...ROACH_BITE, clip: "roach_bite_scaled" });
-const DOG_LOW = Object.freeze({ ...RAT_LOW, moveId: "dog_low" });
-const DOG_MID = Object.freeze({ ...DOG_LOW, clip: "DogMidSlash" });
-const DOG_BITE = Object.freeze({
-  ...RAT_BITE,
-  moveId: "dog_bite",
-  clip: "dog_bite_calf",
-  windupTicks: 18,
-  activeTicks: 6,
-  recoveryTicks: 24,
-  windup: 18 / 60,
-  active: 6 / 60,
-  recovery: 24 / 60,
-  damage: 8,
-  staminaDamage: 8,
-  range: 1.17,
-});
-const DOG_BITE_SCALED = Object.freeze({ ...DOG_BITE, clip: "dog_bite_scaled" });
-const WOLF_ATTACK = Object.freeze({ ...RAT_BITE, ...WOLF_BITE });
-const SALAMANDER_ATTACK = Object.freeze({ ...RAT_BITE, ...SALAMANDER_BITE });
+const ROACH_LOW = CREATURE_MOVES.roach_low;
+export const ROACH_BITE = CREATURE_MOVES.roach_bite;
+const ROACH_BITE_SCALED = CREATURE_MOVES.roach_bite_scaled;
+const DOG_LOW = CREATURE_MOVES.dog_low;
+const DOG_MID = CREATURE_MOVES.dog_mid;
+export const DOG_BITE = CREATURE_MOVES.dog_bite;
+const DOG_BITE_SCALED = CREATURE_MOVES.dog_bite_scaled;
 const EPS = 1e-8,
-  mag = (v) => Math.hypot(v.x, v.z),
   sub = (a, b) => ({ x: a.x - b.x, z: a.z - b.z });
+// Numerical dead zones, not tuning: below these a push or length counts as nothing (the direction one is in enemy-core.js).
+const INPUT_DEADZONE = 0.01, // tuning-ok: numerical dead zone for a stick push
+  MIN_SEGMENT = 0.0001; // tuning-ok: numerical dead zone for a segment length
 export function normal(v, fallback = { x: 0, z: 1 }) {
   const n = mag(v);
-  return n > 0.001 ? { x: v.x / n, z: v.z / n } : { ...fallback };
+  return n > NEGLIGIBLE_DISTANCE ? { x: v.x / n, z: v.z / n } : { ...fallback };
 }
-const validDirection = (v) => v && Number.isFinite(v.x) && Number.isFinite(v.z) && mag(v) > 0.001;
 const dot = (a, b) => a.x * b.x + a.z * b.z;
 const inside = (dir, delta, arc) =>
-  mag(delta) < 0.001 || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
+  mag(delta) < NEGLIGIBLE_DISTANCE || dot(normal(dir), normal(delta)) + EPS >= Math.cos((arc * Math.PI) / 360);
 const rotate = (v, angle) => ({
   x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
   z: v.z * Math.cos(angle) - v.x * Math.sin(angle),
 });
-let serial = 0;
-export function enemy(kind, pos) {
-  const hp = [55, 95, 50, 400][kind];
-  return {
-    id: ++serial,
-    kind,
-    pos: { ...pos },
-    facing: { x: 0, z: -1 },
-    hp,
-    maxHP: hp,
-    radius: kind === 3 ? 0.65 : 0.4,
-    ready: 0,
-    recoverUntil: 0,
-    staggerUntil: 0,
-    alerted: false,
-    pattern: 0,
-    swing: null,
-    flashUntil: 0,
-  };
-}
+// The original goblin game's numbers: data/combatRules.json `legacy`.
+const RULES = GAME_DATA.combatRules,
+  LEGACY = RULES.legacy,
+  WAVES = LEGACY.waves,
+  WARLORD = WAVES.warlordKind,
+  RANGED = WAVES.rangedKind;
 export function createGame(world, options = {}) {
   if (options.encounter && (options.pilot !== "donor-knife" || options.encounter.id !== "hollow-scavengers"))
     throw Error("Unsupported combat encounter");
@@ -205,7 +130,7 @@ export function createGame(world, options = {}) {
     time: 0,
     wave: 0,
     kills: 0,
-    nextWave: 2,
+    nextWave: WAVES.firstWaveSeconds,
     started: false,
     finished: false,
     won: false,
@@ -213,19 +138,19 @@ export function createGame(world, options = {}) {
     enemies: [],
     bolts: [],
     loot: [],
-    message: "Move to enter combat. Survive three waves.",
-    messageUntil: 4,
+    message: HUD_TEXT.enterCombat,
+    messageUntil: WAVES.messageSeconds,
     player: {
       id: 0,
       kind: -1,
-      pos: { ...(world.spawn ?? { x: 0, z: -6 }) },
+      pos: { ...(world.spawn ?? RULES.player.spawn) },
       facing: { x: 0, z: 1 },
       hp: 100,
       maxHP: 100,
-      damage: 20,
+      damage: RULES.player.damage,
       weaponLevel: 0,
       armourLevel: 0,
-      radius: 0.4,
+      radius: RULES.player.radius,
       guard: 100,
       guarding: false,
       parryUntil: 0,
@@ -253,7 +178,7 @@ export function createGame(world, options = {}) {
     Object.assign(g.player, {
       rig: "hero",
       weapon: "knife",
-      combatScale: world.layout?.characterScale ?? 1.265,
+      combatScale: world.layout?.characterScale ?? GAME_DATA.areaRuntime.view.defaultCharacterScale,
       bodyScale: 1,
       hp: R.health,
       maxHP: R.health,
@@ -263,14 +188,14 @@ export function createGame(world, options = {}) {
       hurtUntil: 0,
       dodgeStart: -Infinity,
     });
-    g.message = "LONDON · Knife encounter. Slash, stab, heavy, pommel, dodge, guard.";
     if (encounter) {
       g.encounter = encounter;
       g.nextEnemyAttackAt = 0;
-      g.message = "LONDON · Hollow scavengers. Keep space, guard, then counter.";
+      g.message = HUD_TEXT.hollowScavengers;
     }
   }
   if (options.healthRegen === true) g.healthRegen = true;
+  if (options.starVariants) g.starVariants = true;
   if (options.rat) g.rat = true;
   if (options.dog) g.dog = true;
   if (options.roach) g.roach = true;
@@ -303,22 +228,24 @@ export function createGame(world, options = {}) {
     g.openingGroup = world.populationData ? false : options.openingGroup !== false;
     if (!g.openingGroup) initializeAreaResidents(g);
   }
-  if (options.pistol) g.pistol = createPistolState({ pickupPos: { x: -0.85, z: -6.15 }, pickupAreaId: "westminster" });
+  if (options.pistol)
+    g.pistol = createPistolState({ pickupPos: { ...RULES.startingPistol }, pickupAreaId: "westminster" });
   return g;
 }
 function notify(g, text) {
   g.message = text;
-  g.messageUntil = g.time + 4;
+  g.messageUntil = g.time + WAVES.messageSeconds;
 }
 function event(g, type, data = {}) {
   g.events.push({ type, ...data });
 }
-function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
+export const cursedHit = (g, s, w, i, damage, c) => rangedHit(g, s, w, i, cursedDamage(g, damage), c);
+export function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
   const target = g.enemies.find((t) => t.id === shot.targetId && t.hp > 0);
   if (!target || safehouseWeaponBlocked(g) || safehouseTouches(g, target.pos, target.radius)) return;
   const amount = Math.min(target.hp, damage);
   target.hp = Math.max(0, target.hp - damage);
-  target.flashUntil = g.time + 0.12;
+  target.flashUntil = g.time + RULES.hitFlashSeconds;
   if (target.home) alertResident(g, target);
   event(g, "hit", {
     actor: target,
@@ -339,30 +266,7 @@ function rangedHit(g, shot, weapon, itemId, damage, attackClass = "bullet") {
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, itemId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon, attackClass, impactDirection: { ...shot.direction } });
   }
 }
@@ -383,7 +287,7 @@ function rifleIntent(g, intent, dispatch) {
       g.time >= p.dodgeUntil;
   let state = g.rifle;
   const explicit = validDirection(intent.aim),
-    moving = mag(intent.move ?? { x: 0, z: 0 }) > 0.01,
+    moving = mag(intent.move ?? { x: 0, z: 0 }) > INPUT_DEADZONE,
     reference = g.mobileAiming
       ? { ...p.facing }
       : explicit
@@ -430,7 +334,7 @@ function rifleIntent(g, intent, dispatch) {
       if (result?.ok) {
         shotDirection = shot.direction;
         event(g, "shot", { ...shot, damage: rules.damage, kind: "bullet", weapon: "rifle", actor: p });
-        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, rules.damage);
+        if (shot.targetId != null) rangedHit(g, shot, "rifle", profile.itemId, cursedDamage(g, rules.damage));
       }
     }
   }
@@ -454,7 +358,7 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
     canAct = p.hp > 0 && !g.finished && !intent.dodge && !p.swing && g.time >= p.hurtUntil && g.time >= p.dodgeUntil;
   const firing = wasEquipped && (actions.includes("fire") || intent.held?.includes("fire"));
   const explicit = validDirection(intent.aim);
-  const moving = mag(intent.move ?? { x: 0, z: 0 }) > 0.01;
+  const moving = mag(intent.move ?? { x: 0, z: 0 }) > INPUT_DEADZONE;
   const reference = g.mobileAiming
     ? { ...p.facing }
     : explicit
@@ -520,14 +424,10 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
       shotDirection = e.direction;
     }
     event(g, e.type, { ...e, actor: p });
-    if (e.type === "pickup")
-      notify(
-        g,
-        "PISTOL EQUIPPED · Tap an enemy to select and fire; hold Fire to keep shooting. Mouse aims on desktop.",
-      );
-    if (e.type === "holster") notify(g, "KNIFE EQUIPPED · Equip pistol with the equipment button or G.");
-    if (e.type === "equip") notify(g, "PISTOL EQUIPPED");
-    if (e.type === "dry") notify(g, g.pistol.reserve ? "EMPTY · Reload." : "OUT OF AMMO · Switch to melee.");
+    if (e.type === "pickup") notify(g, HUD_TEXT.pistolEquipped);
+    if (e.type === "holster") notify(g, HUD_TEXT.knifeEquipped);
+    if (e.type === "equip") notify(g, HUD_TEXT.pistolEquipped);
+    if (e.type === "dry") notify(g, g.pistol.reserve ? HUD_TEXT.emptyReload : HUD_TEXT.outOfAmmo);
     if (e.type === "shot" && e.targetId !== null && e.targetId !== undefined) {
       const target = g.enemies.find((t) => t.id === e.targetId && t.hp > 0);
       if (!target) continue;
@@ -570,7 +470,7 @@ function moveBody(g, body, d) {
     const delta = sub(next, other.pos),
       n = mag(delta),
       r = body.radius + other.radius;
-    if (n < r && n > 0.001) {
+    if (n < r && n > NEGLIGIBLE_DISTANCE) {
       next = g.world.move(
         body.pos,
         { x: next.x - body.pos.x + (delta.x / n) * (r - n), z: next.z - body.pos.z + (delta.z / n) * (r - n) },
@@ -578,7 +478,8 @@ function moveBody(g, body, d) {
       );
     }
   }
-  if (body !== g.player && safehouseTouches(g, next, (body.radius ?? 0.4) + 0.03)) next = body.pos;
+  if (body !== g.player && safehouseTouches(g, next, (body.radius ?? RULES.bodyRadius) + RULES.safehouseBodyPadding))
+    next = body.pos;
   body.pos = next;
 }
 export function attack(g, action, direction = g.player.facing, visibleIds) {
@@ -604,11 +505,15 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
     return false;
   }
   if (p.ready > g.time + EPS) {
-    if (p.ready - g.time <= (g.pilot ? R.bufferWindow / 60 : 0.12) + EPS)
-      p.buffer = { action, dir: normal(direction), until: p.ready + (g.pilot ? R.bufferTtl / 60 : 0.12) };
+    if (p.ready - g.time <= (g.pilot ? R.bufferWindow / 60 : LEGACY.player.bufferSeconds) + EPS)
+      p.buffer = {
+        action,
+        dir: normal(direction),
+        until: p.ready + (g.pilot ? R.bufferTtl / 60 : LEGACY.player.bufferSeconds),
+      };
     return false;
   }
-  if (g.pilot && ["slash", "stab", "heavy"].includes(action)) {
+  if (g.pilot && ["slash", "stab", "heavy", "special"].includes(action)) {
     const weaponMove = def,
       ticks = def.windupTicks ?? Math.floor(def.windup * 60),
       normalReach = def.range * p.combatScale + (R.walkSpeed * def.stepIn * Math.max(0, ticks - R.stepInFrom - 1)) / 60,
@@ -618,22 +523,22 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       aim: direction,
       coneDegrees: p.meleeTargeting?.coneDegrees,
       position: p.pos,
-      targets: g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)),
-      lineClear: (a, b) => g.world.lineClear(a, b),
+      targets: meleeCandidates(g, visibleIds),
+      lineClear: chainedSight(g),
       range: normalReach,
       rangeOffset: (target) =>
         p.meleeLowMoves?.[target.rig]
           ? lowReach + (p.meleeLowMoves[target.rig].includeRadius ? target.radius : 0) - normalReach
           : rigCapability(target.rig, "lowStrike")
             ? lowReach +
-              (["giant-salamander", "original-wolf"].includes(target.rig)
+              (rigCapability(target.rig, "nativeSkeleton")
                 ? target.contactGoalReach - g.player.radius
-                : target.contactGoalReach || target.rig === "low-hover-drone"
+                : target.contactGoalReach || rigText(target.rig, "brain") === "drone"
                   ? target.radius
                   : 0) -
               normalReach
             : target.mobSize
-              ? 0.31 * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
+              ? RULES.aim.mobSizeReachFactor * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
               : 0,
       areaId: g.world.areaId,
     });
@@ -642,19 +547,20 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
       def = posedMeleeMove(weaponMove, action, p.meleeLowMoves[rig]);
       lowTargetId = slashTarget.targetId;
     } else if (rigCapability(rig, "lowStrike")) {
-      const low =
-        rig === "low-hover-drone"
+      const drone = rigText(rig, "brain") === "drone",
+        lowSwing = rigText(rig, "lowSwing"),
+        low = drone
           ? droneLow(def)
-          : rig === "original-wolf" || rig === "giant-salamander"
+          : rigCapability(rig, "nativeSkeleton")
             ? DOG_MID
-            : rig === "original-dog"
+            : lowSwing === "dog"
               ? g.enemies.find((e) => e.id === slashTarget.targetId).contactGoalReach
                 ? DOG_MID
                 : DOG_LOW
-              : rig === "original-roach"
+              : lowSwing === "roach"
                 ? ROACH_LOW
                 : RAT_LOW;
-      def = rig === "low-hover-drone" || action === "slash" ? low : ratMeleeDefinition(action, def, low, { rig });
+      def = drone || action === "slash" ? low : ratMeleeDefinition(action, def, low, { rig });
       lowTargetId = slashTarget.targetId;
       if (p.meleeMoves)
         def = {
@@ -669,7 +575,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
   p.buffer = null;
   p.guarding = false;
   p.parryUntil = 0;
-  p.guardRecoverAt = g.time + (g.pilot ? R.regenDelay / 60 : 0.45);
+  p.guardRecoverAt = g.time + (g.pilot ? R.regenDelay / 60 : LEGACY.player.guardRecoverSeconds);
   p.facing = normal(direction, p.facing);
   const windupTicks = def.windupTicks ?? Math.floor(def.windup * 60),
     range =
@@ -685,12 +591,14 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
             nearest,
             position: p.pos,
             aim: p.facing,
-            targets: g.enemies.filter((e) => !visibleIds || visibleIds.includes(e.id)),
-            lineClear: (a, b) => g.world.lineClear(a, b),
+            targets: meleeCandidates(g, visibleIds),
+            lineClear: chainedSight(g),
             range,
             rangeOffset: (target) =>
-              target.mobSize ? 0.31 * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize) : 0,
-            coneDegrees: 45,
+              target.mobSize
+                ? RULES.aim.mobSizeReachFactor * target.combatScale * (target.bodyScale ?? 1) * (1 - 1 / target.mobSize)
+                : 0,
+            coneDegrees: RULES.aim.targetConeDegrees,
             areaId: g.world.areaId,
           });
   if (selected && nearest) p.facing = { ...selected.direction };
@@ -711,7 +619,7 @@ export function attack(g, action, direction = g.player.facing, visibleIds) {
   }
   if (selected && !nearest) {
     p.swing.turnTo = { ...selected.direction };
-    p.swing.assistUntil = g.time + Math.min(def.windup - 1 / 60, 8 / 60);
+    p.swing.assistUntil = g.time + Math.min(def.windup - 1 / 60, RULES.reactions.swingAssistTicks / 60);
   }
   if (action === "heavy") p.heavyReady = g.time + def.cooldown;
   if (action === "special") p.specialReady = g.time + def.cooldown;
@@ -739,9 +647,9 @@ function dodge(g, move, aim) {
   p.velocity = { x: 0, z: 0 };
   p.dodgeDirection = normal(move ?? p.facing, p.facing);
   p.facing = { ...p.dodgeDirection };
-  p.dodgeUntil = g.time + 0.22;
-  p.invulnerableUntil = g.time + 0.25;
-  p.dodgeReady = g.time + 1.05;
+  p.dodgeUntil = g.time + LEGACY.player.dodge.seconds;
+  p.invulnerableUntil = g.time + LEGACY.player.dodge.invulnerableSeconds;
+  p.dodgeReady = g.time + LEGACY.player.dodge.cooldownSeconds;
   g.started = true;
   event(g, "dodge", { actor: p });
 }
@@ -752,35 +660,38 @@ export function receiveHit(g, hit) {
     t = g.time;
   if (g.finished || p.hp <= 0 || t < p.invulnerableUntil) return false;
   let amount = hit.amount;
-  if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), 140)) {
-    p.guardRecoverAt = t + 0.45;
+  if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), LEGACY.player.guard.arc)) {
+    p.guardRecoverAt = t + LEGACY.player.guardRecoverSeconds;
     if (t < p.parryUntil && hit.parry && p.guard >= amount) {
       p.guard -= amount;
       p.parryUntil = 0;
-      if (hit.attacker && hit.attacker.kind !== 3) {
+      if (hit.attacker && hit.attacker.kind !== WARLORD) {
         hit.attacker.swing = null;
-        hit.attacker.ready = hit.attacker.recoverUntil = hit.attacker.staggerUntil = t + 0.9;
+        hit.attacker.ready =
+          hit.attacker.recoverUntil =
+          hit.attacker.staggerUntil =
+            t + LEGACY.player.guard.parryStunSeconds;
       }
-      notify(g, "PARRY · Counter while they recover.");
+      notify(g, HUD_TEXT.parry);
       event(g, "parry", { actor: p });
       return false;
     }
-    const cost = amount * 3;
+    const cost = amount * LEGACY.player.guard.blockCostFactor;
     if (p.guard >= cost) {
       p.guard -= cost;
-      amount *= 0.25;
+      amount *= LEGACY.player.guard.blockedDamageFactor;
       event(g, "block", { actor: p });
     } else {
       p.guard = 0;
       p.guarding = false;
       p.parryUntil = 0;
-      p.guardBrokenUntil = t + 0.9;
-      notify(g, "GUARD BROKEN · Dodge or make space.");
+      p.guardBrokenUntil = t + LEGACY.player.guard.brokenSeconds;
+      notify(g, HUD_TEXT.guardBroken);
       event(g, "guard-break", { actor: p });
     }
   }
   p.hp = Math.max(0, p.hp - amount);
-  p.flashUntil = t + 0.12;
+  p.flashUntil = t + RULES.hitFlashSeconds;
   event(g, "hit", { actor: p, amount });
   if (p.hp <= 0) {
     g.activeGrenades = [];
@@ -792,10 +703,10 @@ export function receiveHit(g, hit) {
 }
 function flameHit(g, target, damage, { source }) {
   if (safehouseWeaponBlocked(g) || safehouseBlocksSegment(g, source.position, target.pos)) return;
-  const amount = Math.min(target.hp, damage);
+  const amount = Math.min(target.hp, cursedDamage(g, damage));
   if (!(amount > 0)) return;
   target.hp = Math.max(0, target.hp - amount);
-  target.flashUntil = g.time + 0.12;
+  target.flashUntil = g.time + RULES.hitFlashSeconds;
   target.flameBurnUntil = g.time + FLAME_VISUAL_DATA.burnSeconds;
   target.flameBurnFrom = { x: source.position.x, z: source.position.z };
   if (target.home) alertResident(g, target);
@@ -813,30 +724,7 @@ function flameHit(g, target, damage, { source }) {
     stopBoneSaw(g, target, "death");
     stageProgressionDeath(g, target, g.world.flameData.pickupId, amount);
     target.swing = null;
-    target.response =
-      target.rig === "original-wolf"
-        ? wolfResponse(target.hp > 0, g.time)
-        : target.rig === "giant-salamander"
-          ? salamanderResponse(target.hp > 0, g.time)
-          : {
-              clip:
-                target.rig === "original-rat"
-                  ? "rat_death"
-                  : target.rig === "original-dog"
-                    ? "dog_death"
-                    : target.rig === "original-roach"
-                      ? "roach_death"
-                      : "Death",
-              start: g.time,
-              ticks:
-                target.rig === "original-rat"
-                  ? 54
-                  : target.rig === "original-dog"
-                    ? 60
-                    : target.rig === "original-roach"
-                      ? 48
-                      : 144,
-            };
+    target.response = rigResponse(target.rig, 0, g.time);
     kill(g, target, { weapon: "flamethrower", attackClass: "fire", impactDirection: direction });
   }
 }
@@ -850,11 +738,11 @@ function kill(g, e, meta = {}) {
     e.completedAttack = null;
     e.wokeAt = null;
   }
-  if (e.rig === "low-hover-drone") {
+  if (rigText(e.rig, "brain") === "drone") {
     const death = recordDroneDeath(g.droneDeaths, { placementKey: e.placementKey, areaId: g.world.areaId, hp: e.hp });
     if (!death.grantKillCredit) return;
     g.droneDeaths = death.keys;
-    e.response = { clip: "drone_death", start: g.time, ticks: 48 };
+    e.response = { clip: RULES.reactions.droneDeath.clip, start: g.time, ticks: RULES.reactions.droneDeath.ticks };
   }
   if (g.finishers && !e.finisher && meta.attackClass !== "saw") {
     const active = (g.corpses ?? []).reduce(
@@ -867,7 +755,10 @@ function kill(g, e, meta = {}) {
         victimKey: e.placementKey ?? e.id,
         areaId: g.world.areaId,
         lethal: e.hp <= 0,
-        nativeDeath: { clip: e.response?.clip ?? "Death", seconds: (e.response?.ticks ?? 144) / 60 },
+        nativeDeath: {
+          clip: e.response?.clip ?? "Death",
+          seconds: (e.response?.ticks ?? GAME_DATA.creatures.defaultResponse.deathTicks) / 60,
+        },
         ...meta,
       },
       {
@@ -895,6 +786,7 @@ function kill(g, e, meta = {}) {
     }).state;
   g.enemies = g.enemies.filter((x) => x !== e);
   g.kills++;
+  recordResidentKill(g, e);
   event(g, "death", { actor: e, ...meta });
   if (g.pilot) {
     g.corpses.push(e);
@@ -906,32 +798,35 @@ function kill(g, e, meta = {}) {
         g.finished = true;
         g.won = g.player.hp > 0;
       }
-      notify(g, g.encounter ? "LONDON · Hollow encounter cleared." : "LONDON · Knife encounter cleared.");
+      notify(g, g.encounter ? HUD_TEXT.hollowCleared : HUD_TEXT.knifeCleared);
     }
     if (e.bossProfile) {
       notify(
         g,
-        e.bossName +
-          " defeated." +
-          (g.supplies?.pending.some((row) => row.placementKey === e.placementKey)
-            ? " Supplies await near the body."
-            : ""),
+        fillText(HUD_TEXT.bossDefeated, { name: e.bossName }) +
+          (g.supplies?.pending.some((row) => row.placementKey === e.placementKey) ? HUD_TEXT.suppliesAwait : ""),
       );
       event(g, "boss-defeated", { actor: e, placementKey: e.placementKey, name: e.bossName });
     }
     return;
   }
-  if (e.kind === 3) {
+  if (e.kind === WARLORD) {
     g.finished = true;
     g.won = true;
     return;
   }
-  if (g.kills % 2 === 0)
-    g.loot.push({ id: ++serial, pos: { ...e.pos }, kind: (g.kills / 2 - 1) % 3, tier: Math.min(2, g.wave - 1) });
+  const drops = LEGACY.loot;
+  if (g.kills % drops.every === 0)
+    g.loot.push({
+      id: nextSerial(),
+      pos: { ...e.pos },
+      kind: (g.kills / drops.every - 1) % drops.kinds,
+      tier: Math.min(drops.maxTier, g.wave - 1),
+    });
   if (!g.enemies.length) {
-    g.player.hp = Math.min(g.player.maxHP, g.player.hp + 25);
-    g.nextWave = g.time + 4;
-    notify(g, "WAVE CLEARED · +25 HP");
+    g.player.hp = Math.min(g.player.maxHP, g.player.hp + LEGACY.waveClearHeal);
+    g.nextWave = g.time + WAVES.clearDelaySeconds;
+    notify(g, fillText(HUD_TEXT.waveCleared, { hp: LEGACY.waveClearHeal }));
   }
 }
 function strike(g, s) {
@@ -950,12 +845,12 @@ function strike(g, s) {
   for (const e of def.single ? candidates.slice(0, 1) : candidates) {
     const delta = normal(sub(e.pos, p.pos));
     e.hp = Math.max(0, e.hp - p.damage * def.multiplier);
-    e.flashUntil = g.time + 0.12;
+    e.flashUntil = g.time + RULES.hitFlashSeconds;
     event(g, "hit", { actor: e, amount: p.damage * def.multiplier });
     if (e.hp <= 0) kill(g, e);
-    else if (e.kind !== 3) {
+    else if (e.kind !== WARLORD) {
       e.staggerUntil = g.time + def.stagger;
-      moveBody(g, e, { x: delta.x * 0.18, z: delta.z * 0.18 });
+      moveBody(g, e, { x: delta.x * LEGACY.hitKnockback, z: delta.z * LEGACY.hitKnockback });
     }
   }
 }
@@ -979,22 +874,27 @@ export function spawnWave(g) {
         R.goblinRegen,
       ),
     ];
-    notify(g, "LONDON · Goblin knife encounter");
+    notify(g, HUD_TEXT.goblinEncounter);
     event(g, "wave");
     return;
   }
   g.wave++;
-  const count = g.wave === 3 ? 1 : 4 + g.wave;
+  const finalWave = g.wave === WAVES.finalWave,
+    count = finalWave ? 1 : WAVES.baseCount + g.wave;
   g.enemies = Array.from({ length: count }, (_, i) =>
-    enemy(g.wave === 3 ? 3 : i % 3, { x: count === 1 ? 0 : ((i % 5) - 2) * 1.7, z: -1 + Math.floor(i / 5) * 2.4 }),
+    enemy(finalWave ? WARLORD : i % WAVES.kindCycle, {
+      x: count === 1 ? 0 : ((i % LEGACY.formation.columns) - LEGACY.formation.centerColumn) * LEGACY.formation.xSpacing,
+      z: -1 + Math.floor(i / LEGACY.formation.columns) * LEGACY.formation.zSpacing,
+    }),
   );
-  notify(g, g.wave === 3 ? "ORC WARLORD · Dodge, then strike." : `WESTMINSTER · Wave ${g.wave}/3`);
+  notify(g, finalWave ? HUD_TEXT.warlord : fillText(HUD_TEXT.wave, { wave: g.wave, final: WAVES.finalWave }));
   event(g, "wave");
 }
-const radius = (e) => (e.kind === 3 ? (e.pattern === 1 ? 4 : 3.5) : e.kind === 1 ? 2.8 : 1.8);
-const arc = (e) => (e.kind === 3 && e.pattern === 1 ? 360 : e.kind === 1 ? 110 : 90);
+const wideSwing = (e) => e.kind === WARLORD && e.pattern === WAVES.widePattern;
+const radius = (e) => (wideSwing(e) ? LEGACY.wideSwing.radius : legacyKind(e.kind).swingRadius);
+const arc = (e) => (wideSwing(e) ? LEGACY.wideSwing.arc : legacyKind(e.kind).swingArc);
 function bolt(g, pos, dir, amount) {
-  g.bolts.push({ id: ++serial, pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + 4 });
+  g.bolts.push({ id: nextSerial(), pos: { ...pos }, dir: { ...dir }, amount, expires: g.time + WAVES.boltLifeSeconds });
 }
 function enemyTick(g, e, dt, services = {}) {
   if (e.hp > 0 && safehouseProtected(g)) {
@@ -1027,43 +927,49 @@ function enemyTick(g, e, dt, services = {}) {
     offset = sub(g.player.pos, e.pos),
     distance = mag(offset),
     dir = normal(offset, e.facing);
-  if (!e.alerted && distance > 12) return;
+  const row = legacyKind(e.kind);
+  if (!e.alerted && distance > LEGACY.alertDistance) return;
   e.alerted = true;
   if (e.swing) {
     if (t + EPS >= e.swing.hitAt) {
       const s = e.swing;
       e.swing = null;
-      const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
-        amount = e.kind === 3 ? 25 : e.kind === 1 ? 23 : e.kind === 2 ? 12 : 9;
+      const ranged = e.kind === RANGED || (e.kind === WARLORD && e.pattern === WAVES.rangedPattern),
+        amount = row.damage;
       if (ranged) {
         bolt(g, s.pos, s.dir, amount);
-        if (e.kind === 3) {
-          bolt(g, s.pos, rotate(s.dir, Math.PI / 10), amount);
-          bolt(g, s.pos, rotate(s.dir, -Math.PI / 10), amount);
+        if (e.kind === WARLORD) {
+          bolt(g, s.pos, rotate(s.dir, Math.PI / WAVES.boltSpreadPiDivisor), amount);
+          bolt(g, s.pos, rotate(s.dir, -Math.PI / WAVES.boltSpreadPiDivisor), amount);
         }
       } else {
         const delta = sub(g.player.pos, s.pos);
-        if (mag(delta) < radius(e) + 0.25 && inside(s.dir, delta, arc(e)) && g.world.lineClear(s.pos, g.player.pos))
-          receiveHit(g, { amount, origin: s.pos, attacker: e, block: e.kind !== 3, parry: e.kind === 0 });
+        if (
+          mag(delta) < radius(e) + LEGACY.reachSlack &&
+          inside(s.dir, delta, arc(e)) &&
+          g.world.lineClear(s.pos, g.player.pos)
+        )
+          receiveHit(g, { amount, origin: s.pos, attacker: e, block: e.kind !== WARLORD, parry: e.kind === 0 });
       }
-      e.recoverUntil = Math.max(e.recoverUntil, t + (e.kind === 1 || e.kind === 3 ? 0.95 : 0.45));
-      e.ready = Math.max(e.ready, t + (e.kind === 0 ? 1.2 : 1.9));
-      if (e.kind === 3) e.pattern = (e.pattern + 1) % 3;
+      e.recoverUntil = Math.max(e.recoverUntil, t + row.recoverSeconds);
+      e.ready = Math.max(e.ready, t + row.readySeconds);
+      if (e.kind === WARLORD) e.pattern = (e.pattern + 1) % WAVES.patternCount;
     }
     return;
   }
   if (t < e.recoverUntil || t < e.staggerUntil) return;
-  const ranged = e.kind === 2 || (e.kind === 3 && e.pattern === 2),
-    reach = ranged ? 8 : radius(e) - 0.25;
+  const ranged = e.kind === RANGED || (e.kind === WARLORD && e.pattern === WAVES.rangedPattern),
+    reach = ranged ? LEGACY.rangedReach : radius(e) - LEGACY.reachSlack;
   if (distance > reach || !g.world.lineClear(e.pos, g.player.pos)) {
-    enemyMove(g, e, dir, e.kind === 1 ? 1.65 : e.kind === 3 ? 2.1 : 2.8, dt);
+    enemyMove(g, e, dir, row.moveSpeed, dt);
     return;
   }
-  if (e.kind === 2 && distance < 4 && t < e.ready) enemyMove(g, e, { x: -dir.x, z: -dir.z }, 2, dt, true);
+  if (e.kind === RANGED && distance < WAVES.retreatDistance && t < e.ready)
+    enemyMove(g, e, { x: -dir.x, z: -dir.z }, WAVES.retreatSpeed, dt, true);
   else e.facing = turn(e.facing, dir, 360 * dt);
-  if (t + EPS >= e.ready && dot(e.facing, dir) > 0.96) {
-    const delay = e.kind === 0 ? 0.4 : e.kind === 2 ? 0.65 : 1.05;
-    e.swing = { dir, pos: { ...e.pos }, start: t, hitAt: t + delay, end: t + delay + 0.28 };
+  if (t + EPS >= e.ready && dot(e.facing, dir) > LEGACY.aimDot) {
+    const delay = row.windupSeconds;
+    e.swing = { dir, pos: { ...e.pos }, start: t, hitAt: t + delay, end: t + delay + LEGACY.swingSeconds };
     event(g, "enemy-attack", { actor: e, dir, range: radius(e), arc: arc(e) });
   }
 }
@@ -1083,7 +989,7 @@ function enemyMove(g, e, dir, speed, dt, backward = false) {
         actor: e,
         goal,
         time: g.time,
-        ...(e.markedHunter || (e.rig === "giant-salamander" && e.residentIntent?.pursuitScope === "area")
+        ...(e.markedHunter || (rigCapability(e.rig, "areaPursuit") && e.residentIntent?.pursuitScope === "area")
           ? { leash: Infinity }
           : {}),
       });
@@ -1091,11 +997,11 @@ function enemyMove(g, e, dir, speed, dt, backward = false) {
   } else g.bridgeSteering?.reset(e);
   let delta = { x: dir.x * speed * dt, z: dir.z * speed * dt },
     next = g.world.move(e.pos, delta, e.radius);
-  if (mag(sub(next, e.pos)) < speed * dt * 0.25) {
+  if (mag(sub(next, e.pos)) < speed * dt * RULES.movement.sidestepFraction) {
     const side = { x: -dir.z, z: dir.x };
     delta = { x: side.x * speed * dt, z: side.z * speed * dt };
     next = g.world.move(e.pos, delta, e.radius);
-    if (mag(sub(next, e.pos)) < speed * dt * 0.25) delta = { x: -delta.x, z: -delta.z };
+    if (mag(sub(next, e.pos)) < speed * dt * RULES.movement.sidestepFraction) delta = { x: -delta.x, z: -delta.z };
     dir = normal(delta);
   }
   e.facing = turn(e.facing, backward ? { x: -dir.x, z: -dir.z } : dir, 360 * dt);
@@ -1109,7 +1015,7 @@ function projectiles(g, dt) {
       b.dead = true;
       continue;
     }
-    const next = { x: b.pos.x + b.dir.x * 8 * dt, z: b.pos.z + b.dir.z * 8 * dt };
+    const next = { x: b.pos.x + b.dir.x * LEGACY.boltSpeed * dt, z: b.pos.z + b.dir.z * LEGACY.boltSpeed * dt };
     if (!g.world.lineClear(b.pos, next)) {
       b.dead = true;
       continue;
@@ -1117,8 +1023,8 @@ function projectiles(g, dt) {
     const seg = sub(next, b.pos),
       delta = sub(g.player.pos, b.pos),
       length = dot(seg, seg),
-      t = Math.max(0, Math.min(1, dot(delta, seg) / Math.max(0.0001, length)));
-    if (mag(sub(g.player.pos, { x: b.pos.x + seg.x * t, z: b.pos.z + seg.z * t })) < 0.6) {
+      t = Math.max(0, Math.min(1, dot(delta, seg) / Math.max(MIN_SEGMENT, length)));
+    if (mag(sub(g.player.pos, { x: b.pos.x + seg.x * t, z: b.pos.z + seg.z * t })) < LEGACY.boltHitRadius) {
       receiveHit(g, { amount: b.amount, origin: b.pos });
       b.dead = true;
     } else b.pos = next;
@@ -1128,97 +1034,27 @@ function projectiles(g, dt) {
 function collect(g) {
   const p = g.player;
   for (const l of g.loot) {
-    if (mag(sub(l.pos, p.pos)) >= 1.3) continue;
+    if (mag(sub(l.pos, p.pos)) >= LEGACY.loot.pickupRadius) continue;
     l.collected = true;
     if (l.kind === 0) {
-      const pct = 0.1 + l.tier * 0.025;
+      const pct = LEGACY.loot.blade.base + l.tier * LEGACY.loot.blade.step;
       p.damage *= 1 + pct;
       p.weaponLevel++;
-      notify(g, `BLADE +${Math.round(pct * 100)}% damage`);
+      notify(g, fillText(HUD_TEXT.blade, { pct: Math.round(pct * 100) }));
     } else if (l.kind === 1) {
-      const hp = 15 + l.tier * 5;
+      const hp = LEGACY.loot.armour.base + l.tier * LEGACY.loot.armour.step;
       p.maxHP += hp;
       p.hp = Math.min(p.maxHP, p.hp + hp);
       p.armourLevel++;
-      notify(g, `ARMOUR +${hp} max HP`);
+      notify(g, fillText(HUD_TEXT.armour, { hp }));
     } else {
-      const hp = 30 + l.tier * 10;
+      const hp = LEGACY.loot.tonic.base + l.tier * LEGACY.loot.tonic.step;
       p.hp = Math.min(p.maxHP, p.hp + hp);
-      notify(g, `TONIC +${hp} HP`);
+      notify(g, fillText(HUD_TEXT.tonic, { hp }));
     }
     event(g, "loot", { actor: p });
   }
   g.loot = g.loot.filter((l) => !l.collected);
-}
-export function resetMobileControls(g) {
-  if (g) {
-    stopBoneSaw(g, g.player, "input-clear");
-    g.touchTarget = null;
-    g.touchTargetReady = false;
-  }
-  if (!g?.mobileAim) return;
-  g.mobileAim = createMobileAimState(Math.atan2(g.player.facing.x, g.player.facing.z));
-  g.mobileAiming = false;
-  g.player.velocity = { x: 0, z: 0 };
-}
-function mobileControl(g, intent, dt, services) {
-  if (!g.mobileAim) return intent;
-  const p = g.player,
-    heading = Math.atan2(p.facing.x, p.facing.z);
-  if (intent.mobile && !intent.moveHeld) p.velocity = { x: 0, z: 0 };
-  const flame = !!g.flame?.equipped,
-    manualFlame = flame && intent.manualFlameAim && validDirection(intent.aim);
-  if ((!intent.mobile && !flame) || intent.cancel || (validDirection(intent.aim) && !manualFlame)) {
-    g.mobileAim = createMobileAimState(heading);
-    g.mobileAiming = false;
-    if (intent.cancel) p.velocity = { x: 0, z: 0 };
-    return intent;
-  }
-  const areaId = g.world.areaId,
-    visible = intent.combatVisibleIds ?? intent.pistolVisibleIds;
-  const ranged = !!selectedBossRanged(g) || !!g.pistol?.equipped || !!g.rifle?.selected || !!g.flame?.equipped,
-    busy = !!p.swing || g.time < p.dodgeUntil || g.time < p.hurtUntil || (!!intent.guard && !ranged);
-  if (busy) g.mobileAim = { ...g.mobileAim, heading };
-  const result = stepMobileAim(g.mobileAim, {
-    dt,
-    move: intent.move ?? { x: 0, z: 0 },
-    position: p.pos,
-    targets: g.enemies.map((e) => ({
-      id: e.placementKey,
-      pos: e.pos,
-      hp: e.hp,
-      hostile: e.hostile !== false,
-      visible: e.visible !== false && (!visible || visible.includes(e.id)),
-      areaId: e.areaId ?? areaId,
-      radius: e.radius,
-    })),
-    areaId,
-    lineClear: (a, b) => g.world.lineClear(a, b),
-    mobile: !!intent.mobile,
-    moveHeld: !!intent.moveHeld,
-    alive: p.hp > 0,
-    assistEnabled: g.mobileAssistEnabled,
-    pistolEquipped: ranged,
-    rangedRange: !flame ? selectedRangedProfile(g)?.rules.range : null,
-    flameRange: flame ? g.world.flameData?.contact.range : null,
-    fireHeld:
-      ranged &&
-      selectedBossRanged(g) !== "grenade" &&
-      ((intent.held ?? []).includes("fire") || (intent.actions ?? []).includes("fire")),
-    manualHeading: manualFlame ? Math.atan2(intent.aim.x, intent.aim.z) : null,
-    flameEligible: services.flameAimEligible
-      ? (key) =>
-          services.flameAimEligible(
-            g,
-            g.enemies.find((e) => e.placementKey === key),
-          )
-      : undefined,
-  });
-  g.mobileAim = result.state;
-  g.mobileAiming = !!intent.mobile;
-  if (intent.mobile && !intent.moveHeld) p.velocity = { x: 0, z: 0 };
-  if (!busy) p.facing = { ...result.direction };
-  return { ...intent, move: result.move, aim: busy ? null : { ...p.facing } };
 }
 function resetDeadPlayerBossPursuit(g) {
   if (g.player.hp > 0) return;
@@ -1226,6 +1062,19 @@ function resetDeadPlayerBossPursuit(g) {
     stopBossFlame(g, e, "player-death");
     resetBossPursuit(e);
   }
+}
+// Creature half of a step, shared with engine/creature-sim.js; `only` limits it to some creatures.
+export function stepCreatureAI(g, dt, services = {}, only = null) {
+  stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
+  if (!g.finished)
+    for (const e of [...(only ?? g.enemies)]) {
+      enemyTick(g, e, dt, services);
+      if (g.finished) break;
+    }
+}
+export function resolveCreatureContacts(g, before, ratBefore) {
+  if (g.pilot) knifeContacts(g, before, ratBefore);
+  if (g.areaHazards) applyAreaHazards(g, knifeReceive);
 }
 export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   intent = prepareSafehouseStep(g, intent);
@@ -1236,7 +1085,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (intent.cancel || intent.paused || g.finished) clearBossRanged(g);
   if (g.pilot) g.player.running = false;
   if (intent.paused || g.finished) stopReaper(g, "pause");
-  if (intent.cancel || intent.paused || g.finished || g.weaponsLowered) stopRailgun(g, "interrupted");
   if (intent.cancel || intent.paused || g.finished) {
     stopBoneSaw(g, g.player, "cancel");
     for (const e of g.enemies)
@@ -1254,8 +1102,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   }
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
-    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
-    stopRailgun(g, "terminal");
+    if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
     resetDeadPlayerBossPursuit(g);
@@ -1272,15 +1119,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     g.ratContact &&
     g.enemies.some(
       (e) =>
-        [
-          "original-rat",
-          "original-dog",
-          "original-roach",
-          "giant-salamander",
-          "original-wolf",
-          "low-hover-drone",
-        ].includes(e.rig) &&
-        (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= 6),
+        rigCapability(e.rig, "lowStrike") &&
+        (e.alerted || e.swing || mag(sub(e.pos, g.player.pos)) <= RULES.awareness.ratContactDistance),
     )
       ? g.ratContact.capture(g)
       : null;
@@ -1289,8 +1129,10 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.pilot) g.tick++;
   const p = g.player,
     t = g.time;
-  stepBossGrenades(g, (...args) => rangedHit(g, ...args), services);
-  stepRockets(g, (...args) => rangedHit(g, ...args), services);
+  stepAirdrop(g, dt);
+  stepBossGrenades(g, (...args) => cursedHit(g, ...args), services);
+  stepRockets(g, (...args) => cursedHit(g, ...args), services);
+  stepTrapCrates(g, receiveHit, services);
   intent = mobileControl(g, intent, dt, services);
   intent = applyTouchTarget(g, intent, services);
   if (g.rifleAction && (intent.cancel || g.flame?.equipped)) g.rifleAction.reloadingUntil = 0;
@@ -1299,7 +1141,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     : g.flame?.equipped
       ? flameIntent(g, intent)
       : selectedBossRanged(g)
-        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => rangedHit(g, ...args), services)
+        ? bossEquipmentIntent(g, intent, services.dispatchBossEquipment, (...args) => cursedHit(g, ...args), services)
         : g.rifle?.selected
           ? rifleIntent(g, intent, services.dispatchRifle)
           : pistolIntent(g, intent, services.dispatchPistol, services.dispatchMarshalPistol);
@@ -1315,7 +1157,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     dodging = t < p.dodgeUntil - EPS;
   p.guarding = !!intent.guard && !dodging && !swinging && t >= p.guardBrokenUntil && p.guard > 0;
   if (g.pilot) knifeGuard(g, intent, swinging, dodging);
-  else if (p.guarding && intent.guardPressed) p.parryUntil = t + 0.16;
+  else if (p.guarding && intent.guardPressed) p.parryUntil = t + LEGACY.player.guard.parryWindowSeconds;
   if (!g.pilot && !p.guarding) p.parryUntil = 0;
   const sprintCandidate = !!(
     g.pilot &&
@@ -1326,15 +1168,19 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     !swinging &&
     !dodging &&
     t >= p.hurtUntil &&
-    mag(move) > 0.01
+    mag(move) > INPUT_DEADZONE
   );
   if (g.pilot) {
     if (!sprintCandidate) knifeRegen(g, p, dt, swinging || dodging || t < p.hurtUntil || p.saw?.active);
   } else if (!intent.guard && t >= p.guardRecoverAt && t >= p.guardBrokenUntil)
-    p.guard = Math.min(100, p.guard + 35 * dt);
-  if (intent.aim && mag(intent.aim) > 0.001 && !swinging && !dodging) p.facing = normal(intent.aim);
+    p.guard = Math.min(100, p.guard + LEGACY.player.guard.regenPerSecond * dt);
+  if (intent.aim && mag(intent.aim) > NEGLIGIBLE_DISTANCE && !swinging && !dodging) p.facing = normal(intent.aim);
   if (p.buffer && t > p.buffer.until) p.buffer = null;
-  const attackDirection = validDirection(intent.aim) ? normal(intent.aim) : mag(move) > 0.01 ? normal(move) : p.facing;
+  const attackDirection = validDirection(intent.aim)
+    ? normal(intent.aim)
+    : mag(move) > INPUT_DEADZONE
+      ? normal(move)
+      : p.facing;
   const visibleIds = intent.combatVisibleIds ?? intent.pistolVisibleIds;
   const priority = ["special", "heavy", "stab", "slash"],
     fresh = [...(intent.cancel ? [] : (intent.actions ?? []))].sort(
@@ -1364,17 +1210,23 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (!g.finished) {
     if (dodging)
       moveBody(g, p, {
-        x: p.dodgeDirection.x * (g.pilot ? R.rollSpeed : 16) * dt,
-        z: p.dodgeDirection.z * (g.pilot ? R.rollSpeed : 16) * dt,
+        x: p.dodgeDirection.x * (g.pilot ? R.rollSpeed : LEGACY.player.dodge.speed) * dt,
+        z: p.dodgeDirection.z * (g.pilot ? R.rollSpeed : LEGACY.player.dodge.speed) * dt,
       });
     else if (!p.swing && (!g.pilot || t >= p.hurtUntil)) {
       const m = mag(move) > 1 ? normal(move) : move;
-      const speed = g.pilot ? (sprintCandidate ? R.runSpeed : R.walkSpeed * (p.exhausted ? R.exhaustWalk : 1)) : 4.2;
-      const scale = (p.guarding ? (g.pilot ? R.guardSpeed : 0.4) : 1) * (p.saw?.active ? BONE_SAW_RULES.moveScale : 1);
+      const speed = g.pilot
+        ? sprintCandidate
+          ? R.runSpeed
+          : R.walkSpeed * (p.exhausted ? R.exhaustWalk : 1)
+        : LEGACY.player.walkSpeed;
+      const scale =
+        (p.guarding ? (g.pilot ? R.guardSpeed : LEGACY.player.guardMoveScale) : 1) *
+        (p.saw?.active ? BONE_SAW_RULES.moveScale : 1);
       const vel = { x: m.x * speed * scale, z: m.z * speed * scale },
         difference = sub(vel, p.velocity),
         n = mag(difference),
-        step = (mag(m) > 0.01 ? 48 : 34) * dt;
+        step = (mag(m) > INPUT_DEADZONE ? LEGACY.player.accelerate : LEGACY.player.decelerate) * dt;
       p.velocity =
         n <= step ? vel : { x: p.velocity.x + (difference.x / n) * step, z: p.velocity.z + (difference.z / n) * step };
       const start = { ...p.pos };
@@ -1383,7 +1235,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         p.running = true;
         p.guard = p.stamina - R.runDrain * dt; // No action recovery delay.
       }
-      if (!intent.aim && mag(m) > 0.01 && !p.guarding) p.facing = turn(p.facing, m, 720 * dt);
+      if (!intent.aim && mag(m) > INPUT_DEADZONE && !p.guarding)
+        p.facing = turn(p.facing, m, LEGACY.player.turnRate * dt);
     } else {
       p.velocity = { x: 0, z: 0 };
       if (g.pilot) knifeStepIn(g, p, dt);
@@ -1405,56 +1258,26 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       }
     }
     stepFlame(g, dt, services, (target, amount, hit) => flameHit(g, target, amount, hit));
-    if (mag(sub(p.pos, g.world.spawn ?? { x: 0, z: -6 })) >= 1) g.started = true;
+    if (mag(sub(p.pos, g.world.spawn ?? RULES.player.spawn)) >= 1) g.started = true;
     if (g.encounterActive !== false && g.started && !g.enemies.length && t + EPS >= g.nextWave) {
-      if (g.wave >= 3) {
+      if (g.wave >= WAVES.finalWave) {
         g.finished = true;
         g.won = true;
       } else spawnWave(g);
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
-    stepBossRockets(g, { trace: services.bossRangedTrace, receive: knifeReceive });
-    if (!g.finished)
-      for (const e of [...g.enemies]) {
-        enemyTick(g, e, dt, services);
-        if (g.finished) break;
-      }
-    if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopRailgun(g, "interrupted");
+    stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
+    if (g.respawn) reviveAreaResidents(g);
+    stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");
-    if (g.pilot) knifeContacts(g, before, ratBefore);
-    if (g.areaHazards) {
-      const next = stepAreaHazards(g.areaHazards, {
-        time: g.time,
-        areaId: g.world.areaId,
-        owners: g.enemies,
-        player: g.player,
-        lineClear: (a, b) => g.world.lineClear(a, b),
-      });
-      g.areaHazards = next.hazards;
-      for (const hit of next.hits) {
-        const attacker = g.enemies.find((e) => e.id === hit.ownerId);
-        knifeReceive(g, {
-          amount: hit.damage,
-          origin: hit.position,
-          attacker,
-          block: false,
-          parry: false,
-          moveId: "area-poison",
-          def: { stagger: 0, chip: 0 },
-        });
-        if (g.finished) {
-          g.areaHazards = [];
-          break;
-        }
-      }
-    }
+    resolveCreatureContacts(g, before, ratBefore);
     if (!g.finished) {
       stepReaper(g, dt, {
         source: services.reaperSource,
         trace: services.grenadeTrace,
         aimHeight: services.rocketAimHeight,
-        emitBolt: (b) => g.bolts.push({ id: ++serial, ...b }),
-        hit: (shot, amount) => rangedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
+        emitBolt: (b) => g.bolts.push({ id: nextSerial(), ...b }),
+        hit: (shot, amount) => cursedHit(g, shot, "reaper", REAPER_ITEM_ID, amount, "bullet"),
       });
       projectiles(g, dt);
       collect(g);
@@ -1463,7 +1286,6 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.finished) {
     clearBossRanged(g);
     if (g.player.hp <= 0) clearMarkedHunters(g, { death: true });
-    stopRailgun(g, "terminal");
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
     resetDeadPlayerBossPursuit(g);
@@ -1475,56 +1297,18 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.healthRegen && !g.finished) stepPlayerHealth(g.player, dt);
   if (g.mobileAim) {
     if (g.finished) resetMobileControls(g);
-    else if (!g.enemies.some((e) => e.placementKey === g.mobileAim.targetId && e.hp > 0))
+    else if (!bodies(g).some((e) => e.placementKey === g.mobileAim.targetId && e.hp > 0))
       g.mobileAim = { ...g.mobileAim, targetId: null, bearing: null };
   }
 }
 
 // One pool for action costs and defence. The legacy guard field is an alias,
 // so existing HUD/hit callers cannot create a second independent resource.
-function knifeEnergy(entity, regen = 1) {
-  if (entity.maxStamina !== undefined) return entity;
-  entity.stamina = R.maxStamina;
-  entity.maxStamina = R.maxStamina;
-  entity.exhausted = false;
-  entity.staminaRegen = regen;
-  entity.guardRecoverAt = 0;
-  Object.defineProperty(entity, "guard", {
-    enumerable: true,
-    configurable: true,
-    get() {
-      return this.stamina;
-    },
-    set(value) {
-      this.stamina = Math.max(0, Math.min(this.maxStamina, value));
-      if (this.stamina <= EPS) this.exhausted = true;
-    },
-  });
-  return entity;
-}
-function knifeAffordable(entity, cost) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  return !entity.exhausted && entity.stamina + EPS >= cost;
-}
-function knifeSpend(g, entity, cost) {
-  entity.guard = Math.max(0, entity.stamina - cost);
-  entity.guardRecoverAt = g.time + R.regenDelay / 60;
-  if (entity.exhausted) {
-    entity.guarding = false;
-    entity.parryUntil = 0;
-  }
-}
-function knifeRegen(g, entity, dt, committed) {
-  if (entity.stamina <= EPS) entity.exhausted = true;
-  if (!committed && g.time + EPS >= entity.guardRecoverAt && g.time + EPS >= (entity.guardBrokenUntil ?? 0))
-    entity.guard = entity.stamina + R.regen * (entity.staminaRegen ?? 1) * (entity.guarding ? R.guardRegen : 1) * dt;
-  if (entity.exhausted && entity.stamina + EPS >= R.exhaustRecover) entity.exhausted = false;
-}
 function hollowSpawn(g) {
   if (g.enemies.length || g.finished || g.wave) return false;
   const profile = g.encounter,
     c = profile.character,
-    radius = 0.4 * c.bodyScale,
+    radius = RULES.bodyRadius * c.bodyScale,
     p = g.player,
     forward = normal(p.facing);
   const sectors = [
@@ -1537,8 +1321,8 @@ function hollowSpawn(g) {
   // before changing the wave or allocating IDs; a tight road retries atomically.
   for (const direction of sectors) {
     const positions = [];
-    for (const distance of [4, 6, 8])
-      for (const lateral of [0, 1.4, -1.4, 2.8, -2.8]) {
+    for (const distance of RULES.spawning.distances)
+      for (const lateral of RULES.spawning.laterals) {
         if (positions.length === profile.count) continue;
         const position = g.world.move(
           p.pos,
@@ -1553,11 +1337,11 @@ function hollowSpawn(g) {
         if (
           !circleClear ||
           !g.world.lineClear(p.pos, position) ||
-          dot(delta, direction) < 2 ||
-          mag(delta) < Math.max(2, p.radius + radius + 0.35)
+          dot(delta, direction) < RULES.spawning.minForward ||
+          mag(delta) < Math.max(RULES.spawning.minDistance, p.radius + radius + RULES.spawning.clearance)
         )
           continue;
-        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + 0.35)) continue;
+        if (positions.some((other) => mag(sub(position, other)) < radius * 2 + RULES.spawning.clearance)) continue; // tuning-ok: radius to diameter
         positions.push(position);
         if (positions.length === profile.count) break;
       }
@@ -1565,218 +1349,11 @@ function hollowSpawn(g) {
     g.wave = 1;
     g.enemies = positions.map((position, index) => hollowActor(g, position, index));
     if (g.areaResidents) initializeAreaResidents(g);
-    notify(g, "LONDON · Hollow scavengers");
+    notify(g, HUD_TEXT.hollowEncounter);
     event(g, "wave", { count: profile.count, encounter: profile.id });
     return true;
   }
   return false;
-}
-// The opening group and placed residents share the same Hollow factory/rules.
-function hollowActor(g, position, index = 0, mobSize = 1) {
-  const profile = g.encounter,
-    c = profile.character,
-    foundation = creatureCatalogue.get("hollow-scavenger");
-  return knifeEnergy(
-    Object.assign(enemy(0, position), {
-      rig: foundation.runtimeIdentity,
-      contactRig: c.contactRig,
-      weapon: c.weapon,
-      ...mobSizeProfile(
-        { bodyScale: c.bodyScale, combatScale: g.player.combatScale, radius: 0.4 * c.bodyScale },
-        mobSize,
-      ),
-      mobSize,
-      hp: profile.health,
-      maxHP: profile.health,
-      lastMove: null,
-      moveSpeed: profile.moveSpeed,
-      recoveryDelay: profile.recovery,
-      ready: g.time + index * profile.aggression,
-    }),
-    profile.regen,
-  );
-}
-function droneResident(g, placement) {
-  const foundation = creatureCatalogue.get("low-hover-drone");
-  return Object.assign(enemy(0, placement.pos), {
-    rig: foundation.runtimeIdentity,
-    areaId: g.world.areaId,
-    weapon: foundation.stats.weapon,
-    radius: foundation.stats.radius,
-    hp: foundation.stats.health,
-    maxHP: foundation.stats.health,
-    moveSpeed: foundation.stats.moveSpeed,
-    combatScale: g.player.combatScale,
-    droneState: createDroneState(),
-  });
-}
-function markedHunter(g, position, config) {
-  const e = hollowActor(g, position);
-  return Object.assign(e, {
-    markedHunter: true,
-    placementKey: "marked-hunter-" + e.id,
-    areaId: g.world.areaId,
-    hp: config.hunterHealth,
-    maxHP: config.hunterHealth,
-    moveSpeed: config.hunterSpeed,
-    home: { ...position },
-    patrol: [{ ...position }, { ...position }],
-    patrolIndex: 0,
-    alerted: true,
-    returning: false,
-    residentIntent: Object.freeze({
-      pursuitScope: "area",
-      wakeDistance: 1000,
-      homeLeash: 1000,
-      holdUntilWake: false,
-      retreatSeconds: 0,
-      companionDistance: 0,
-      isolationDistance: 0,
-      burstSeconds: 0,
-      pauseSeconds: 0,
-    }),
-  });
-}
-function declaredResident(g, placement, mobSize) {
-  const foundation = placement.foundationRef ? creatureCatalogue.get(placement.foundationRef) : null;
-  if (foundation?.runtimeIdentity === "low-hover-drone") {
-    if (DRONE_KEYS[placement.key] !== g.world.areaId) throw Error("Unsupported declared drone death placement");
-    return droneResident(g, placement);
-  }
-  const actor = hollowActor(g, placement.pos, 0, foundation ? 1 : mobSize);
-  if (foundation && foundation.runtimeIdentity !== "hollow-scavenger")
-    Object.assign(actor, animalFoundationParameters(foundation.runtimeIdentity, g.player.combatScale), {
-      animalRecipe: placement.recipeRef,
-    });
-  else if (placement.recipeRef === "human-gaunt-skulker") actor.humanBodyRecipe = placement.recipeRef;
-  if (placement.appearanceRef !== undefined) actor.appearanceRef = placement.appearanceRef;
-  const health = residentEncounterHealth(placement, actor.maxHP);
-  actor.hp = actor.maxHP = health;
-  return applyBossProfile(actor, placement, g.world.bossData);
-}
-export function initializeAreaResidents(g) {
-  if (!g.areaResidents || g.areaInitialized) return;
-  const area = g.world.areaId ?? "westminster";
-  // Legacy opening groups remain atomic; resident-only starts initialize directly.
-  if (area === "westminster" && !g.wave && g.openingGroup !== false) return;
-  const dead = new Set(g.progressionModel?.deadPlacements(g.progression, area) ?? []);
-  const policy = g.world.populationData,
-    canonical = g.residentPlacements?.[area] ?? AREA_MOB_SPAWNS[area] ?? [];
-  const placements = populationPlacements(policy, area, g.animalCycle, canonical),
-    sizes = allocateMobSizes(
-      area,
-      canonical.map((placement) => placement.key),
-    );
-  const residents = placements
-    .filter(
-      (p) =>
-        !dead.has(p.key) &&
-        (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) ||
-          !g.supplies?.issued.includes(p.key)) &&
-        (p.foundationRef !== "low-hover-drone" || !(g.droneDeaths ?? []).includes(p.key)),
-    )
-    .map((placement) =>
-      Object.assign(declaredResident(g, placement, sizes.get(placement.key)), {
-        placementKey: placement.key,
-        home: { ...placement.pos },
-        patrol: placement.patrol,
-        patrolIndex: 1,
-        returning: false,
-      }),
-    );
-  if (!policy?.areas[area] && g.rat) {
-    const rat = residents.find((e) =>
-      ["westminster-roamer-4", "east-roamer-7", "south-roamer-3"].includes(e.placementKey),
-    );
-    if (rat) Object.assign(rat, animalFoundationParameters("original-rat", g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.roach) {
-    const roach = residents.find((e) => e.placementKey === "westminster-roamer-2");
-    if (roach) Object.assign(roach, animalFoundationParameters("original-roach", g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.dog) {
-    const dog = residents.find((e) =>
-      ["westminster-roamer-6", "east-roamer-4", "south-roamer-8"].includes(e.placementKey),
-    );
-    if (dog) Object.assign(dog, animalFoundationParameters("original-dog", g.player.combatScale));
-  }
-  if (!policy?.areas[area] && g.animalVariants)
-    for (const e of residents) {
-      const assignment = animalPlacement(g.animalCycle, e.placementKey);
-      if (!assignment) continue;
-      const { recipe, rig, offset } = assignment;
-      Object.assign(e, { animalRecipe: recipe, ...animalFoundationParameters(rig, g.player.combatScale) });
-      if (
-        g.animalCycle === "A" &&
-        area === "east" &&
-        e.placementKey === "east-roamer-4" &&
-        recipe === "dog-pack-chaser" &&
-        rig === "original-dog"
-      )
-        e.residentIntent = PACK_CHASER;
-      e.pos = { x: e.pos.x + offset.x, z: e.pos.z + offset.z };
-      e.home = { ...e.pos };
-      e.patrol = e.patrol.map((p) => ({ x: p.x + offset.x, z: p.z + offset.z }));
-      const territory = resolveRoachNestGuard(e, { areaId: area, animalCycle: g.animalCycle });
-      if (territory) e.residentIntent = territory;
-      const role = resolveBoundAnimalRole(e, {
-        areaId: area,
-        animalCycle: g.animalCycle,
-        behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
-      });
-      if (role) {
-        e.animalRole = role;
-        e.residentIntent = role.intent;
-        Object.assign(e, role.parameters);
-        e.completedAttack = null;
-        e.wokeAt = null;
-      }
-    }
-  for (const e of residents)
-    if (["giant-salamander", "original-wolf"].includes(e.rig)) {
-      const role = resolveBoundAnimalRole(e, {
-        areaId: area,
-        animalCycle: g.animalCycle,
-        behaviourCapabilities: ENGINE_CREATURE_CAPABILITIES,
-      });
-      if (role) {
-        e.animalRole = role;
-        e.residentIntent = role.intent;
-        Object.assign(e, role.parameters);
-        e.completedAttack = null;
-        e.wokeAt = null;
-      }
-    }
-  for (const e of residents) {
-    const recipe = gauntHumanRecipe(g.animalCycle, area, e);
-    if (recipe) e.humanBodyRecipe = recipe;
-  }
-  if (g.drone)
-    for (const placement of AREA_DRONE_SPAWNS[area] ?? [])
-      if (
-        populationAllowsDrone(policy, area, placement.key) &&
-        !dead.has(placement.key) &&
-        !g.droneDeaths.includes(placement.key) &&
-        !placements.some((p) => p.foundationRef === "low-hover-drone" && p.key === placement.key)
-      )
-        residents.push(
-          Object.assign(droneResident(g, placement), {
-            placementKey: placement.key,
-            home: { ...placement.pos },
-            patrol: placement.patrol,
-            patrolIndex: 1,
-            returning: false,
-          }),
-        );
-  g.enemies.push(...residents);
-  g.areaInitialized = true;
-  g.encounterActive = g.enemies.length > 0;
-  g.encounterCleared = !g.enemies.length;
-  if (area !== "westminster" || g.openingGroup === false) {
-    g.wave = 1;
-    g.nextWave = Infinity;
-    g.nextEnemyAttackAt = g.time;
-  }
 }
 function alertResident(g, e) {
   if (!e.alerted && e.animalRole) e.wokeAt = g.time;
@@ -1784,6 +1361,7 @@ function alertResident(g, e) {
   e.returning = false;
 }
 function residentPatrol(g, e, dt) {
+  if (airdropPull(g, e, dt, enemyMove)) return true;
   const playerHome = mag(sub(g.player.pos, e.home));
   if (e.residentIntent?.companionDistance === 0) {
     const home = territoryHomeStep(e.residentIntent, {
@@ -1800,17 +1378,17 @@ function residentPatrol(g, e, dt) {
     e.returning = home.returning;
     if (home.action === "hold") return true;
   } else {
-    if (e.alerted && playerHome > (e.residentIntent?.homeLeash ?? 12)) {
+    if (e.alerted && playerHome > (e.residentIntent?.homeLeash ?? RULES.movement.homeLeash)) {
       e.alerted = false;
       e.returning = true;
     }
-    if (e.returning && mag(sub(e.pos, e.home)) < 0.2) e.returning = false;
+    if (e.returning && mag(sub(e.pos, e.home)) < RULES.movement.returnArrive) e.returning = false;
   }
   if (e.residentIntent?.companionDistance > 0)
     e.packCompanions = observeResidentCompanions(
       e.residentIntent,
       e,
-      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === "original-dog"),
+      g.enemies.filter((other) => other.placementKey === "east-roamer-9" && other.rig === DOG_RIG),
       { areaId: g.world.areaId, lineClear: (a, b) => g.world.lineClear(a, b) },
     );
   const playerDistance = mag(sub(g.player.pos, e.pos)),
@@ -1827,7 +1405,7 @@ function residentPatrol(g, e, dt) {
           playerHomeDistance: playerHome,
           ...e.packCompanions,
         })
-      : playerDistance <= 6 && lineClear);
+      : playerDistance <= RULES.awareness.sightDistance && lineClear);
   if (e.animalRole && e.returning) {
     e.completedAttack = null;
     e.wokeAt = null;
@@ -1837,30 +1415,22 @@ function residentPatrol(g, e, dt) {
   let goal = e.returning ? e.home : e.patrol[e.patrolIndex],
     delta = sub(goal, e.pos),
     distance = mag(delta);
-  if (distance < 0.15 && !e.returning) {
+  if (distance < RULES.movement.patrolArrive && !e.returning) {
     e.patrolIndex = 1 - e.patrolIndex;
     goal = e.patrol[e.patrolIndex];
     delta = sub(goal, e.pos);
     distance = mag(delta);
   }
-  if (distance > 0.05) enemyMove(g, e, normal(delta), e.moveSpeed, Math.min(dt, distance / e.moveSpeed));
+  if (distance > RULES.movement.patrolMove)
+    enemyMove(g, e, normal(delta), e.moveSpeed, Math.min(dt, distance / e.moveSpeed));
   return true;
 }
 function knifeSpawnPosition(g) {
-  const radius = 0.4,
+  const radius = RULES.bodyRadius,
     player = g.player;
   // Each projection uses the actual world collision radius. Never assume that a
   // requested offset survives sliding: it may collapse back to the start point.
-  const offsets = [
-    { x: 0, z: 4 },
-    { x: 4, z: 0 },
-    { x: -4, z: 0 },
-    { x: 0, z: -4 },
-    { x: 3, z: 3 },
-    { x: -3, z: 3 },
-    { x: 3, z: -3 },
-    { x: -3, z: -3 },
-  ];
+  const offsets = RULES.spawning.knifeOffsets.map(([x, z]) => ({ x, z }));
   for (const offset of offsets) {
     const position = g.world.move(player.pos, offset, radius);
     const circleClear =
@@ -1922,7 +1492,8 @@ function knifeDodge(g, move, aim) {
   p.guarding = false;
   p.parryUntil = 0;
   p.velocity = { x: 0, z: 0 };
-  const facing = aim && Number.isFinite(aim.x) && Number.isFinite(aim.z) && mag(aim) > 0.001 ? normal(aim) : p.facing;
+  const facing =
+    aim && Number.isFinite(aim.x) && Number.isFinite(aim.z) && mag(aim) > NEGLIGIBLE_DISTANCE ? normal(aim) : p.facing;
   p.dodgeDirection = normal(move, { x: -facing.x, z: -facing.z });
   p.facing = { ...p.dodgeDirection };
   p.dodgeStart = t;
@@ -1969,16 +1540,8 @@ function hitMetadata(attacker, victim, def) {
     position: { ...victim.pos },
     moveId: def?.moveId ?? null,
     audioWeight: def?.audioWeight,
-    weapon:
-      def?.weapon ??
-      (["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(attacker?.rig)
-        ? "teeth"
-        : "knife"),
-    material: ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(
-      attacker?.rig,
-    )
-      ? "flesh"
-      : "iron",
+    weapon: def?.weapon ?? (rigCapability(attacker?.rig, "animal") ? "teeth" : "knife"),
+    material: rigCapability(attacker?.rig, "animal") ? "flesh" : "iron",
   };
 }
 function knifeReceive(g, hit) {
@@ -2000,7 +1563,7 @@ function knifeReceive(g, hit) {
     return false;
   }
   const meta = hitMetadata(hit.attacker, p, def);
-  let amount = hit.amount,
+  let amount = hit.amount * starDamage(hit.attacker),
     blocked = false;
   if (p.guarding && hit.block && inside(p.facing, sub(hit.origin, p.pos), R.guardArc)) {
     p.guardRecoverAt = t + R.regenDelay / 60;
@@ -2015,7 +1578,7 @@ function knifeReceive(g, hit) {
         e.response = { clip: "Deflected", start: t, ticks: R.parryStun };
       }
       p.response = { clip: "Parry", start: t, ticks: R.parry };
-      notify(g, "PARRY · Counter while they recover.");
+      notify(g, HUD_TEXT.parry);
       event(g, "parry", { actor: p, ...meta });
       return false;
     }
@@ -2026,30 +1589,36 @@ function knifeReceive(g, hit) {
       blocked = true;
       knifeSpend(g, p, cost);
       amount = perfect ? 0 : Math.round(amount * (def?.chip ?? 0));
-      p.response = { clip: "BlockImpact", start: t, ticks: 12 };
+      p.response = { clip: "BlockImpact", start: t, ticks: RULES.reactions.blockImpactTicks };
       event(g, "block", { actor: p, amount, perfect, cost, ...meta });
     } else {
       knifeSpend(g, p, R.breakCost);
       p.guarding = false;
       p.parryUntil = 0;
-      p.guardBrokenUntil = t + (def?.stagger ?? 0.3);
+      p.guardBrokenUntil = t + (def?.stagger ?? RULES.reactions.defaultStaggerSeconds);
       event(g, "guard-break", { actor: p, ...meta });
     }
   }
   if (amount <= 0) return false;
   amount = damageAfterVest(amount, g.vest, { blocked });
   p.hp = Math.max(0, p.hp - amount);
-  p.flashUntil = t + 0.12;
+  p.flashUntil = t + RULES.hitFlashSeconds;
   if (blocked && p.hp > 0) {
     event(g, "hit", { actor: p, amount, blocked: true, ...meta });
     return true;
   }
-  p.hurtUntil = t + (def?.stagger ?? 0.3);
+  p.hurtUntil = t + (def?.stagger ?? RULES.reactions.defaultStaggerSeconds);
   p.swing = null;
   p.buffer = null;
   p.dodgeUntil = t;
   p.ready = p.hurtUntil;
-  p.response = { clip: p.hp ? "Hit" : "Death", start: t, ticks: p.hp ? Math.round((def?.stagger ?? 0.3) * 60) : 144 };
+  p.response = {
+    clip: p.hp ? "Hit" : "Death",
+    start: t,
+    ticks: p.hp
+      ? Math.round((def?.stagger ?? RULES.reactions.defaultStaggerSeconds) * 60)
+      : GAME_DATA.creatures.defaultResponse.deathTicks,
+  };
   if (def?.knockback) {
     const dir = normal(sub(p.pos, hit.origin));
     moveBody(g, p, { x: (dir.x * R.walkSpeed * def.knockback) / 60, z: (dir.z * R.walkSpeed * def.knockback) / 60 });
@@ -2074,13 +1643,21 @@ function knifeStepIn(g, e, dt) {
         s.dir.x *
         R.walkSpeed *
         s.def.stepIn *
-        (e.moveSpeed !== undefined ? e.moveSpeed / R.walkSpeed : e.rig === "goblin" ? 1.2 : 1) *
+        (e.moveSpeed !== undefined
+          ? e.moveSpeed / R.walkSpeed
+          : e.rig === "goblin"
+            ? RULES.enemyAI.goblinSpeedFactor
+            : 1) *
         dt,
       z:
         s.dir.z *
         R.walkSpeed *
         s.def.stepIn *
-        (e.moveSpeed !== undefined ? e.moveSpeed / R.walkSpeed : e.rig === "goblin" ? 1.2 : 1) *
+        (e.moveSpeed !== undefined
+          ? e.moveSpeed / R.walkSpeed
+          : e.rig === "goblin"
+            ? RULES.enemyAI.goblinSpeedFactor
+            : 1) *
         dt,
     });
 }
@@ -2115,31 +1692,27 @@ function knifeEnemy(g, e, dt, services) {
       source: services?.bossFlameSource,
       receive: knifeReceive,
       emit: event,
-      ...(e.rig === "giant-salamander"
+      ...(rigCapability(e.rig, "fireBreath")
         ? {
             profile: SALAMANDER_BREATH,
             onStart: (g, e) => {
-              e.response = { clip: "Bite", start: g.time, ticks: 56 };
+              e.response = { clip: "Bite", start: g.time, ticks: RULES.reactions.breathStartTicks };
             },
           }
         : {}),
     })
   )
     return;
-  if (e.rig === "low-hover-drone") {
+  const brain = rigText(e.rig, "brain");
+  if (brain === "drone") {
     droneEnemy(g, e, dt);
     return;
   }
-  if (e.rig === "original-rat") {
+  if (brain === "rat") {
     ratEnemy(g, e, dt);
     return;
   }
-  if (
-    e.rig === "original-dog" ||
-    e.rig === "original-roach" ||
-    e.rig === "giant-salamander" ||
-    e.rig === "original-wolf"
-  ) {
+  if (brain === "dog") {
     dogEnemy(g, e, dt);
     return;
   }
@@ -2160,7 +1733,8 @@ function knifeEnemy(g, e, dt, services) {
   // Native long weapons keep their measured inner reach through ordinary movement.
   const minimum = (e.bossProfile?.minimumAttackDistance ?? 0) * e.combatScale;
   const spacing =
-    minimum > 0 && (distance < minimum || (!!e.attackSpacing && distance < minimum + 0.1 * e.combatScale));
+    minimum > 0 &&
+    (distance < minimum || (!!e.attackSpacing && distance < minimum + RULES.enemyAI.attackSpacing * e.combatScale));
   if (minimum > 0) e.attackSpacing = spacing;
   if (spacing) {
     e.facing = turn(e.facing, dir, 360 * dt);
@@ -2180,14 +1754,14 @@ function knifeEnemy(g, e, dt, services) {
     return;
   }
   if (distance > def.range * e.combatScale || !g.world.lineClear(e.pos, g.player.pos)) {
-    enemyMove(g, e, dir, e.moveSpeed ?? R.walkSpeed * 1.2, dt);
+    enemyMove(g, e, dir, e.moveSpeed ?? R.walkSpeed * RULES.enemyAI.goblinSpeedFactor, dt);
     return;
   }
   e.facing = turn(e.facing, dir, 360 * dt);
   if (
     g.time + EPS >= e.ready &&
     (!g.encounter || g.time + EPS >= g.nextEnemyAttackAt) &&
-    dot(e.facing, dir) > 0.96 &&
+    dot(e.facing, dir) > RULES.enemyAI.knifeAimDot &&
     knifeAffordable(e, def.stamina)
   ) {
     knifeSpend(g, e, def.stamina);
@@ -2231,7 +1805,7 @@ function droneEnemy(g, e, dt) {
   if (next.action === "approach") enemyMove(g, e, next.direction, e.moveSpeed, dt);
   else if (next.direction) e.facing = { ...next.direction };
   if (next.bolt) {
-    g.bolts.push({ id: ++serial, ...next.bolt });
+    g.bolts.push({ id: nextSerial(), ...next.bolt });
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...next.bolt.dir },
@@ -2290,16 +1864,16 @@ function ratEnemy(g, e, dt) {
     distance = mag(sub(g.player.pos, e.pos)),
     dir = normal(offset, e.facing);
   if (
-    distance > (e.contactGoalReach ? e.radius + g.player.radius : 0.95) + EPS ||
-    mag(offset) > (e.contactGoalReach ?? 0.35) + EPS ||
+    distance > (e.contactGoalReach ? e.radius + g.player.radius : RULES.enemyAI.animalBiteReach) + EPS ||
+    mag(offset) > (e.contactGoalReach ?? RULES.enemyAI.animalContactReach) + EPS ||
     !g.world.lineClear(e.pos, g.player.pos)
   ) {
-    enemyMove(g, e, dir, e.animalRole ? e.moveSpeed : 2.1, dt);
+    enemyMove(g, e, dir, e.animalRole ? e.moveSpeed : RULES.enemyAI.ratMoveSpeed, dt);
     return;
   }
   e.facing = turn(e.facing, dir, 360 * dt);
-  if (g.time + EPS >= e.ready && dot(e.facing, dir) > 0.99) {
-    const def = Number.isFinite(foot.y) && foot.y <= 0.06 ? RAT_BITE_LOW : RAT_BITE;
+  if (g.time + EPS >= e.ready && dot(e.facing, dir) > RULES.enemyAI.animalBiteAimDot) {
+    const def = Number.isFinite(foot.y) && foot.y <= RULES.enemyAI.ratLowFootHeight ? RAT_BITE_LOW : RAT_BITE;
     e.swing = knifeSwing(g, e, "bite", def);
     e.swing.footGoalY = foot.y;
     if (e.animalRole) e.completedAttack = null;
@@ -2307,7 +1881,7 @@ function ratEnemy(g, e, dt) {
     event(g, "enemy-attack", {
       actor: e,
       dir: { ...e.facing },
-      range: e.contactGoalReach ? e.radius + g.player.radius : 0.95,
+      range: e.contactGoalReach ? e.radius + g.player.radius : RULES.enemyAI.animalBiteReach,
       arc: 90,
       moveId: "rat_bite",
       clip: def.clip,
@@ -2325,7 +1899,7 @@ function dogEnemy(g, e, dt) {
   if (animalRoleMovement(g, e, dt)) return;
   const offset = sub(g.player.pos, e.pos),
     distance = mag(offset),
-    footGoal = e.rig === "original-roach" || e.contactGoalReach ? g.ratContact?.calf(g, e) : null;
+    footGoal = rigCapability(e.rig, "calfContact") || e.contactGoalReach ? g.ratContact?.calf(g, e) : null;
   if (e.residentIntent?.companionDistance > 0) {
     const away = normal(sub(e.pos, g.player.pos), e.facing),
       next = g.world.move(e.pos, { x: away.x * e.moveSpeed * dt, z: away.z * e.moveSpeed * dt }, e.radius),
@@ -2344,9 +1918,8 @@ function dogEnemy(g, e, dt) {
     if (e.packMovement === "hold") return;
   }
   // Reuse the existing backward mover to recover native mouth standoff when the player crowds the body.
-  const ownGoalDistance =
-    ["giant-salamander", "original-wolf"].includes(e.rig) && footGoal ? mag(sub(footGoal, e.pos)) : null;
-  if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - 0.001) {
+  const ownGoalDistance = rigCapability(e.rig, "nativeSkeleton") && footGoal ? mag(sub(footGoal, e.pos)) : null;
+  if (ownGoalDistance !== null && ownGoalDistance < e.contactGoalReach - NEGLIGIBLE_DISTANCE) {
     enemyMove(
       g,
       e,
@@ -2368,28 +1941,26 @@ function dogEnemy(g, e, dt) {
     enemyMove(g, e, normal(footGoal ? sub(footGoal, e.pos) : offset), e.moveSpeed, approachDt);
     return;
   }
-  const calf = e.rig === "original-roach" || e.contactGoalReach ? footGoal : g.ratContact?.calf(g, e);
+  const calf = rigCapability(e.rig, "calfContact") || e.contactGoalReach ? footGoal : g.ratContact?.calf(g, e);
   if (!calf || (e.contactGoalReach && mag(sub(calf, e.pos)) > e.contactGoalReach + EPS)) return;
   const direct = normal(sub(calf, e.pos), e.facing),
-    dir = e.rig === "original-wolf" ? wolfBiteDirection(direct) : direct;
+    dir = rigCapability(e.rig, "mouthAim") ? wolfBiteDirection(direct) : direct;
   e.facing = turn(e.facing, dir, 360 * dt);
-  if (g.time + EPS >= e.ready && dot(e.facing, dir) > 0.99) {
+  if (g.time + EPS >= e.ready && dot(e.facing, dir) > RULES.enemyAI.animalBiteAimDot) {
     e.facing = { ...dir };
     e.swing = knifeSwing(
       g,
       e,
       "bite",
-      e.rig === "original-wolf"
-        ? WOLF_ATTACK
-        : e.rig === "giant-salamander"
-          ? SALAMANDER_ATTACK
-          : e.rig === "original-roach"
-            ? e.contactGoalReach
-              ? ROACH_BITE_SCALED
-              : ROACH_BITE
-            : e.contactGoalReach
-              ? DOG_BITE_SCALED
-              : DOG_BITE,
+      // A rig's biteMove names its attack row (wolf_attack, salamander_attack, elephant_attack in creatures.json moves).
+      CREATURE_MOVES[`${rigText(e.rig, "biteMove")}_attack`] ??
+        (rigText(e.rig, "biteMove") === "roach"
+          ? e.contactGoalReach
+            ? ROACH_BITE_SCALED
+            : ROACH_BITE
+          : e.contactGoalReach
+            ? DOG_BITE_SCALED
+            : DOG_BITE),
     );
     e.swing.calfGoal = { ...calf };
     if (e.animalRole) e.completedAttack = null;
@@ -2426,19 +1997,7 @@ function knifeContacts(g, before, ratBefore) {
           ? [...g.enemies].sort((a1, b1) => mag(sub(a1.pos, a.pos)) - mag(sub(b1.pos, a.pos)) || a1.id - b1.id)
           : [g.player];
       for (const d of targets) {
-        if (
-          s.def.ratLow &&
-          (![
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig) ||
-            d.id !== s.lowTargetId)
-        )
-          continue;
+        if (s.def.ratLow && (!rigCapability(d.rig, "lowStrike") || d.id !== s.lowTargetId)) continue;
         if (
           d.hp <= 0 ||
           s.hitIds.has(d.id) ||
@@ -2447,15 +2006,7 @@ function knifeContacts(g, before, ratBefore) {
         )
           continue;
         const hit =
-          ["original-rat", "original-dog", "original-roach", "giant-salamander", "original-wolf"].includes(a.rig) ||
-          [
-            "original-rat",
-            "original-dog",
-            "original-roach",
-            "giant-salamander",
-            "original-wolf",
-            "low-hover-drone",
-          ].includes(d.rig)
+          rigCapability(a.rig, "animal") || rigCapability(d.rig, "lowStrike")
             ? !!(ratBefore && g.ratContact.hit(a, d, s, ratBefore, ratAfter))
             : s.path
               ? bladeContact(
@@ -2494,59 +2045,20 @@ function knifeContacts(g, before, ratBefore) {
         block: true,
         parry: def.parryable,
         moveId: def.moveId,
-        ...(a.bossProfile || ["giant-salamander", "original-wolf"].includes(a.rig) ? { def } : {}),
+        ...(a.bossProfile || rigCapability(a.rig, "nativeSkeleton") ? { def } : {}),
       });
     else {
       const damage = effectiveWeaponDamage(g, "knife", def.damage),
         amount = Math.min(d.hp, damage);
       d.hp = Math.max(0, d.hp - damage);
       if (d.hp <= 0) stageProgressionDeath(g, d, "knife", amount);
-      d.flashUntil = g.time + 0.12;
+      d.flashUntil = g.time + RULES.hitFlashSeconds;
       if (d.home) alertResident(g, d);
       d.recoverUntil = d.staggerUntil = g.time + def.stagger;
       d.ready = d.recoverUntil + (d.recoveryDelay ?? 0);
       d.swing = null;
       if (d.animalRole) d.completedAttack = null;
-      d.response =
-        d.rig === "original-wolf"
-          ? wolfResponse(d.hp > 0, g.time)
-          : d.rig === "giant-salamander"
-            ? salamanderResponse(d.hp > 0, g.time)
-            : {
-                clip:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? "rat_hit"
-                      : "rat_death"
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? "dog_hit"
-                        : "dog_death"
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? "roach_hit"
-                          : "roach_death"
-                        : d.hp
-                          ? "Hit"
-                          : "Death",
-                start: g.time,
-                ticks:
-                  d.rig === "original-rat"
-                    ? d.hp
-                      ? 20
-                      : 54
-                    : d.rig === "original-dog"
-                      ? d.hp
-                        ? 24
-                        : 60
-                      : d.rig === "original-roach"
-                        ? d.hp
-                          ? 18
-                          : 48
-                        : d.hp
-                          ? Math.round(def.stagger * 60)
-                          : 144,
-              };
+      d.response = rigResponse(d.rig, d.hp, g.time, def.stagger);
       event(g, "hit", {
         actor: d,
         amount,

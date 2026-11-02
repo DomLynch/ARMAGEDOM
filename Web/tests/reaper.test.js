@@ -1,6 +1,8 @@
 import test from'node:test';import assert from'node:assert/strict';import fs from'node:fs';
-import{REAPER_RULES,REAPER_ITEM_ID,REAPER_RECEIPT,reaperSelected,reaperTarget,stepReaper,stopReaper,validateReaperData}from'../src/engine/reaper.js';
+import{REAPER_ITEM_ID,REAPER_RECEIPT,reaperSelected,reaperTarget,stepReaper,stopReaper,validateReaperData}from'../src/engine/reaper.js';
 import{applyTouchTarget,touchGun}from'../src/engine/touch-target.js';
+// The Reaper rules live only in area-content.json (the old in-code REAPER_RULES copy was deleted in the data batch 1).
+const REAPER_RULES=JSON.parse(fs.readFileSync(new URL('../public/world/area-content.json',import.meta.url))).reaper.rules;
 const enemy=(id,z,extra={})=>({id,placementKey:'enemy-'+id,hp:40,hostile:true,visible:true,radius:.4,pos:{x:0,z},areaId:'lambeth',...extra});
 function run(){const g={time:0,events:[],bolts:[],world:{areaId:'lambeth',reaperData:{itemId:REAPER_ITEM_ID,receiptId:REAPER_RECEIPT,rules:REAPER_RULES},lineClear:()=>true,toRender:(p,y=0)=>({x:p.x,y,z:-p.z})},player:{id:0,hp:100,pos:{x:0,z:0},facing:{x:0,z:1},hurtUntil:0,dodgeUntil:0,ready:0,weapon:'knife'},expedition:{status:'claimed',rewardReceipt:REAPER_RECEIPT,selectedPistolVariant:REAPER_ITEM_ID},locker:{weapons:[]},enemies:[enemy(1,2),enemy(2,4)]};return g;}
 const service=g=>({source:()=>({x:g.reaper.actor.pos.x,y:.9,z:-g.reaper.actor.pos.z}),emitBolt:b=>g.bolts.push({id:g.bolts.length+1,...b})});

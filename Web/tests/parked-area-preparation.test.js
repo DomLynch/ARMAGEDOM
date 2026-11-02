@@ -20,10 +20,10 @@ for(const cycle of ['A','B'])test(`cycle ${cycle}: real factory runs once; live 
   const game=fixture(cycle),live=JSON.stringify({...game,areaFights:null}),enemies=game.enemies;
   let calls=0;const factory=g=>{calls++;initializeAreaResidents(g);};
   const record=prepareParkedResidents(game,{...game.world,areaId:'east'},factory);
-  assert.equal(record.enemies.length,10);
+  assert.equal(record.enemies.length,13);
   assert.equal(record.parkedAt,12);
-  assert.equal(new Set(record.enemies.map(e=>e.id)).size,10);
-  assert.equal(new Set(record.enemies.map(e=>e.placementKey)).size,10);
+  assert.equal(new Set(record.enemies.map(e=>e.id)).size,13);
+  assert.equal(new Set(record.enemies.map(e=>e.placementKey)).size,13);
   assert(record.enemies.every(e=>!e.alerted&&!e.swing));
   assert.equal(game.enemies,enemies);
   assert.equal(JSON.stringify({...game,areaFights:null}),live);

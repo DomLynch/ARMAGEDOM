@@ -1,0 +1,11 @@
+{
+  "LEGACY_DROP_EVENTS": ["rifle-drop", "boss-equipment-drop", "unique-reward-drop"],
+  "LEGACY_PICKUP_EVENTS": {
+    "pickup": "itemId",
+    "rifle-pickup": "itemId",
+    "boss-equipment-pickup": "itemId",
+    "unique-reward-pickup": "itemId",
+    "flame-pickup": "pickupId"
+  },
+  "WORLD_DISPATCHERS": ["dispatchPistol", "dispatchRifle", "dispatchBossEquipment", "dispatchUniqueReward", "dispatchFlame"]
+}

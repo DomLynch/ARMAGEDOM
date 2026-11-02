@@ -1,12 +1,22 @@
 import { ownsEmberReward } from "./boss-equipment-data.js";
 import { lockerStored } from "./locker-core.js";
 import { createRocketView } from "./rocket-view.js";
+import { createExplosionEffects } from "./explosion-effect.js";
 import * as T from "three";
 import { createPickupModel } from "./pickup-model-view.js";
+import { BOSS_EQUIPMENT_VIEW as V } from "./boss-equipment-view-data.js";
+import { createMarkerOnlyDrop, markDrop } from "./drop-marker.js";
+import { autoEquipAfterClaim, collectedMessage } from "../auto-equip.js";
+import { GAME_DATA, fillText } from "./game-data.js";
+import { RANGED_WEAPON_CATALOG } from "./weapon-catalog.js";
+const TEXT = GAME_DATA.weaponViewText.bossEquipment;
+// The starting pistol, whose damage, reload and shared magazine the pistols-family stats line shows.
+const PISTOL_ITEM_ID = "westminster-start-pistol-v1";
 export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
   const panel = document.getElementById("boss-equipment");
   if (!panel) return { update() {}, dispose() {} };
-  const rockets = createRocketView(s),
+  const explosions = createExplosionEffects(s),
+    rockets = createRocketView(s, explosions),
     cards = new Map(),
     equipHandlers = new Map(),
     drops = new Map(),
@@ -39,8 +49,8 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         .catch((error) => {
           failed.add(field);
           if (s.game === owner) {
-            owner.message = "Weapon loading unavailable. Your reward is kept; retry in Gear.";
-            owner.messageUntil = owner.time + 4;
+            owner.message = TEXT.loadFailed;
+            owner.messageUntil = owner.time + V.loadFailureSeconds;
           }
           throw error;
         })
@@ -56,12 +66,12 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       g.events.push(...result.events);
       g.message =
         command.type === "claimPickup"
-          ? g.world.bossEquipmentData[field].name + " collected. Equip it in Gear."
+          ? collectedMessage(g.world.bossEquipmentData[field].name)
           : command.equipped
-            ? g.world.bossEquipmentData[field].name + " equipped."
-            : "Returned to your normal weapon.";
-      g.messageUntil = g.time + 3;
-      s.input.clear();
+            ? fillText(TEXT.equipped, { name: g.world.bossEquipmentData[field].name })
+            : TEXT.returned;
+      g.messageUntil = g.time + V.claimMessageSeconds;
+      s.input.clear({ keepMovement: true });
     }
     s.updateExpedition?.();
     return result;
@@ -76,10 +86,12 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     button.id = "boss-equip-" + field;
     section.append(title, label, button);
     panel.append(section);
-    const equip = async () => {
-      const owner = s.game;
+    const equip = async (options) => {
+      const owner = s.game,
+        raiseOnly = options?.raiseOnly === true;
       if (!safe(owner)) return;
       if (
+        !raiseOnly &&
         field === "emberProjector" &&
         typeof legacyFlameEquip === "function" &&
         (!ownsEmberReward(owner) || (owner.flame?.equipped && !owner.bossEquipment.emberProjector.selected))
@@ -96,7 +108,11 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         return;
       }
       if (!disposed && s.game === owner && safe(owner) && owner.bossEquipment?.[field]?.status === "owned")
-        execute(field, { type: "equip", itemId: data.itemId, equipped: !owner.bossEquipment[field].selected });
+        execute(field, {
+          type: "equip",
+          itemId: data.itemId,
+          equipped: raiseOnly || !owner.bossEquipment[field].selected,
+        });
       update();
     };
     equipHandlers.set(field, equip);
@@ -107,23 +123,71 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     });
     return { label, button };
   }
+  // Every number comes from the weapon's own row in weapons.json (rules, payload) or combatRules.json.
   function stats(data, state, g) {
+    const magazine = state?.magazine ?? 0,
+      reserve = state?.reserve ?? 0;
     if (data.weaponKey === "railgun")
-      return `${data.rules.damage} piercing damage · ${data.rules.range}m · ${data.charge.seconds}s charge · ${data.rules.cadence}s recovery · ${state?.magazine ?? 0}/${data.rules.capacity} loaded · ${state?.reserve ?? 0} reserve · ${data.rules.reload}s reload. Hold FIRE; release when ready. Early release or cancellation does not fire. Cover blocks the beam; pistol ammunition is kept.`;
+      return fillText(TEXT.railgunStats, {
+        damage: data.rules.damage,
+        range: data.rules.range,
+        spread: data.automatic.spreadDegrees,
+        cadence: data.rules.cadence,
+        magazine,
+        capacity: data.rules.capacity,
+        reserve,
+        reload: data.rules.reload,
+      });
     if (data.family === "shotguns")
-      return `8 pellets × 8 damage · 6m · ${state?.magazine ?? 0}/2 loaded · ${state?.reserve ?? 0} reserve`;
+      return fillText(TEXT.shotgunStats, {
+        pellets: data.payload.pelletCount,
+        pelletDamage: data.payload.pelletDamage,
+        range: data.payload.range,
+        magazine,
+        capacity: data.rules.capacity,
+        reserve,
+      });
     if (data.family === "launchers")
-      return `80 blast damage · 3m radius · ${state?.magazine ?? 0}/1 loaded · ${state?.reserve ?? 0} reserve · 20m straight flight · 14m/s · 3.2s reload. No homing.`;
+      return fillText(TEXT.launcherStats, {
+        damage: data.payload.maxDamage,
+        radius: data.payload.radius,
+        magazine,
+        capacity: data.rules.capacity,
+        reserve,
+        range: data.payload.maxRange,
+        speed: data.payload.speed,
+        reload: data.rules.reload,
+      });
     if (data.family === "grenades")
-      return `${state?.magazine ?? 0} charges · 8m max throw · 1s fuse · 3m blast. Mouse picks landing; touch Range cycles 3/5/8m. Mode / F switches Standard and Sticky; same charges and fuse.`;
+      return fillText(TEXT.grenadeStats, {
+        magazine,
+        range: data.payload.maxRange,
+        fuse: data.payload.fuseSeconds,
+        radius: data.payload.radius,
+        throwRanges: GAME_DATA.combatRules.bossWeapon.grenadeThrowRanges.join(TEXT.throwRangeSeparator),
+      });
     if (data.family === "blades")
-      return `Hold CUT · close saw contact · ${data.rules.damage} damage / ${data.rules.interval}s · slowed while cutting · sustained contact staggers`;
-    if (data.family === "pistols")
-      return `35 damage · 1.8s reload · shared pistol ammunition (${g.pistol.magazine}/6, ${g.pistol.reserve} reserve)`;
-    return `10 damage per 0.2s · 3m · ${Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / 1000) * 100)}% shared fuel`;
+      return fillText(TEXT.sawStats, { damage: data.rules.damage, interval: data.rules.interval });
+    if (data.family === "pistols") {
+      const pistol = RANGED_WEAPON_CATALOG[PISTOL_ITEM_ID].rules;
+      return fillText(TEXT.pistolStats, {
+        damage: pistol.damage,
+        reload: pistol.reload,
+        magazine: g.pistol.magazine,
+        capacity: pistol.capacity,
+        reserve: g.pistol.reserve,
+      });
+    }
+    return fillText(TEXT.flameStats, {
+      damage: data.rules.damage,
+      interval: data.rules.interval,
+      range: data.rules.range,
+      fuel: Math.ceil(((g.flameFuel?.fuelUnits ?? 0) / data.rules.fuelCapacity) * 100),
+    });
   }
   function clearWorld() {
     rockets.clear();
+    explosions.clear();
     for (const view of drops.values()) view.dispose();
     drops.clear();
     for (const row of projectiles.values()) {
@@ -141,14 +205,18 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     blasts.clear();
   }
   function updateProjectiles(g) {
+    const G = V.grenade,
+      R = G.ring,
+      B = G.blast;
     const active = (g.activeGrenades ?? []).filter((row) => row.intent.areaId === g.world.areaId),
       ids = new Set(active.map((row) => row.intent.id));
     for (const [id, row] of projectiles)
       if (!ids.has(id)) {
         row.view.dispose();
         if (g.events.some((event) => event.type === "grenade-blast" && event.id === id)) {
-          row.warning.material.color.setHex(0xffe5a0);
+          row.warning.material.color.set(`#${B.colour}`);
           blasts.set(id, { mesh: row.warning, start: g.time });
+          explosions.spawn(row.warning.position, R.outer, g.time);
         } else {
           row.warning.geometry.dispose();
           row.warning.material.dispose();
@@ -158,15 +226,15 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
       }
     for (const [id, row] of blasts) {
       const age = g.time - row.start;
-      if (age > 0.35) {
+      if (age > B.seconds) {
         row.mesh.removeFromParent();
         row.mesh.geometry.dispose();
         row.mesh.material.dispose();
         blasts.delete(id);
         continue;
       }
-      row.mesh.scale.setScalar(0.2 + (age / 0.35) * 0.8);
-      row.mesh.material.opacity = 0.8 * (1 - age / 0.35);
+      row.mesh.scale.setScalar(B.startScale + (age / B.seconds) * B.growth);
+      row.mesh.material.opacity = B.opacity * (1 - age / B.seconds);
     }
     for (const row of active) {
       let item = projectiles.get(row.intent.id);
@@ -175,33 +243,34 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         if (!source) continue;
         const view = createPickupModel(source.gltf, { rootName: "Grenade", ground: false }),
           warning = new T.Mesh(
-            new T.RingGeometry(2.92, 3, 40),
+            new T.RingGeometry(R.inner, R.outer, R.segments),
             new T.MeshBasicMaterial({
-              color: 0xffbc58,
+              color: `#${R.colour}`,
               transparent: true,
-              opacity: 0.45,
+              opacity: R.opacity,
               depthWrite: false,
               side: T.DoubleSide,
             }),
           );
-        warning.rotation.x = -Math.PI / 2;
+        warning.rotation.x = -Math.PI / 2; // tuning-ok: lays the ring flat on the ground
         s.scene.add(view.root, warning);
-        const start = s.actors.equipmentOrigin?.("grenade") ?? s.world.toRender(row.origin, 1.15);
+        const start = s.actors.equipmentOrigin?.("grenade") ?? s.world.toRender(row.origin, G.startHeight);
         item = { view, warning, start: start.clone() };
         projectiles.set(row.intent.id, item);
       }
       const born = row.intent.detonateAt - 1,
-        t = Math.max(0, Math.min(1, (g.time - born) / 0.35)),
-        end = s.world.toRender(row.intent.position, 0.05);
+        t = Math.max(0, Math.min(1, (g.time - born) / G.flightSeconds)),
+        end = s.world.toRender(row.intent.position, G.landHeight);
       if (row.mode === "sticky" && row.surfacePosition)
         item.view.root.position.set(row.surfacePosition.x, row.surfacePosition.y, row.surfacePosition.z);
       else {
         item.view.root.position.lerpVectors(item.start, end, t);
-        item.view.root.position.y += Math.sin(Math.PI * t) * 1.2;
+        item.view.root.position.y += Math.sin(Math.PI * t) * G.arcHeight;
       }
-      item.view.root.rotation.z = t < 1 ? t * Math.PI * 3 : 0;
-      item.warning.position.copy(s.world.toRender(row.intent.position, 0.018));
-      item.warning.material.opacity = 0.25 + 0.35 * Math.abs(Math.sin((g.time - born) * Math.PI * 6));
+      item.view.root.rotation.z = t < 1 ? t * Math.PI * G.spinPi : 0;
+      item.warning.position.copy(s.world.toRender(row.intent.position, R.height));
+      item.warning.material.opacity =
+        R.pulseBase + R.pulseSwing * Math.abs(Math.sin((g.time - born) * Math.PI * R.pulseRate));
     }
   }
   function update() {
@@ -236,14 +305,14 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         owned = state?.status === "owned" || legacyAccess;
       card.label.textContent = legacyAccess
         ? stats(profile, state, g) +
-          (state?.status === "pending" ? " · Witch drop awaiting collection." : " · Witch reward unclaimed.")
+          (state?.status === "pending" ? TEXT.legacyPending : TEXT.legacyUnclaimed)
         : state?.status === "owned"
           ? stats(profile, state, g)
           : state?.status === "pending"
-            ? "Dropped by " + boss + ". Approach and collect it."
+            ? fillText(TEXT.statePending, { boss })
             : state?.status === "legacy-dead"
-              ? boss + " was already defeated. A new defeat after Retry can earn this reward."
-              : "Defeat " + boss + " to earn this weapon.";
+              ? fillText(TEXT.stateLegacyDead, { boss })
+              : fillText(TEXT.stateLocked, { boss });
       card.button.hidden = !owned && !(state?.status === "pending" && failed.has(field));
       card.button.disabled =
         lockerStored(g, profile.itemId) ||
@@ -251,26 +320,39 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
         loads.has(field) ||
         (legacyAccess && !!document.getElementById("flame-equip")?.disabled);
       card.button.textContent = lockerStored(g, profile.itemId)
-        ? "Stored in safehouse"
+        ? GAME_DATA.weaponViewText.shared.storedInSafehouse
         : loads.has(field)
-          ? "Loading weapon…"
+          ? TEXT.buttonLoading
           : failed.has(field)
-            ? "Retry weapon loading"
+            ? TEXT.buttonRetry
             : (field === "emberProjector" ? g.flame?.equipped : state?.selected)
-              ? "Return to normal weapon"
-              : "Equip " + profile.name;
-      if (state?.status !== "pending" || g.world.areaId !== profile.source.areaId || !ready) {
+              ? TEXT.buttonLower
+              : fillText(TEXT.buttonEquip, { name: profile.name });
+      if (state?.status !== "pending" || g.world.areaId !== profile.source.areaId) {
         drops.get(field)?.dispose();
         drops.delete(field);
         continue;
       }
+      // The ring and label show from the drop position at once; the model joins them when its asset has loaded.
       let drop = drops.get(field);
+      if (drop && ready && !drop.model) {
+        drop.dispose();
+        drops.delete(field);
+        drop = null;
+      }
       if (!drop) {
-        const source = s.actors.equipmentAsset(field);
-        drop = createPickupModel(source.gltf, {
-          rootName: source.description?.pose?.root ?? null,
-          rotate: ["shotguns", "blades"].includes(profile.family),
-        });
+        if (!ready && !s.scene) continue; // no scene to show the marker in yet
+        if (ready) {
+          const source = s.actors.equipmentAsset(field);
+          drop = markDrop(
+            createPickupModel(source.gltf, {
+              rootName: source.description?.pose?.root ?? null,
+              rotate: ["shotguns", "blades"].includes(profile.family),
+            }),
+            profile.name,
+          );
+          drop.model = true;
+        } else drop = createMarkerOnlyDrop(profile.name);
         s.scene.add(drop.root);
         drops.set(field, drop);
       }
@@ -278,6 +360,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     }
     updateProjectiles(g);
     rockets.update(g);
+    explosions.update(g.time);
   }
   function interaction() {
     const g = s.game;
@@ -296,10 +379,18 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
           return null;
         return {
           id: data.itemId,
-          label: "Collect " + data.name,
+          label: fillText(GAME_DATA.weaponViewText.shared.pickupCollect, { name: data.name }),
+          pickup: true,
           position: state.dropPosition,
           run() {
             execute(field, { type: "claimPickup", pickupId: data.itemId });
+            if (g.bossEquipment?.[field]?.status === "owned")
+              void autoEquipAfterClaim(g, {
+                equip: (options) => equipHandlers.get(field)?.(options),
+                active: () => !!g.bossEquipment?.[field]?.selected,
+                itemId: data.itemId,
+                name: data.name,
+              });
             return true;
           },
         };
@@ -313,6 +404,7 @@ export function createBossEquipmentView(s, dispatch, legacyFlameEquip = null) {
     dispose() {
       disposed = true;
       clearWorld();
+      explosions.dispose();
       for (const remove of listeners) remove();
       cards.clear();
       equipHandlers.clear();

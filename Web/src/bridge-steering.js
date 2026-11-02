@@ -1,38 +1,22 @@
-// Only the two registered bridge-side road bend chains; no global navigation graph.
-const BENDS = {
-  westminster: [
-    [0.52, 0.78],
-    [0.603125, 0.6875],
-    [0.70625, 0.575],
-    [0.770833333333, 0.516666666667],
-    [0.835416666667, 0.458333333333],
-    [0.9, 0.4],
-    [0.97, 0.34],
-  ],
-  east: [
-    [0.1, 0.72],
-    [0.12, 0.68],
-    [0.17, 0.66],
-    [0.21, 0.61],
-    [0.26, 0.57],
-    [0.31, 0.54],
-    [0.4, 0.51],
-    [0.44, 0.45],
-    [0.44, 0.36],
-  ],
-};
-const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+// Only the two registered bridge-side road bend chains (data/atmosphere.json bends); no global navigation graph.
+import { GAME_DATA } from "./engine/game-data.js";
+
+const BENDS = GAME_DATA.atmosphere.bends;
+// The road-edge safety margin, the default leash, the progress and stall limits and the waypoint reach are creatures.json `bridgeSteering`.
+const STEER = GAME_DATA.creatures.bridgeSteering;
+const squared = (x) => x * x;
+import { distance } from "./engine/shared-checks.js";
 function pointSegmentSq(p, a, b) {
   const x = b.x - a.x,
     z = b.z - a.z,
     length = x * x + z * z;
   const t = length ? Math.max(0, Math.min(1, ((p.x - a.x) * x + (p.z - a.z) * z) / length)) : 0;
-  return (p.x - a.x - t * x) ** 2 + (p.z - a.z - t * z) ** 2;
+  return squared(p.x - a.x - t * x) + squared(p.z - a.z - t * z);
 }
-// Exact capsule clearance against the SAME painted road edges and .061 safety margin.
+// Exact capsule clearance against the SAME painted road edges and safety margin.
 export function bodyLineClear(geometry, a, b, radius) {
   if (!geometry.clear(a, radius) || !geometry.clear(b, radius) || !geometry.lineClear(a, b)) return false;
-  const limit = (radius + 0.061) ** 2;
+  const limit = squared(radius + STEER.edgeMargin);
   return geometry.edges.every(
     ([c, d]) =>
       Math.min(pointSegmentSq(a, c, d), pointSegmentSq(b, c, d), pointSegmentSq(c, a, b), pointSegmentSq(d, a, b)) >
@@ -45,7 +29,7 @@ export function createBridgeSteering() {
   function reset(actor) {
     states.delete(actor);
   }
-  function steer({ world, actor, goal, time, mode = "pursuit", leash = 12 }) {
+  function steer({ world, actor, goal, time, mode = "pursuit", leash = STEER.leash }) {
     const geometry = world.geometry,
       area = world.areaId,
       position = actor.pos,
@@ -75,7 +59,7 @@ export function createBridgeSteering() {
         state.homeX !== home?.x ||
         state.homeZ !== home?.z ||
         state.leash !== leash ||
-        distance(state.goal, goal) > 0.5)
+        distance(state.goal, goal) > STEER.goalShiftMetres)
     ) {
       reset(actor);
       state = null;
@@ -85,18 +69,18 @@ export function createBridgeSteering() {
       return goal;
     }
     if (state) {
-      if (distance(position, state.progressPosition) > 0.08) {
+      if (distance(position, state.progressPosition) > STEER.progressStep) {
         state.progressPosition = { ...position };
         state.progressAt = time;
       }
-      if (time - state.progressAt > 0.75) {
+      if (time - state.progressAt > STEER.stallSeconds) {
         reset(actor);
         state = null;
       } else if (state.route) {
         // Advance only when the full-body next leg is legal from the current live position.
         while (
           state.index < state.route.length - 1 &&
-          distance(position, state.route[state.index]) < 0.15 &&
+          distance(position, state.route[state.index]) < STEER.waypointReach &&
           bodyLineClear(geometry, position, state.route[state.index + 1], radius)
         )
           state.index++;
@@ -104,7 +88,7 @@ export function createBridgeSteering() {
         if (bodyLineClear(geometry, position, target, radius)) return target;
         reset(actor);
         state = null;
-      } else if (time - state.progressAt < 0.5) return goal;
+      } else if (time - state.progressAt < STEER.creepSeconds) return goal;
     }
     let road = roads.get(geometry);
     if (!road) {

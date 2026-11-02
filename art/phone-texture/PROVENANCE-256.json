@@ -1,0 +1,38 @@
+{
+  "purpose": "256 px texture copies for phones: the Hollow Scavenger body's Photo metallic-roughness and normal maps, and the knife and cleaver maps. The player's own Photo maps and the hunter and boss knives already ship at 256; this brings the hollow body and the two hand props to the same size. Originals stay untouched; knife and cleaver are new files.",
+  "tool": "art/phone-texture/cap_tex_roles.py src dst <role>=256 (Pillow LANCZOS, JPEG q90 4:4:4 optimize). Only image bufferView payloads change; every other byte range, including the EXT_meshopt_compression ranges, is copied byte-for-byte in original order. The script now reads the texture source through extensions (EXT_texture_webp) and copies meshopt-compressed ranges; before this change it could not process the hollow phone file.",
+  "files": {
+    "hollow-scavenger-phone": {
+      "path": "Web/public/assets/hollow-scavenger/hollow-scavenger-phone.glb",
+      "source": "Web/public/assets/hollow-scavenger/hollow-scavenger-phone.glb at main c9663d2f (sha256 645722efc7d42cd85d8659b2ce650821486b201947660fff2357fd30de7e13cb, 1480368 bytes)",
+      "command": "mr=256,normal=256",
+      "sha256": "b5cee5c63c8a9d65a664045024758b8b352587bbd56f50ba3bf060c1fc6a2c79",
+      "bytes": 1461708,
+      "changedImages": "Photo metallicRoughness and normal, 512 -> 256. Colour maps (Photo, PhotoEyes, PhotoTeeth, 512) unchanged, so they stay shared with the player.",
+      "estimatedGpuMB": {"saved": 2.1, "basis": "RGBA8 with full mip chain (x4/3) per image"}
+    },
+    "knife-phone": {
+      "path": "Web/public/assets/donor/knife-phone.glb",
+      "source": "Web/public/assets/donor/knife.glb (sha256 b2f84216c0e3958391a84d72d174a70e474ee2af0a808632d1ad36b8c061bfec, 382956 bytes)",
+      "command": "color=256,mr=256",
+      "sha256": "a31db0551c13a7b7f84b7110c51d3427256b5b571a795a0c4ae9ef704b49a011",
+      "bytes": 358480,
+      "changedImages": "colour 512 -> 256, metallicRoughness 512 -> 256, shaft colour 256x1024 -> 64x256 (the sizes the hunter knife uses).",
+      "estimatedGpuMB": {"saved": 3.0}
+    },
+    "pitborn-cleaver-phone": {
+      "path": "Web/public/assets/weapons/pitborn-cleaver-phone.glb",
+      "source": "Web/public/assets/weapons/pitborn-cleaver.glb (sha256 6040e932c423a03b4179224e1557359511b48037d0c31038c3c87816eb57cd4d, 410920 bytes)",
+      "command": "color=256,mr=256",
+      "sha256": "507b9b4fe26a7f90d0f477390d0d9247279355a7584e3ca57a00b66178f1a07a",
+      "bytes": 384288,
+      "changedImages": "colour 512 -> 256, metallicRoughness 512 -> 256, shaft colour 256x1024 -> 64x256.",
+      "estimatedGpuMB": {"saved": 3.0}
+    }
+  },
+  "verification": {
+    "compare": "every non-image byte range identical to the source (45 in the hollow body, 272 each in knife and cleaver); bufferView metadata and the rest of the glTF JSON identical apart from offsets.",
+    "stills": "art/phone-texture/b256-stills (see the PR)."
+  },
+  "pins": "Only Web/public/assets/manifest-hollow.json changes: the hollow-scavenger row pin, the knife equipment urls now donor/knife-phone.glb, the cleaver equipment url and pin, and files rows weapon-phone and hollow-phone. donor/knife.glb, weapons/pitborn-cleaver.glb and their pins stay for every test and tool that reads the originals."
+}

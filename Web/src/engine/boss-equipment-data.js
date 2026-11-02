@@ -1,52 +1,28 @@
 import { BONE_SAW_RULES } from "./bone-saw.js";
-import { SHOTGUN_PROFILE, GRENADE_PROFILE, MARSHAL_PISTOL_PROFILE, ROCKET_PROFILE } from "./weapon-catalog.js";
+import { GAME_DATA } from "./game-data.js";
+import { RANGED_WEAPON_CATALOG } from "./weapon-catalog.js";
 import { closedData } from "./progression-state.js";
-export const SURGEON_KNIFE_PROFILE = Object.freeze({
-  itemId: "surgeons-knife-v1",
-  name: "The Bone Saw",
-  family: "blades",
-  weaponKey: "knife",
-  delivery: "melee",
-  modelRef: null,
-  finisherBinding: "knife",
-  rules: Object.freeze({ ...BONE_SAW_RULES, pickupRadius: 1.3 }),
-  source: Object.freeze({
-    placementKey: "boss-surgeon-v1",
-    areaId: "lambeth",
-    receiptId: "boss-surgeon-v1:surgeons-knife-v1",
-  }),
-});
-export const EMBER_PROJECTOR_PROFILE = Object.freeze({
-  itemId: "ember-flamethrower-v1",
-  name: "Ember Projector",
-  family: "flamethrowers",
-  weaponKey: "knife",
-  delivery: "cone",
-  modelRef: "player-flamethrower",
-  finisherBinding: "flamethrower",
-  rules: Object.freeze({
-    damage: 10,
-    interval: 0.2,
-    range: 3,
-    fuelCapacity: 1000,
-    unitsPerSecond: 10,
-    saveCoalesceSeconds: 1,
-    pickupRadius: 1.3,
-  }),
-  source: Object.freeze({
-    placementKey: "boss-witch-v1",
-    areaId: "westminster",
-    receiptId: "boss-witch-v1:ember-flamethrower-v1",
-  }),
-});
-export const BOSS_EQUIPMENT_PROFILES = Object.freeze({
-  shotgun: SHOTGUN_PROFILE,
-  grenade: GRENADE_PROFILE,
-  surgicalKnife: SURGEON_KNIFE_PROFILE,
-  commanderPistol: MARSHAL_PISTOL_PROFILE,
-  emberProjector: EMBER_PROJECTOR_PROFILE,
-  rocketLauncher: ROCKET_PROFILE,
-});
+// The six boss-reward profiles, built from weapons.json `bossEquipment` (field order, the four ranged catalogue rows by id, the
+// Bone Saw and Ember Projector rows). The Bone Saw's rules are the continuous-melee rules plus its pickup radius.
+function buildBossEquipmentProfiles() {
+  const data = GAME_DATA.weapons.bossEquipment,
+    { pickupRadius, source, ...saw } = data.surgicalKnife,
+    profiles = {
+      ...Object.fromEntries(
+        Object.entries(data.ranged).map(([field, itemId]) => [field, RANGED_WEAPON_CATALOG[itemId]]),
+      ),
+      surgicalKnife: Object.freeze({
+        ...saw,
+        rules: Object.freeze({ ...BONE_SAW_RULES, pickupRadius }),
+        source,
+      }),
+      emberProjector: data.emberProjector,
+    };
+  return Object.freeze(Object.fromEntries(data.order.map((field) => [field, profiles[field]])));
+}
+export const BOSS_EQUIPMENT_PROFILES = buildBossEquipmentProfiles();
+export const SURGEON_KNIFE_PROFILE = BOSS_EQUIPMENT_PROFILES.surgicalKnife;
+export const EMBER_PROJECTOR_PROFILE = BOSS_EQUIPMENT_PROFILES.emberProjector;
 export function validateBossEquipmentData(input, registry, residents) {
   if (input === undefined) return null;
   if (!closedData(input, ["version"]) || input.version !== 1) throw TypeError("Invalid boss equipment selection");

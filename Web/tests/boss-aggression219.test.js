@@ -8,22 +8,39 @@ import {stepGame} from '../src/combat.js';
 
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url)));
 const data=read('../public/world/area-content.json'),base=read('./fixtures/boss-aggression218-baseline.json');
+// 28 Oct new monsters (art/crow): the crow takes the cycle B creature of two slots; cycle A, the keys and everything else stay as they were.
+const MONSTER_CYCLES={'east-bridge':{B:{foundationRef:'original-crow',recipeRef:'crow-carrion'}},lambeth:{B:{foundationRef:'original-crow',recipeRef:'crow-ragged'}},east:{B:{foundationRef:'giant-eel',recipeRef:'eel-river-ambusher'}},'elephant-and-castle':{A:{foundationRef:'original-elephant',recipeRef:'elephant-ashen-bull',off:{foundationRef:'original-dog',recipeRef:'dog-street-mongrel'}},B:{foundationRef:'original-elephant',recipeRef:'elephant-ashen-bull',off:{foundationRef:'original-roach',recipeRef:'roach-ash'}}},area7:{A:{foundationRef:'original-rat',recipeRef:'rat-king',appearanceRef:'rat-king',off:{foundationRef:'original-rat',recipeRef:'rat-soot'}},B:{foundationRef:'original-spider',recipeRef:'spider-crypt'}}}; // 28 Oct: the Rat King takes the area7 cycle A creature (rat-soot stays under off); the spider takes the area7 cycle B creature; 28 Oct: the elephant takes both cycles of its slot, the original creature stays under off // 28 Oct: the giant eel takes the East cycle B creature
 test('219 changes only six boss movement/acquisition/timing fields and uniformly resampled native paths',()=>{
- const {bosses,...other}=data;assert.deepEqual(other,base.protected);
- assert.deepEqual(bosses.placements,base.bosses.placements);assert.deepEqual(bosses.profiles.witch,base.bosses.profiles.witch);
- assert.deepEqual(bosses.paths['boss-witch-attack'],base.bosses.paths['boss-witch-attack']);
+ const {bosses,...other}=structuredClone(data);delete other.expedition.contract.enabled;delete other.cursedRelic;delete other.marked.hunters;delete other.marked.bounty;delete other.population.respawn; // 27 Oct: hostile respawn policy (population.respawn) // the 24 Oct contract/hunter/bounty switches
+ const expected=structuredClone(base.protected);expected.population.areas.area8.creatureSlot.cycles.B={foundationRef:'giant-centipede',recipeRef:'centipede-lurker'}; // 28 Oct: the centipede takes the Area 7 cycle B creature slot
+for(const key of['hunterBounty','arrivalDelay','respawnDelay','hostileBudget']){delete other.marked[key];delete expected.marked[key];} // 25 Oct: hunters always on (no bounty gate); 26 Oct: 60 s first arrival, 90 s re-arrival, no resident cap
+ // 27 Oct population-spread: about 10 hostiles per area. Every original resident row must remain unchanged, in order, as a prefix of the new rows; the population policy keeps every original active placement and creature slot (it only grows the active list and the cap).
+ for(const[area,rows]of Object.entries(expected.residents))assert.deepEqual(other.residents[area].slice(0,rows.length),rows,area);
+ for(const[area,policy]of Object.entries(expected.population.areas)){const now=other.population.areas[area];assert.deepEqual(now.activePlacementIds.slice(0,policy.activePlacementIds.length),policy.activePlacementIds,area);const slot=structuredClone(policy.creatureSlot);Object.assign(slot.cycles,MONSTER_CYCLES[area]??{});assert.deepEqual(now.creatureSlot,slot,area);assert.equal(now.allowDroneFallback,policy.allowDroneFallback,area);}
+ delete other.safehouse;delete expected.safehouse; // 27 Oct: the Westminster safehouse was removed (Dom's ruling); the Central Hub site is now the only one
+ delete other.residents;delete expected.residents;delete other.population;delete expected.population;
+ assert.deepEqual(other,expected);
+ assert.deepEqual(bosses.placements,base.bosses.placements);{const {wakeDistance,homeLeash,contactScale,...witch}=bosses.profiles.witch,{wakeDistance:w0,homeLeash:h0,contactScale:c0,...witch0}=base.bosses.profiles.witch;assert.equal(contactScale,1.1*c0);for(const x of[witch,witch0])x.attacks=structuredClone(x.attacks),delete x.attacks.slash.windupTicks,delete x.attacks.slash.recoveryTicks;assert.equal(bosses.profiles.witch.attacks.slash.windupTicks+bosses.profiles.witch.attacks.slash.recoveryTicks,70); /* 1 Nov: Medea's Attack clip crosses the player's centreline at about tick 35 of 80, so the active window moved from 24-34 to 30-40 (windup 30, recovery 40, total unchanged) */assert.deepEqual(witch,witch0);assert.equal(wakeDistance,10);assert.equal(homeLeash,18);} // 26 Oct: witch wake/leash follow the other bosses; every other witch field is the 218 baseline
+ {const frames=bosses.paths['boss-witch-attack'],w=bosses.profiles.witch.attacks.slash;assert.equal(frames.length,w.windupTicks+w.activeTicks+w.recoveryTicks+1);assert(frames.every(f=>f.length===6&&f.every(Number.isFinite)));} // 1 Nov: the Ember Matron is the Mixamo Medea on the 106 rig, so her strike path is re-baked from the new Attack clip (art/medea-106/attack-path.mjs), not the old body's
  for(const[id,p]of Object.entries(bosses.profiles)){
   const old=base.bosses.profiles[id];if(id==='witch')continue;
-  assert.equal(p.moveSpeed,Math.round(old.moveSpeed*1.275*1e6)/1e6);
-  assert.equal(p.wakeDistance,['surgeon','butcher','nightborn'].includes(id)?4.62:3.36);
-  const allowed=new Set(['moveSpeed','wakeDistance',...(id==='surgeon'?['weapon']:['attacks','recoveryDelay'])]);
+  assert.equal(p.moveSpeed,1.9); // 26 Oct (Dom): bosses were too passive; was the 218 speed x 1.275 (1.285 to 1.785); the witch keeps 2.275
+  // Wake is 10 m, except where the area's entry is closer than 10.5 m to the boss (a player arriving must start outside the wake band): Warden 5, Nightborn 8.
+  assert.equal(p.wakeDistance,{warden:5,nightborn:8}[id]??10);
+  assert.equal(p.homeLeash,18);
+  const allowed=new Set(['moveSpeed','wakeDistance','homeLeash',...(id==='surgeon'?['weapon','attacks']:['attacks','recoveryDelay']),...(id==='knight'?['contactScale','minimumAttackDistance']:[]),...(id==='nightborn'?['contactScale']:[]),...(id==='warden'?['contactScale']:[]),...(id==='butcher'?['contactScale']:[]),...(id==='surgeon'?['contactScale']:[])]); // 1 Nov: the Stalker is the Parasite body (scale 0.95), its contact scale follows and its strike path is re-baked from its own Attack clip
   for(const key of Object.keys(old))if(!allowed.has(key))assert.deepEqual(p[key],old[key],id+':'+key);
-  if(id==='surgeon'){assert.deepEqual(p.attacks,old.attacks);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
+  if(id==='surgeon'){/* 1 Nov: the Whiteclown's Attack clip thrusts at ticks 33-37, so the strike timing is 31/8/41 (same 80 ticks) and range 1.3 (the sweep peaks 1.9-2.4 m out), art/surgeon-106/attack-path.mjs */assert.deepEqual(Object.fromEntries(Object.entries(p.attacks.slash).filter(([k])=>(!k.endsWith('Ticks')&&k!=='range')||k==='staggerTicks')),Object.fromEntries(Object.entries(old.attacks.slash).filter(([k])=>(!k.endsWith('Ticks')&&k!=='range')||k==='staggerTicks')));assert.equal(p.attacks.slash.windupTicks+p.attacks.slash.activeTicks+p.attacks.slash.recoveryTicks,80);assert.deepEqual({...p.weapon,windupTicks:48,recoveryTicks:84},old.weapon);assert.equal(p.weapon.activeTicks,60);continue;}
   assert.equal(p.recoveryDelay,.4);
   for(const[action,a]of Object.entries(p.attacks)){
-   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks'].includes(key))assert.deepEqual(a[key],oa[key]);
+   const oa=old.attacks[action];for(const key of Object.keys(oa))if(!['windupTicks','activeTicks','recoveryTicks',...(['veteran','warden'].includes(id)?['clip']:[]),...(id==='knight'?['clip','range']:[])].includes(key))assert.deepEqual(a[key],oa[key]); // 1 Nov: the Borough Marshal is the Mixamo Survivor on the 106 rig, so its clip is Heavy, not the old Maul_Heavy; the Station Breaker is the Mixamo Knight (clip Heavy, sword range 1.4)
    const frames=bosses.paths[a.path],oldFrames=base.bosses.paths[a.path];
+   if(id==='nightborn'){assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);continue;} // re-baked from the Parasite Attack clip
    assert.equal(frames.length,a.windupTicks+a.activeTicks+a.recoveryTicks+1);
+   if(id==='butcher')continue; // 1 Nov: the Borough Butcher is the Mixamo Warrok (scale 0.85, contactScale 0.85 x 1.3225); its path is re-baked from the new body's own Attack clip (art/borough-butcher-106/attack-path.mjs), not resampled from the old cleaver clip
+   if(id==='veteran')continue; // 1 Nov: the Marshal path is re-baked from the new body's own Heavy clip (art/boss-borough-marshal-106), not resampled from the old maul clip
+   if(id==='knight')continue; // 1 Nov: the Station Breaker path is baked from the Mixamo Knight's own Heavy clip (art/knight-106/attack-path.mjs), contactScale 1.19025, not a resample of the Maul path
+   if(id==='warden')continue; // 1 Nov: the Warden's contactScale is now manifest scale 0.93 x 1.3225 (public-area-bosses pins it); the path is re-baked from the new body's own Heavy clip (art/boss-warden-106/attack-path.mjs), not resampled from the old maul clip
    // DonorMotion samples native clips uniformly, so physical contact must use
    // the same source phase rather than retaining stale active-only samples.
    for(let i=0;i<frames.length;i++){
@@ -69,7 +86,7 @@ test('NPC rocket world collision wins over later player surface and cannot damag
 });
 test('actual registered native heavy consumes new profile and extra idle only once',()=>{
  for(const id of ['warden','knight','veteran']){
-  const row=data.bosses.placements.find(r=>r.profileRef===id),f=fixture({areaId:row.areaId}),g=f.g,e=g.enemies.find(e=>e.placementKey===row.key);g.enemies=[e];e.pos={x:0,z:0};e.home={...e.pos};e.alerted=true;e.facing={x:0,z:1};g.player.pos={x:0,z:2};g.world.lineClear=()=>true;g.world.move=(p,d)=>({x:p.x+d.x,z:p.z+d.z});
+  const row=data.bosses.placements.find(r=>r.profileRef===id),f=fixture({areaId:row.areaId}),g=f.g,e=g.enemies.find(e=>e.placementKey===row.key);g.enemies=[e];e.pos={x:0,z:0};e.home={...e.pos};e.alerted=true;e.facing={x:0,z:1};g.player.pos={x:0,z:id==='knight'?1.3:2};/* the Knight's sword reaches 1.4 range (art/knight-106/attack-path.mjs bake), so the player stands inside it */g.world.lineClear=()=>true;g.world.move=(p,d)=>({x:p.x+d.x,z:p.z+d.z});
   stepGame(g,{},1/60);assert(e.swing);assert.equal(e.swing.def.windupTicks,36);assert.equal(e.swing.def.activeTicks,8);assert.equal(e.swing.def.recoveryTicks,36);assert(Math.abs(e.ready-e.swing.start-(80/60+.4))<1e-10);
   const time=g.time;stepGame(g,{paused:true});assert.equal(g.time,time);assert.equal(g.bossRockets.length,0);
  }

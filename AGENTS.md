@@ -12,11 +12,13 @@ Private emergency references live outside this repo at
 Historical Git commits/receipts are provenance only; never restore engine tooling
 or publish archived builds without new explicit owner instruction.
 
-Lead owns canonical integration/package/contract. Combat owns mechanics;
-Characters owns portable rigs/weapons/asset provenance; World owns registered
-layout/collision/occlusion/audio; WebUI owns HUD/input; Deploy owns exact immutable
-hosting/rollback; Backend owns isolated optional auth/private prototype saves;
-Strategy owns scope; Auditor independently reviews milestones on demand.
+Four lanes (27 Oct 2026, one session per deployable surface, parallel Sonnet 5.5
+agents inside each): Lead owns canonical integration/package/contract, gameplay
+(mechanics, HUD/input) and is the single merger. Server & Deploy owns exact immutable
+hosting/rollback, the rollback floor, nginx, migrations, auth and private prototype
+saves. Art owns portable rigs/weapons/asset provenance and registered
+layout/collision/occlusion/audio. Auditor independently reviews each PR and release.
+Strategy owns scope.
 Use confirmed isolated lanes, bounded file/commit handoffs, no wholesale private
 baseline merge. Preserve dirty authoring, donor originals, rigs and portable art.
 Frankendom is read-only; do not touch its production users/database/keys.
@@ -37,3 +39,7 @@ No paid GPU; suitable bounded HF CPU requires actual approved hardware/rate
 verification. Heavy jobs run remotely under the workspace compute policy. Do not edit unrelated projects,
 Claude settings or handovers. Shared Codex coordination for all lanes:
 /Users/domininclynch/Desktop/Business/Vibe Coding Management/codex-state/armagedom.md.
+
+## Release path (from 2026-11-01)
+
+VPS builds are retired. The VPS is production only: it never runs `npm ci`, the gate or a build. Builds, gates and packaging run on the laptop in WSL2 (Ubuntu-24.04, Node 22.x to match the VPS); the Windows-side Node at `C:\arma-work` is for dev tests only, never for cuts. Full detail and the five commands: `tools/deploy/README.md`.
