@@ -183,7 +183,8 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
         // Retry swaps in a fresh run whose clock starts again: the bag outlives the dead run with its remaining scavenger time.
         if (command.type === "retry" && g.corpseBag)
           current.corpseBag = { ...g.corpseBag, expiresAt: current.time + g.corpseBag.expiresAt - g.time };
-        // The cash a DEATH took out of the record, and the weapon in hand, go into a session-only body bag: cash moved, never copied.
+        // The cash a DEATH took out of the record, and the weapon in hand, go into the body bag (already in the record just written):
+        // cash moved, never copied.
         // Retry while alive drops no bag (its cash is zeroed as it always was), so Retry is never a way to park cash or a weapon.
         // Where the player fell was read before any travel.
         if (dropped) placeCorpseBag(current, dropped, committed.time ?? 0);

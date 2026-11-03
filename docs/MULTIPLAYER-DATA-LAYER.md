@@ -19,6 +19,7 @@ The v18 record (from `Web/tests/fixtures/navigation203-source202-v18.json`) has 
 | progress | `progression.proficiency`, `progression.awards`, `progression.attributes` | the server (earned by kills) |
 | consumables | ammo `magazine`/`reserve`, `locker.ammo`, `flameFuel.fuelUnits`, `supplies` | the client, capped |
 | state | `hp`, `animalCycle`, `openingStory`, `droneDeaths` | the client, capped |
+| death body bag | `corpseBag` (optional; migration 000029): `areaId`, `position`, `cash`, `gearId`, `gearName`, `remaining` | the client, capped; it holds cash that already left `marked.carried`, so it adds no money |
 
 ## What is missing against the brief
 
