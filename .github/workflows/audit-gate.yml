@@ -51,8 +51,8 @@ jobs:
               *) echo "tier-b: newest verdict is not a PASS: '${verdict:-none}'"; exit 1;;
             esac
             case "$HEAD_SHA" in
-              "$sha"*) echo "tier-b: Auditor PASS at $sha matches head $HEAD_SHA."; exit 0;;
-              *) echo "tier-b: Auditor PASS is at $sha, but the head is $HEAD_SHA."; exit 1;;
+              "$sha"*) echo "tier-b: $verdict matches head $HEAD_SHA."; exit 0;;
+              *) echo "tier-b: $verdict is not the head $HEAD_SHA."; exit 1;;
             esac
           fi
           echo "No tier label: Lead adds tier-a or tier-b."; exit 1
