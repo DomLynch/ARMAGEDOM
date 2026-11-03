@@ -166,7 +166,8 @@ export function stepCorpseRun(g, dt) {
   if (!bag) return;
   holdBackPistol(g);
   if (g.time >= bag.expiresAt) {
-    // The cash is gone. The weapon comes back to its owner ("release") or stays withheld ("keep"): the saved bag keeps it so, across reloads, with no cash in it.
+    // The cash is gone. The weapon comes back to its owner ("release") or stays withheld ("keep"):
+    // the saved bag keeps it so, across reloads, with no cash in it.
     if (rules.gear.onScavenge === "keep" && bag.gearId) {
       Object.assign(bag, { cash: 0, expiresAt: Infinity, hud: "" });
       return toast(g, webText("corpse.lost", { contents: contents(0, bag.gearName) }));
