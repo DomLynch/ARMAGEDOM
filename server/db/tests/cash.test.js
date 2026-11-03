@@ -123,6 +123,50 @@ test("old saves still load and re-save, but their total can never be raised", as
   assert.deepEqual([regain.clamped, regain.carried], [true, 0], "and the money it gave up is not claimable again without a kill");
 });
 
+// 000029: the death body bag counts toward the ceiling. A balance the server never granted is vouched for only by what the stored run holds; a death moves
+// it out of carried into the bag, so without the bag in the total the pickup was clamped and the whole bag lost.
+const bagOf = (cash, gearId = null) => ({ corpseBag: { areaId: "westminster", position: { x: 1.5, z: -2 }, cash, gearId, gearName: gearId ? "Starting Pistol" : null, remaining: 200 } });
+
+test("dying and taking the bag back never loses cash the server did not grant; a forged bag cannot mint (000029)", async () => {
+  const { db, alice, save, stored } = await setup();
+  assert.equal((await save(0, 0)).revision, 1);
+  await db.exec(`update public.arma_runs set record = jsonb_set(record, '{marked,carried}', '300'::jsonb) where character = '${alice}'`); // 300 the server never granted
+  const died = await save(0, 0, { extra: bagOf(300, "westminster-start-pistol-v1") });
+  assert.equal(died.clamped, undefined, "carried 300 became bag 300: the total did not move");
+  assert.equal((await stored()).corpseBag.cash, 300);
+  const back = await save(300, 0);
+  assert.equal(back.clamped, undefined, "the pickup moves it back: nothing is clamped");
+  assert.deepEqual([(await stored()).marked.carried, (await stored()).corpseBag], [300, undefined]);
+  // Spent down to nothing, then a forged bag of 5000 with a weapon in it and another without.
+  assert.equal((await save(0, 0)).clamped, undefined);
+  const forged = await save(0, 0, { extra: bagOf(5000, "westminster-start-pistol-v1") });
+  assert.deepEqual([forged.clamped, forged.carried, forged.bank, forged.bag], [true, 0, 0, 0], "the bag is clamped to what could be held, first");
+  assert.equal((await stored()).corpseBag.cash, 0, "the weapon part of the bag stays");
+  assert.equal((await stored()).corpseBag.gearId, "westminster-start-pistol-v1");
+  const empty = await save(0, 0, { extra: bagOf(5000) });
+  assert.equal(empty.bag, 0);
+  assert.equal((await stored()).corpseBag, undefined, "an emptied bag with no weapon is removed (it is not a valid record)");
+  // Real money is not touched to pay for a forged bag: the bag gives up first.
+  await db.exec(`update public.arma_runs set record = jsonb_set(record, '{marked,carried}', '100'::jsonb) where character = '${alice}'`);
+  const mixed = await save(100, 0, { extra: bagOf(50) });
+  assert.deepEqual([mixed.clamped, mixed.carried, mixed.bag], [true, 100, 0]);
+  assert.equal((await stored()).marked.carried, 100);
+});
+
+test("the down file hands a stored bag's cash back to carried, strips the key and bumps the revision (000029)", async () => {
+  const { db, alice, save, stored } = await setup();
+  assert.equal((await save(0, 0)).revision, 1);
+  await db.exec(`update public.arma_runs set record = jsonb_set(record, '{marked,carried}', '50'::jsonb) where character = '${alice}'`);
+  assert.equal((await save(0, 0, { extra: bagOf(50) })).clamped, undefined);
+  assert.equal((await stored()).corpseBag.cash, 50);
+  const before = (await call(db, "select revision from public.arma_runs where character = $1", [alice]))[0].revision;
+  await db.exec(fs.readFileSync(new URL("../../../supabase/down/20261103000029_arma_record_corpse_bag_down.sql", import.meta.url), "utf8"));
+  const after = await stored();
+  assert.deepEqual([after.marked.carried, after.corpseBag], [50, undefined]);
+  assert.equal((await call(db, "select revision from public.arma_runs where character = $1", [alice]))[0].revision, before + 1);
+  assert.equal((await call(db, "select count(*)::int as n from public.arma_record_keys where key = 'corpseBag'"))[0].n, 0);
+});
+
 test("enforce_cash = false is the ops escape hatch", async () => {
   const { db, save } = await setup();
   assert.equal((await save(999, 0)).clamped, true);

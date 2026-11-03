@@ -15,7 +15,7 @@ export function validateCorpseRun(d) {
   count(FILE, "drop.minCash", d.drop.minCash, 1, 1000000);
   closed(d.retrieve, ["radius"]);
   number(FILE, "retrieve.radius", d.retrieve.radius, 0.1);
-  closed(d.bag, ["scavengerSeconds", "mergeOnSecondDeath", "noticeSeconds", "stealableBy"]);
+  closed(d.bag, ["scavengerSeconds", "mergeOnSecondDeath", "noticeSeconds", "saveEverySeconds", "stealableBy"]);
   // The hook for later (other players stealing a bag): only "none" exists today and nothing reads another value.
   if (d.bag.stealableBy !== "none") fail(FILE, "bag.stealableBy must be none (stealing is not built)");
   closed(d.gear, ["enabled", "neverDrop", "fallbackMelee", "onScavenge"]);
@@ -29,6 +29,8 @@ export function validateCorpseRun(d) {
   if (!Array.isArray(d.respawn.homeAreas) || d.respawn.homeAreas.some((a) => typeof a !== "string" || !a)) fail(FILE, "respawn.homeAreas must list area ids");
   number(FILE, "bag.scavengerSeconds", d.bag.scavengerSeconds, 1);
   number(FILE, "bag.noticeSeconds", d.bag.noticeSeconds, 1);
+  // How far the saved countdown may lag the live one: a smaller step saves more often, a refresh gives back at most this much time.
+  number(FILE, "bag.saveEverySeconds", d.bag.saveEverySeconds, 1);
   if (typeof d.bag.mergeOnSecondDeath !== "boolean") fail(FILE, "bag.mergeOnSecondDeath must be a boolean");
   closed(d.convergence, ["enabled", "engageRadius", "leashPadding", "arriveRadius"]);
   if (typeof d.convergence.enabled !== "boolean") fail(FILE, "convergence.enabled must be a boolean");

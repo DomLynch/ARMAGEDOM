@@ -189,6 +189,34 @@ test("each fractional field is accepted in range and refused out of it; every ot
   await refused("marked.carried stays whole", withFields({ marked: { ...base.marked, carried: 10.5 } }));
 });
 
+// 000029: the death body bag rides in the run record as `corpseBag` (Web/src/engine/corpse-run.js). The key and its two caps are new; the position is
+// capped by the existing '*position.x/z' rows, and the strings by the default string length.
+test("a record with a death body bag is saved and loads back exactly; the bag's key, shape and caps are enforced (000029)", async () => {
+  const { db, alice } = await setup();
+  let seq = 0,
+    revision = 0;
+  const base = playedRecords[0][1],
+    bag = { areaId: "westminster", position: { x: 0.827625465912175, z: -5.173085527961053 }, cash: 100, gearId: "westminster-start-pistol-v1", gearName: "Starting Pistol", remaining: 233.5 };
+  const save = async (record) => {
+    const r = await call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, $4, $5) as r", [ids.alice, alice, JSON.stringify(record), revision, ++seq]).then((rows) => rows[0].r);
+    if (r.revision && !r.refused) revision = r.revision;
+    return r;
+  };
+  const saved = await save({ ...base, corpseBag: bag });
+  assert.equal(saved.refused, undefined, JSON.stringify(saved));
+  assert.deepEqual((await call(db, "select public.arma_load_run($1, $2) as r", [ids.alice, alice]))[0].r.record.corpseBag, bag, "stored exactly as the game wrote it");
+  const gone = await save({ ...base, corpseBag: { ...bag, gearId: null, gearName: null, cash: 0, remaining: null } });
+  assert.equal(gone.refused, undefined, "null leaves are allowed (cash gone, weapon still withheld)");
+  const refused = async (corpseBag) => (await save({ ...base, corpseBag })).refused;
+  assert.equal(await refused({ ...bag, cash: 1000000001 }), "cap", "cash is capped like the other money fields");
+  assert.equal(await refused({ ...bag, cash: 1.5 }), "shape", "cash is a whole number");
+  assert.equal(await refused({ ...bag, remaining: 3601 }), "cap");
+  assert.equal(await refused({ ...bag, remaining: -1 }), "cap");
+  assert.equal(await refused({ ...bag, position: { x: 1e9, z: 0 } }), "cap", "the position uses the world coordinate rows");
+  assert.equal(await refused({ ...bag, cash: "100" }), "shape", "a cap is not dodged by changing the JSON type");
+  assert.equal((await save({ ...base, bag })).refused, "shape", "only the key corpseBag is on the closed list");
+});
+
 test("events are idempotent: the second insert of an id raises O0001", async () => {
   const { db, alice } = await setup();
   const record = () => call(db, "select public.arma_record_event($1, $2, 'save:e1', 'save', '{}')", [ids.alice, alice]);

@@ -33,6 +33,12 @@ export function adoptServerCash(game, reply, { run = null, sent = null } = {}) {
   const drop = (was, now) => Math.max(0, was - now);
   game.marked.carried = Math.max(0, game.marked.carried - drop(sent.carried, reply.carried));
   game.marked.bank = Math.max(0, game.marked.bank - drop(sent.bank, reply.bank));
+  // The same clamp can lower the death body bag's cash (the server takes it first); an emptied bag with no weapon in it is gone.
+  // A clamp that lands after the bag was picked up (game.corpseBag is null) is skipped here: the next save is clamped again and nothing is duplicated.
+  if (game.corpseBag && Number.isFinite(reply.bag) && Number.isFinite(sent.bag)) {
+    game.corpseBag.cash = Math.max(0, game.corpseBag.cash - drop(sent.bag, reply.bag));
+    if (game.corpseBag.cash === 0 && !game.corpseBag.gearId) game.corpseBag = null;
+  }
   return true;
 }
 
@@ -327,7 +333,7 @@ export function createSaveClient({
     if (!urgent) while (claimQueue.length) await new Promise((resolve) => claimWaiters.push(resolve));
     await who(); // a changed account resets the cached character, revision and sequence BEFORE the request is built
     if (!(await sync()) || !character) return { ok: false, reason: "offline" };
-    const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0 };
+    const sent = { carried: record.marked?.carried ?? 0, bank: record.marked?.bank ?? 0, bag: record.corpseBag?.cash ?? 0 };
     for (let attempt = 0; attempt <= tuning.staleSeqRetries; attempt++) {
       // A page-hide send left after this one began: it carries a NEWER record. This record must never be sent (or resent) now, or the
       // server would end on the older state (a living save over a death). Nothing is requeued: the newer record is sent or kept.
@@ -387,7 +393,11 @@ export function createSaveClient({
       if (!record.marked || !Number.isFinite(record.marked.carried) || !Number.isFinite(record.marked.bank)) return;
       record.marked.carried = Math.max(0, record.marked.carried - Math.max(0, sent.carried - reply.carried));
       record.marked.bank = Math.max(0, record.marked.bank - Math.max(0, sent.bank - reply.bank));
-      latest = { raw: JSON.stringify(record), run };
+      if (record.corpseBag && Number.isFinite(reply.bag)) {
+        record.corpseBag.cash = Math.max(0, record.corpseBag.cash - Math.max(0, sent.bag - reply.bag));
+        if (record.corpseBag.cash === 0 && !record.corpseBag.gearId) delete record.corpseBag;
+      }
+      latest ={ raw: JSON.stringify(record), run };
     } catch {
       /* An unreadable pending record is dropped by its own send. */
     }

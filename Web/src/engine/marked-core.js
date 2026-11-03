@@ -2,7 +2,15 @@ import { closedData } from "./progression-state.js";
 import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
 import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
-import { dropCorpseBag, gearOf } from "./corpse-run.js";
+import {
+  makeCorpseBag,
+  placeCorpseBag,
+  gearOf,
+  savedCorpseBag,
+  validSavedCorpseBag,
+  restoreCorpseBag,
+  isBagSaved,
+} from "./corpse-run.js";
 export const MARKED_SAVE_KEY = "armagedom:marked-run:v18";
 const same = (a, b) =>
   a.version === b.version &&
@@ -27,7 +35,10 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       if (!validMarked(state(g), rules().maxMoney)) throw TypeError("Invalid Marked envelope");
       const old = JSON.parse(base.codec.encodeRun(g));
       if (old.version !== 17) throw TypeError("Unexpected Marked foundation");
-      return JSON.stringify({ ...old, version: 18, marked: copyMarked(state(g)) });
+      // The death body bag rides in the same record as the cash and the weapon it took; no bag, no key (a record without one is unchanged).
+      const bag = savedCorpseBag(g);
+      if (bag && !validSavedCorpseBag(bag, rules().maxMoney)) throw TypeError("Invalid corpse bag");
+      return JSON.stringify({ ...old, version: 18, marked: copyMarked(state(g)), ...(bag ? { corpseBag: bag } : {}) });
     },
     restoreRun(g, raw, previous) {
       const older = legacy;
@@ -39,16 +50,24 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
         }
         const data = JSON.parse(raw);
         if (!data || data.version !== 18 || !validMarked(data.marked, rules().maxMoney)) return null;
+        const bag = data.corpseBag ?? null;
+        if (bag !== null && !validSavedCorpseBag(bag, rules().maxMoney)) return null;
         const old = { ...data, version: 17 };
         delete old.marked;
+        delete old.corpseBag;
         const saved = base.codec.restoreRun(g, JSON.stringify(old), null);
-        return saved ? { ...saved, marked: copyMarked(data.marked) } : null;
+        return saved ? { ...saved, marked: copyMarked(data.marked), corpseBag: bag } : null;
       } catch {
         return null;
       }
     },
-    captureRunState: (g) => ({ base: base.codec.captureRunState(g), marked: copyMarked(state(g)) }),
-    isRunStateUnchanged: (g, s) => same(state(g), s.marked) && base.codec.isRunStateUnchanged(g, s.base),
+    captureRunState: (g) => ({
+      base: base.codec.captureRunState(g),
+      marked: copyMarked(state(g)),
+      bag: savedCorpseBag(g),
+    }),
+    isRunStateUnchanged: (g, s) =>
+      same(state(g), s.marked) && isBagSaved(savedCorpseBag(g), s.bag) && base.codec.isRunStateUnchanged(g, s.base),
   };
   function wrapDomain(execute) {
     return (command, context) => {
@@ -80,10 +99,12 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
       )
         return fail("not-eligible");
       let committed = null,
-        earned = 0;
+        earned = 0,
+        dropped = null;
       const result = execute(command, {
         ...context,
         writeRun(candidate) {
+          dropped = null;
           if (command.type !== "retry" && candidate.marked !== undefined && !same(candidate.marked, before))
             return false;
           const next = { ...candidate },
@@ -140,6 +161,15 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
             } else return false;
           }
           next.marked = money;
+          // The body bag is written in THIS record: the cash and weapon a death takes leave the record and enter the bag in one write, so
+          // no reload or crash between the two can lose or duplicate them. Retry hands the bag on to the fresh run's clock.
+          const clock = next.time ?? 0;
+          if (command.type === "retry" && g.corpseBag)
+            next.corpseBag = { ...g.corpseBag, expiresAt: clock + g.corpseBag.expiresAt - g.time };
+          if (g.player.hp <= 0 || next.player.hp <= 0) {
+            dropped = makeCorpseBag(g, before.carried - money.carried, g.corpseFell ?? fell, gearOf(g), clock);
+            if (dropped) next.corpseBag = dropped;
+          }
           if (!context.writeRun(next)) return false;
           committed = next;
           return true;
@@ -153,11 +183,11 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
         // Retry swaps in a fresh run whose clock starts again: the bag outlives the dead run with its remaining scavenger time.
         if (command.type === "retry" && g.corpseBag)
           current.corpseBag = { ...g.corpseBag, expiresAt: current.time + g.corpseBag.expiresAt - g.time };
-        // The cash a DEATH took out of the record, and the weapon in hand, go into a session-only body bag: cash moved, never copied.
+        // The cash a DEATH took out of the record, and the weapon in hand, go into the body bag (already in the record just written):
+        // cash moved, never copied.
         // Retry while alive drops no bag (its cash is zeroed as it always was), so Retry is never a way to park cash or a weapon.
         // Where the player fell was read before any travel.
-        if (g.player.hp <= 0 || committed.player.hp <= 0)
-          dropCorpseBag(current, before.carried - current.marked.carried, g.corpseFell ?? fell, gearOf(g));
+        if (dropped) placeCorpseBag(current, dropped, committed.time ?? 0);
         if (action || command.type === "retry") {
           current.player.hp = committed.player.hp;
           current.pistol = committed.pistol;
@@ -185,6 +215,9 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
     applySavedRun(g, saved) {
       base.applySavedRun(g, saved);
       g.marked = copyMarked(saved.marked);
+      const bag = restoreCorpseBag(g, saved.corpseBag);
+      if (bag) g.corpseBag = bag;
+      else delete g.corpseBag;
     },
     storageAdapter(storage) {
       const b = base.storageAdapter(storage);

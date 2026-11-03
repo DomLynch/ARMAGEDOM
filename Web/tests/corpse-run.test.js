@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateCorpseRun } from "../src/engine/game-data-corpse-run.js";
-import { dropCorpseBag, stepCorpseRun, corpseTarget, respawnArea } from "../src/engine/corpse-run.js";
+import { dropCorpseBag, stepCorpseRun, corpseTarget, respawnArea, isBagSaved } from "../src/engine/corpse-run.js";
 import { lockerStored } from "../src/engine/locker-core.js";
+import { MARKED_SAVE_KEY } from "../src/engine/marked-core.js";
 import { airdropPull } from "../src/engine/airdrop.js";
 import { adoptServerCash } from "../src/engine/save-client.js";
 import { make, earn, atArea, collectPistol } from "./helpers/marked-fixture.js";
@@ -39,7 +40,7 @@ test("rows validate and the shipped row is on", () => {
   assert.equal(RULES.enabled, true);
 });
 
-test("death moves carried cash into a bag; the bag is never in the save record; reload loses it and never restores cash", () => {
+test("death moves carried cash into a bag; the bag is in the same save record as the lowered cash; a reload brings it back and never doubles the cash", () => {
   const f = make();
   earn(f);
   const g = f.g,
@@ -52,11 +53,17 @@ test("death moves carried cash into a bag; the bag is never in the save record; 
   assert.equal(g.corpseBag.areaId, "westminster");
   assert.equal(g.marked.carried, 0);
   assert.equal(total(g), before, "cash moved from the record to the bag, none made");
-  for (const raw of f.records.values()) assert(!raw.includes("corpseBag"), "the bag is never saved");
+  const record = JSON.parse(f.records.get(MARKED_SAVE_KEY));
+  assert.equal(record.marked.carried, 0, "the cash left the record...");
+  assert.equal(record.corpseBag.cash, 100, "...in the same write that put it in the bag");
+  assert.equal(record.corpseBag.areaId, "westminster");
   const cold = make({ records: f.records });
-  assert.equal(cold.g.corpseBag, undefined);
+  assert.equal(cold.g.corpseBag.cash, 100);
+  assert.equal(cold.g.corpseBag.areaId, "westminster");
+  assert.deepEqual(cold.g.corpseBag.at, g.corpseBag.at);
   assert.equal(cold.g.marked.carried, 0);
   assert.equal(cold.g.marked.bank, bank);
+  assert.equal(total(cold.g), before, "a reload moves nothing: the cash is in the bag once");
   assert(f.p.retry());
   assert.equal(f.g.corpseBag.cash, 100, "Retry does not touch the bag");
   assert.equal(f.g.marked.carried, 0);
@@ -201,8 +208,11 @@ test("gear: the weapon in hand is withheld (not removed) while the bag holds it;
   assert.equal(g.corpseBag, null);
   assert(!lockerStored(g, id), "touching the bag frees the weapon");
   assert.equal(g.pistol.collected, true, "the weapon was never removed from the run");
+  const held = make({ records: f.records });
+  assert(lockerStored(held.g, id) && held.g.corpseBag.gearId === id, "a reload before the pickup still withholds the weapon");
+  assert(f.p.persistRun(g), "the pickup is saved");
   const cold = make({ records: f.records });
-  assert(!lockerStored(cold.g, id) && cold.g.corpseBag === undefined, "a reload never leaves a weapon withheld");
+  assert(!lockerStored(cold.g, id) && cold.g.corpseBag === undefined, "a reload after the pickup leaves no bag and no withheld weapon");
 });
 
 test("Retry while alive drops no bag and no weapon and moves no cash (it zeroes carried as it always did); an existing bag stays", () => {
@@ -314,12 +324,12 @@ test("gear: a stale equipped flag cannot fire a withheld pistol either; never du
   assert.equal(g.pistol.collected, true, "the pistol was never removed from the run");
   assert.equal(g.locker?.weapons?.length ?? 0, 0, "and never copied into the Storage");
   const cold = make({ records: f.records });
-  assert.equal(cold.g.corpseBag, undefined);
-  assert.equal(cold.g.pistol.collected, true, "a reload returns the weapon from the save");
-  assert(!lockerStored(cold.g, id));
+  assert.equal(cold.g.corpseBag.gearId, id, "a reload keeps the one bag with the one pistol");
+  assert.equal(cold.g.pistol.collected, true);
+  assert(lockerStored(cold.g, id), "and the pistol stays withheld: a refresh is no way round the corpse run");
 });
 
-test("gear: a reload with the bag outstanding returns the weapon and the cash stays lost (never both)", () => {
+test("gear: a reload with the bag outstanding keeps both in the bag (never both back, never both lost)", () => {
   const f = make();
   earn(f);
   collectPistol(f);
@@ -329,9 +339,10 @@ test("gear: a reload with the bag outstanding returns the weapon and the cash st
   die(f);
   assert(f.g.corpseBag.gearId && f.g.corpseBag.cash === 100);
   const cold = make({ records: f.records });
-  assert.equal(cold.g.corpseBag, undefined);
+  assert(cold.g.corpseBag.gearId && cold.g.corpseBag.cash === 100);
   assert.equal(cold.g.marked.carried, 0);
   assert.equal(cold.g.pistol.collected, true);
+  assert(lockerStored(cold.g, "westminster-start-pistol-v1"));
 });
 
 test("gear: rows keep the knife, cleaver and Reaper companion; scavengers release the weapon by row", () => {
@@ -371,4 +382,179 @@ test("respawn row: a death in the field restarts in the safehouse area, a death 
   assert.equal(respawnArea("east", "westminster"), RULES.respawn.safehouseAreaId);
   assert.equal(respawnArea("westminster", "westminster"), "westminster");
   assert.equal(RULES.respawn.safehouseAreaId, "central-hub");
+});
+
+// ---- The bag in the save record (corpseBag, supabase/migrations/20261103000029) ----
+const bagRecord = (f) => JSON.parse(f.records.get(MARKED_SAVE_KEY)),
+  withBag = (f, edit) => {
+    const record = bagRecord(f);
+    edit(record);
+    return new Map([...f.records, [MARKED_SAVE_KEY, JSON.stringify(record)]]);
+  };
+
+test("the countdown is saved as play seconds remaining and restarts on the loaded run's clock", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  f.g.time = 100;
+  die(f);
+  assert.equal(bagRecord(f).corpseBag.remaining, RULES.bag.scavengerSeconds);
+  // The shape the server's closed key list and caps are written for (supabase/migrations/20261103000029, server/db/tests/core.test.js).
+  assert.deepEqual(Object.keys(bagRecord(f).corpseBag), ["areaId", "position", "cash", "gearId", "gearName", "remaining"]);
+  assert.deepEqual(Object.keys(bagRecord(f).corpseBag.position), ["x", "z"]);
+  const cold = make({ records: f.records });
+  assert.equal(cold.g.corpseBag.expiresAt - cold.g.time, RULES.bag.scavengerSeconds, "play time, not the wall clock");
+  f.g.time = 160;
+  assert(f.p.persistRun(f.g));
+  assert.equal(bagRecord(f).corpseBag.remaining, RULES.bag.scavengerSeconds - 60);
+  const later = make({ records: f.records });
+  assert.equal(later.g.corpseBag.expiresAt - later.g.time, RULES.bag.scavengerSeconds - 60);
+});
+
+test("the countdown is saved again only when it has moved by saveEverySeconds, so a refresh gives back at most that", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  f.g.time = 100;
+  die(f);
+  const first = f.records.get(MARKED_SAVE_KEY);
+  f.g.time += RULES.bag.saveEverySeconds / 2;
+  assert(f.p.persistRun(f.g));
+  assert.equal(f.records.get(MARKED_SAVE_KEY), first, "a small step writes nothing");
+  f.g.time += RULES.bag.saveEverySeconds;
+  assert(f.p.persistRun(f.g));
+  assert.notEqual(f.records.get(MARKED_SAVE_KEY), first, "a full step writes the new countdown");
+  assert(isBagSaved(null, null) && !isBagSaved(null, { cash: 1 }) && !isBagSaved({ cash: 1 }, null));
+  assert(isBagSaved({ cash: 1, remaining: null }, { cash: 1, remaining: null }) && !isBagSaved({ cash: 1, remaining: null }, { cash: 1, remaining: 5 }));
+  assert(!isBagSaved({ cash: 1, remaining: 9 }, { cash: 2, remaining: 9 }), "anything but the countdown must match exactly");
+});
+
+test("a bag whose time ran out while it was away is gone on load: the cash is lost and the weapon is released", () => {
+  const f = make(),
+    id = "westminster-start-pistol-v1";
+  earn(f);
+  collectPistol(f);
+  assert(f.p.dispatchPistol(f.g, { type: "equip", itemId: id, equipped: true }, true).ok);
+  atArea(f, "westminster");
+  f.g.time = 5;
+  die(f);
+  const cold = make({ records: withBag(f, (r) => (r.corpseBag.remaining = 0)) });
+  assert.equal(cold.g.corpseBag, undefined);
+  assert(!lockerStored(cold.g, id) && cold.g.pistol.collected);
+  assert.equal(cold.g.marked.carried, 0, "the cash is not given back");
+});
+
+test("a malformed saved bag makes the record invalid rather than being trusted; one with no bag key loads as before", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  die(f);
+  const edits = [
+    (r) => (r.corpseBag.cash = -1),
+    (r) => (r.corpseBag.cash = 1.5),
+    (r) => (r.corpseBag.cash = 1e12),
+    (r) => (r.corpseBag.remaining = RULES.bag.scavengerSeconds + 1),
+    (r) => (r.corpseBag.remaining = "soon"),
+    (r) => (r.corpseBag.areaId = ""),
+    (r) => (r.corpseBag.position = { x: 1 }),
+    (r) => (r.corpseBag.extra = true),
+    (r) => (r.corpseBag.gearId = "pistol"),
+    (r) => ((r.corpseBag.cash = 0), (r.corpseBag.remaining = null)),
+    (r) => (r.corpseBag = 0),
+  ];
+  for (const edit of edits) assert(make({ records: withBag(f, edit) }).g.runSaveInvalid, edit.toString());
+  assert(!make({ records: withBag(f, (r) => delete r.corpseBag) }).g.runSaveInvalid);
+  assert(!make({ records: withBag(f, (r) => (r.corpseBag = null)) }).g.runSaveInvalid);
+  const plain = make({ earned: true });
+  assert(!plain.records.get(MARKED_SAVE_KEY).includes("corpseBag"), "no bag, no key: ordinary records are unchanged");
+});
+
+test("a saved bag waits in its own area and is not picked up from another one", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  die(f);
+  const cold = make({ records: f.records }),
+    g = cold.g,
+    at = { ...g.corpseBag.at };
+  atArea(cold, "east");
+  g.player.pos = at;
+  stepCorpseRun(g, STEP);
+  assert(g.corpseBag && g.corpseBag.cash === 100, "same coordinates, wrong area: untouched");
+  assert.equal(corpseTarget(g), null);
+});
+
+test("Retry writes the bag into the record on the fresh clock with the time that was left", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  f.g.time = 100;
+  die(f);
+  f.g.time = 130;
+  assert(f.p.retry());
+  assert.equal(bagRecord(f).corpseBag.remaining, RULES.bag.scavengerSeconds - 30);
+  const cold = make({ records: f.records });
+  assert.equal(cold.g.corpseBag.expiresAt - cold.g.time, RULES.bag.scavengerSeconds - 30);
+});
+
+test("dying again before the pickup saves one merged bag; the pickup is saved too, moving the cash back exactly once", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  const before = total(f.g);
+  die(f);
+  assert(f.p.retry());
+  earn(f);
+  atArea(f, "westminster");
+  die(f);
+  assert.equal(bagRecord(f).corpseBag.cash, 200);
+  assert.equal(bagRecord(f).marked.carried, 0);
+  const cold = make({ records: f.records });
+  assert.equal(total(cold.g), before + 100);
+  assert(cold.p.retry(), "the dead record is retried, as in play");
+  const g = cold.g;
+  g.player.pos = { ...g.corpseBag.at };
+  stepCorpseRun(g, STEP);
+  assert.equal(g.corpseBag, null);
+  assert.equal(g.marked.carried, 200);
+  assert(cold.p.persistRun(g));
+  assert(!cold.records.get(MARKED_SAVE_KEY).includes("corpseBag"));
+  assert.equal(make({ records: cold.records }).g.marked.carried, 200, "a reload after the pickup keeps the cash once and has no bag");
+});
+
+test("the death write is atomic: if saving fails nothing is taken, and nothing is half-saved", () => {
+  const f = make();
+  earn(f);
+  atArea(f, "westminster");
+  const raw = f.records.get(MARKED_SAVE_KEY),
+    g = f.g;
+  assert(receiveHit(g, { amount: 10000, origin: { x: g.player.pos.x + 1, z: g.player.pos.z }, block: false, parry: false }));
+  f.quota(true);
+  assert(!f.p.persistRun(g));
+  assert.equal(f.records.get(MARKED_SAVE_KEY), raw, "the record still holds the cash and no bag");
+  assert.equal(g.corpseBag, undefined);
+  assert.equal(g.marked.carried, 100);
+  f.quota(false);
+  assert(f.p.persistRun(g));
+  assert.equal(g.corpseBag.cash, 100);
+  assert.equal(bagRecord(f).corpseBag.cash, 100);
+  assert.equal(bagRecord(f).marked.carried, 0);
+});
+
+test("the server's clamp lowers the bag's cash first; an emptied bag with no weapon is gone; a reply without a bag figure changes nothing", () => {
+  const live = () => ({ marked: { carried: 10, bank: 0 }, corpseBag: { cash: 50, gearId: null } }),
+    sent = { carried: 10, bank: 0, bag: 50 };
+  let g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 20 }, { run: g, sent }));
+  assert.deepEqual([g.corpseBag.cash, g.marked.carried], [20, 10]);
+  g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 0 }, { run: g, sent }));
+  assert.equal(g.corpseBag, null, "no cash and no weapon: nothing is left in the bag");
+  g = live();
+  g.corpseBag.gearId = "westminster-start-pistol-v1";
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 0 }, { run: g, sent }));
+  assert.equal(g.corpseBag.cash, 0, "the weapon keeps the bag");
+  g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 5, bank: 0 }, { run: g, sent: { carried: 10, bank: 0 } }));
+  assert.deepEqual([g.corpseBag.cash, g.marked.carried], [50, 5]);
 });
