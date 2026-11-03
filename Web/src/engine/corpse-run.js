@@ -103,11 +103,12 @@ export function savedCorpseBag(g) {
     cash: bag.cash,
     gearId: bag.gearId,
     gearName: bag.gearName,
-    remaining: Number.isFinite(left) ? Math.max(0, left) : null,
+    // Clamped: expiresAt - time can land a rounding error above the full countdown, which the validator below would refuse.
+    remaining: Number.isFinite(left) ? Math.min(GAME_DATA.corpseRun.bag.scavengerSeconds, Math.max(0, left)) : null,
   };
 }
 
-const text = (v) => typeof v === "string" && v.length > 0 && v.length <= 80; // tuning-ok: a sanity limit on a saved id or name, not a game value
+const text = (v) => typeof v === "string" && v.length > 0; // the server's default string length caps how long a saved id or name may be
 
 export function validSavedCorpseBag(b, maxMoney) {
   try {
