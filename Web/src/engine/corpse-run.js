@@ -7,17 +7,22 @@ import { LOCKER_WEAPON_IDS } from "./locker-state.js";
 
 // Corpse run (data/corpseRun.json): what a death takes out of the run waits in a body bag where the player fell, in that area: the
 // carried cash and the weapon in hand. Walking over it gives both back; bosses of the area converge on it like an airdrop
-// (engine/converge.js); after the scavenger timer the cash is gone. State is `g.corpseBag`; NOTHING of it is saved.
+// (engine/converge.js); after the scavenger timer the cash is gone. State is `g.corpseBag`, saved in the run record as `corpseBag`
+// (marked-core.js) in the SAME write as the cash and the weapon it took, so no reload or crash can lose or duplicate any of them.
 //
 // Cash: the bag is created in the same commit that lowers the stored `marked.carried` (marked-core.js), with exactly the amount that
 // commit removed, so cash is moved between the record and the bag, never copied. Taking it back adds it to `marked.carried` WITHOUT a
 // server claim (claimCash is for new money only), so the server's earned total is untouched and its enforce_cash clamp
-// (carried + bank <= start + earned) still bounds everything. Reload, Retry, a new run or a scavenger only ever lose the bag.
+// (carried + bank <= start + earned) still bounds everything. A new run or a scavenger only ever lose the bag.
 //
 // Weapon: the weapon is never removed from the save or from its owner (pistol, rifle, flame, boss equipment...). It is WITHHELD:
 // `lockerStored` (locker-core.js), which every equip/fire/reload command and every weapon tile already asks, answers true for the
 // bag's `gearId` while the bag holds it. So it cannot be used, and it cannot be duplicated, because there is only ever the one owned
-// weapon. Lost to a reload: nothing. A reload clears the bag, so the weapon comes back with the saved run (the cash does not).
+// weapon. The saved bag keeps withholding it after a reload until the bag is touched or the scavenger timer ends.
+//
+// Time: the scavenger countdown is play time. The record stores the seconds REMAINING (g.time restarts at 0 on every load), saved
+// again whenever it has moved by `bag.saveEverySeconds` (isBagSaved below), so a refresh gives back at most that much time.
+import { closed } from "./content-schema.js";
 import { distance } from "./shared-checks.js";
 
 const toast = (g, text) => {
@@ -50,27 +55,107 @@ function holdBackPistol(g) {
   g.player.weapon = "knife";
 }
 
-// Called with the cash a death (or Retry) just removed from `marked.carried`, the weapon in hand, and where the player fell.
-// Returns the bag or null.
-export function dropCorpseBag(g, lost, at, gear) {
+// The bag a death makes, from the cash it removed from `marked.carried`, the weapon in hand and where the player fell, on the clock
+// `time` (the run's own). Pure: nothing is stored. A second death merges into the bag still on the ground. Returns the bag or null.
+export function makeCorpseBag(g, lost, at, gear, time = g.time) {
   const rules = GAME_DATA.corpseRun,
     cash = Math.floor(lost * rules.drop.cashShare),
     takes = cash >= rules.drop.minCash;
   if (!rules.enabled || !at?.areaId || !(takes || gear)) return null;
   const old = rules.bag.mergeOnSecondDeath ? g.corpseBag : null,
     max = g.world?.markedData?.maxMoney ?? cash;
-  g.corpseBag = {
+  return {
     areaId: at.areaId,
     at: { x: at.x, z: at.z },
     cash: Math.min(max, (takes ? cash : 0) + (old?.cash ?? 0)),
     gearId: gear?.id ?? old?.gearId ?? null,
     gearName: gear?.name ?? old?.gearName ?? null,
     stealableBy: rules.bag.stealableBy,
-    expiresAt: g.time + rules.bag.scavengerSeconds,
+    expiresAt: time + rules.bag.scavengerSeconds,
     hud: "",
   };
+}
+
+// Puts `bag` on the run (on the run's clock: `from` is the clock it was made on) and tells the player what it holds.
+export function placeCorpseBag(g, bag, from = g.time) {
+  g.corpseBag = { ...bag, at: { ...bag.at }, expiresAt: g.time + bag.expiresAt - from };
   toast(g, webText("corpse.dropped", { contents: contents(g.corpseBag.cash, g.corpseBag.gearName) }));
   return g.corpseBag;
+}
+
+// Called with the cash a death (or Retry) just removed from `marked.carried`, the weapon in hand, and where the player fell.
+// Returns the bag or null.
+export function dropCorpseBag(g, lost, at, gear) {
+  const bag = makeCorpseBag(g, lost, at, gear);
+  return bag ? placeCorpseBag(g, bag) : null;
+}
+
+// ---- The bag in the save record (`corpseBag`, absent when there is none) ----
+// { areaId, position: {x, z}, cash, gearId, gearName, remaining }: `remaining` is the play seconds left (null once the cash is gone and the
+// weapon stays withheld, expiresAt Infinity). The server's closed key list and caps are supabase/migrations/20261103000029.
+export function savedCorpseBag(g) {
+  const bag = g.corpseBag;
+  if (!bag) return null;
+  const left = bag.expiresAt - (g.time ?? 0);
+  return {
+    areaId: bag.areaId,
+    position: { x: bag.at.x, z: bag.at.z },
+    cash: bag.cash,
+    gearId: bag.gearId,
+    gearName: bag.gearName,
+    remaining: Number.isFinite(left) ? Math.max(0, left) : null,
+  };
+}
+
+const text = (v) => typeof v === "string" && v.length > 0 && v.length <= 80; // tuning-ok: a sanity limit on a saved id or name, not a game value
+
+export function validSavedCorpseBag(b, maxMoney) {
+  try {
+    closed(b, ["areaId", "position", "cash", "gearId", "gearName", "remaining"]);
+    closed(b.position, ["x", "z"]);
+    const seconds = GAME_DATA.corpseRun.bag.scavengerSeconds;
+    return (
+      text(b.areaId) &&
+      Number.isFinite(b.position.x) &&
+      Number.isFinite(b.position.z) &&
+      Number.isSafeInteger(b.cash) &&
+      b.cash >= 0 &&
+      b.cash <= maxMoney &&
+      (b.gearId === null ? b.gearName === null : text(b.gearId) && text(b.gearName)) &&
+      (b.remaining === null ? b.cash === 0 && b.gearId !== null : Number.isFinite(b.remaining) && b.remaining >= 0 && b.remaining <= seconds) &&
+      (b.cash > 0 || b.gearId !== null)
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The live bag for a saved one, on the run's clock; null when its time ran out while it was away (the cash is gone and the weapon
+// is released, as when the timer ends in play).
+export function restoreCorpseBag(g, saved) {
+  if (!saved || (saved.remaining !== null && saved.remaining <= 0)) return null;
+  return {
+    areaId: saved.areaId,
+    at: { x: saved.position.x, z: saved.position.z },
+    cash: saved.cash,
+    gearId: saved.gearId,
+    gearName: saved.gearName,
+    stealableBy: GAME_DATA.corpseRun.bag.stealableBy,
+    expiresAt: saved.remaining === null ? Infinity : (g.time ?? 0) + saved.remaining,
+    hud: "",
+  };
+}
+
+// Is the stored bag still good enough for the live one? Everything but the countdown must match exactly; the countdown may lag by
+// `bag.saveEverySeconds` (the save then lags it by at most that, which is all a refresh can give back).
+export function isBagSaved(live, stored) {
+  if (!live || !stored) return !live && !stored;
+  const { remaining: a, ...rest } = live,
+    { remaining: b, ...kept } = stored;
+  return (
+    JSON.stringify(rest) === JSON.stringify(kept) &&
+    (a === null || b === null ? a === b : Math.abs(b - a) < GAME_DATA.corpseRun.bag.saveEverySeconds)
+  );
 }
 
 // Every step (any area): the scavenger timer, the hud line, and the pickup when the living player stands on the bag.

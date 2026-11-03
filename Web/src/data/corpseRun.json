@@ -3,7 +3,7 @@
   "enabled": true,
   "drop": { "cashShare": 1, "minCash": 1 },
   "retrieve": { "radius": 1.8 },
-  "bag": { "scavengerSeconds": 240, "mergeOnSecondDeath": true, "noticeSeconds": 6, "stealableBy": "none" },
+  "bag": { "scavengerSeconds": 240, "mergeOnSecondDeath": true, "noticeSeconds": 6, "saveEverySeconds": 5, "stealableBy": "none" },
   "gear": {
     "enabled": true,
     "neverDrop": ["knife", "hale-pitborn-cleaver-v1", "watchmans-pistol-v1"],
