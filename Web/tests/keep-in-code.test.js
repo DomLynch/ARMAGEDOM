@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
 import { mkdtempSync, writeFileSync, rmSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -43,7 +44,7 @@ test("a kept name that no longer exists, a duplicate, a missing reason or an unk
 });
 
 test("the real baseline passes: every kept name is still a table in its file", () => {
-  const root = new URL("../../", import.meta.url).pathname;
+  const root = fileURLToPath(new URL("../../", import.meta.url));
   const walk = (dir) =>
     readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
       e.isDirectory() ? walk(join(dir, e.name)) : e.name.endsWith(".js") ? [join(dir, e.name)] : [],
