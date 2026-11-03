@@ -34,6 +34,7 @@ export function adoptServerCash(game, reply, { run = null, sent = null } = {}) {
   game.marked.carried = Math.max(0, game.marked.carried - drop(sent.carried, reply.carried));
   game.marked.bank = Math.max(0, game.marked.bank - drop(sent.bank, reply.bank));
   // The same clamp can lower the death body bag's cash (the server takes it first); an emptied bag with no weapon in it is gone.
+  // A clamp that lands after the bag was picked up (game.corpseBag is null) is skipped here: the next save is clamped again and nothing is duplicated.
   if (game.corpseBag && Number.isFinite(reply.bag) && Number.isFinite(sent.bag)) {
     game.corpseBag.cash = Math.max(0, game.corpseBag.cash - drop(sent.bag, reply.bag));
     if (game.corpseBag.cash === 0 && !game.corpseBag.gearId) game.corpseBag = null;

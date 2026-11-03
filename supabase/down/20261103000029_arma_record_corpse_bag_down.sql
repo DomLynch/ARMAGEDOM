@@ -2,7 +2,10 @@ begin;
 -- Rolls back 20261103000029. Every stored run that holds a body bag gets its bag cash added back into marked.carried (the cash was carried before the
 -- death took it), the key is stripped and the revision bumped, so an older client never meets a `corpseBag` it cannot read. The weapon the bag withheld
 -- is simply no longer withheld (it was never removed from the record). Then the key, the caps and the 000010 arma_save_run come back.
--- A phone's OWN stored copy of the run (localStorage) is not reachable from here: roll the game release back first, or clear a dev device's save.
+-- ROLLBACK PROCEDURE. A phone's OWN stored copy of the run (localStorage) is not reachable from here, and a game build from before this change
+-- cannot read a `corpseBag` in it (the player would see "saved run unreadable" and an offer to reset). So the release to roll back TO must be a build
+-- whose marked-core.js restoreRun accepts `corpseBag`, adds its cash into marked.carried and drops the key; ship that tolerant reader first, and only
+-- then run this file. Before launch (no players) it is enough to clear the save on a dev device.
 update public.arma_runs
   set record = jsonb_set(record - 'corpseBag', '{marked,carried}', to_jsonb((coalesce((record #>> '{marked,carried}')::numeric, 0) + coalesce((record #>> '{corpseBag,cash}')::numeric, 0))::bigint)),
       revision = revision + 1
