@@ -540,3 +540,21 @@ test("the death write is atomic: if saving fails nothing is taken, and nothing i
   assert.equal(bagRecord(f).corpseBag.cash, 100);
   assert.equal(bagRecord(f).marked.carried, 0);
 });
+
+test("the server's clamp lowers the bag's cash first; an emptied bag with no weapon is gone; a reply without a bag figure changes nothing", () => {
+  const live = () => ({ marked: { carried: 10, bank: 0 }, corpseBag: { cash: 50, gearId: null } }),
+    sent = { carried: 10, bank: 0, bag: 50 };
+  let g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 20 }, { run: g, sent }));
+  assert.deepEqual([g.corpseBag.cash, g.marked.carried], [20, 10]);
+  g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 0 }, { run: g, sent }));
+  assert.equal(g.corpseBag, null, "no cash and no weapon: nothing is left in the bag");
+  g = live();
+  g.corpseBag.gearId = "westminster-start-pistol-v1";
+  assert(adoptServerCash(g, { clamped: true, carried: 10, bank: 0, bag: 0 }, { run: g, sent }));
+  assert.equal(g.corpseBag.cash, 0, "the weapon keeps the bag");
+  g = live();
+  assert(adoptServerCash(g, { clamped: true, carried: 5, bank: 0 }, { run: g, sent: { carried: 10, bank: 0 } }));
+  assert.deepEqual([g.corpseBag.cash, g.marked.carried], [50, 5]);
+});

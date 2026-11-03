@@ -127,7 +127,7 @@ test("a clamped reply hands onCash the reply, the run the record came from and t
   assert.equal(t.cash.length, 1);
   assert.deepEqual(t.cash[0].reply, { revision: 1, savedAt: "t", clamped: true, carried: 40, bank: 10 });
   assert.equal(t.cash[0].info.run, run);
-  assert.deepEqual(t.cash[0].info.sent, { carried: 90, bank: 30 });
+  assert.deepEqual(t.cash[0].info.sent, { carried: 90, bank: 30, bag: 0 }, "a record with no body bag sent no bag cash");
 });
 
 test("adoptServerCash applies only the clamp DROP: a spend made after the record was built is not refunded", () => {
