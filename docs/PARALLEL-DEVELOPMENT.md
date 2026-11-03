@@ -53,6 +53,10 @@ without a tier label. A tier-b PR passes only with `auditor-pass` AND when the n
 "**Auditor: PASS|FAIL at <sha>" comment is a PASS naming the current head. Any new
 push removes `auditor-pass`, so a PASS always binds to the head it was given on.
 
+While there is no Auditor (Dom, 2026-11-03: Lead Dev is the sole reviewer), Lead may give the PASS
+itself: a "**Lead: PASS at <sha>" comment plus the `lead-pass` label, held to the same head-binding.
+Lead's comment must list what the self-audit checked. When an Auditor exists again, drop this path.
+
 The Auditor may move a PR up to `tier-b` with one line on the PR. A tier-A PR is cut
 from main and merges on its own; stack a PR on another only when its code depends on
 it. A green, approved PR still waiting after 5 minutes is a defect. Tests assert
