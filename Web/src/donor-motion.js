@@ -55,11 +55,23 @@ export function donorSwingPhase(age, timing, source) {
   return 1;
 }
 
+// A clip authored on another rig carries tracks for bones this model lacks; three binds those to nothing and warns once per track.
+// Dropping them leaves playback identical, because an unbound track never wrote a value.
+function fitClip(model, clip) {
+  const tracks = clip.tracks.filter((track) =>
+    model.getObjectByName(THREE.PropertyBinding.parseTrackName(track.name).nodeName),
+  );
+  return tracks.length === clip.tracks.length
+    ? clip
+    : new THREE.AnimationClip(clip.name, clip.duration, tracks, clip.blendMode);
+}
+
 const responseKeys = { Hit: "hit", Death: "death", Deflected: "deflected", BlockImpact: "block", Parry: "parry" };
 // Presentation only. Combat supplies the authoritative clip, ticks and response.
 // Attack sampling has weight 1, preserving the baked contact geometry.
 export class DonorMotion {
   constructor(root, model, clips, description) {
+    clips = clips.map((clip) => fitClip(model, clip));
     this.root = root;
     this.model = model;
     this.description = description;
