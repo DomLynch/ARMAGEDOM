@@ -15,7 +15,6 @@ export const areaDisplayName = (id) => {
 const fail = (message) => {
   throw new TypeError(`Area registry: ${message}`);
 };
-const AREA_FIELDS = ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"]; // desktopBackdropRef is optional
 const object = (value) => value && typeof value === "object" && !Array.isArray(value);
 function dataOnly(value) {
   if (
@@ -79,7 +78,8 @@ export function createAreaRegistry({
     byId = new Map(),
     exitIds = new Set();
   for (const row of rows) {
-    closed(row, [...AREA_FIELDS, "desktopBackdropRef"], AREA_FIELDS);
+    const required = ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"];
+    closed(row, [...required, "desktopBackdropRef"], required); // desktopBackdropRef is optional
     if (!id(row.id) || byId.has(row.id)) fail("invalid or duplicate area ID");
     if (!["public", "private"].includes(row.visibility) || (row.visibility === "private" && !includePrivate))
       fail("private area requires explicit fixture opt-in");

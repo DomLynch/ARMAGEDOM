@@ -430,7 +430,6 @@ export class LondonWorld {
           if (cache.disposed) throw Error("London cache disposed");
           this.admitTexture(backdropTextureBytes(texture), DESKTOP_BUDGET);
         } catch (error) {
-          console.warn("ARMAGEDOM_DESKTOP_BACKDROP_FALLBACK", areaId, error?.message); // text-ok: diagnostics log label
           if (texture) {
             texture.dispose();
             texture.image = null;
