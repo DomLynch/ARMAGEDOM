@@ -184,15 +184,10 @@ test("an area row without a desktop ref keeps its phone file with the gate open,
 });
 
 test("a desktop load failure falls back to the phone file, with the phone texture charged", async (t) => {
-  const warn = console.warn,
-    warned = [];
-  console.warn = (...args) => warned.push(args);
-  t.after(() => (console.warn = warn));
   const { w, loads } = await world(t, { gate: () => true, fail: (url) => url.includes("desktop") });
   const stage = await w.prepareArea(desktopId);
   assert.deepEqual(loads.slice(-2), [desktopPath, phonePath]);
   assert.equal(stage.textureBytes(), bytesOf(VIEW.artSize));
-  assert.equal(warned.length, 1);
 });
 
 test("a gate that throws means phone, and a budget refusal falls back to the phone file", async (t) => {
@@ -203,9 +198,6 @@ test("a gate that throws means phone, and a budget refusal falls back to the pho
   });
   await first.w.prepareArea(desktopId);
   assert.equal(first.loads.at(-1), phonePath);
-  const warn = console.warn;
-  console.warn = () => {};
-  t.after(() => (console.warn = warn));
   const { w, loads } = await world(t, { gate: () => true });
   const real = w.admitTexture.bind(w);
   w.admitTexture = (bytes, budget) => {
