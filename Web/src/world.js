@@ -10,6 +10,7 @@ import { GAME_DATA, fillText } from "./engine/game-data.js";
 const VIEW = GAME_DATA.areaRuntime.view; // data/areaRuntime.json: texture budget, camera clip planes, zoom boosts and lifts
 const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
 const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];
+const DESKTOP_BUDGET = VIEW.desktopTextureBudgetMiB * MIB; // admits the 1.5x desktop backdrops (data/areaRuntime.json)
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
 export const backdropTextureBytes = (texture, mipped = false) =>
@@ -39,6 +40,7 @@ export class LondonWorld {
     viewZoomMultiplier = 1,
     registry = null,
     textureBudgetBytes = VIEW.textureBudgetMiB * MIB,
+    desktopBackdrop = null,
     validatedLayouts = null,
     residentPlacements = null,
     areaAtmosphere = null,
@@ -85,6 +87,7 @@ export class LondonWorld {
     this.areaAtmosphere = areaAtmosphere;
     this.validatedLayouts = validatedLayouts;
     this.textureBudgetBytes = textureBudgetBytes;
+    this.desktopBackdrop = desktopBackdrop;
     this.viewZoomMultiplier = viewZoomMultiplier;
     this.THREE = THREE;
     this.scene = scene;
@@ -345,17 +348,24 @@ export class LondonWorld {
   setParkedLimit(limit) {
     (this.areaCache ??= this.createAreaCache()).parkedLimit = limit;
   }
+  // True when this area has a desktop backdrop and the device gate (quality tier) says to use it; a throwing gate means no.
+  wantsDesktopBackdrop(row) {
+    try {
+      return !!row?.desktopBackdropRef && !!this.desktopBackdrop?.();
+    } catch {
+      return false;
+    }
+  }
   // Layout and backdrop files a later prepareArea would fetch; empty once the stage is prepared.
   areaPrefetchUrls(areaId) {
     const row = this.registry.get(areaId);
     if (!row || this.areaCache?.stages.has(areaId)) return [];
-    return [row.layoutRef, row.backdropRef]
+    return [row.layoutRef, this.wantsDesktopBackdrop(row) ? row.desktopBackdropRef : row.backdropRef]
       .filter((ref) => ref !== row.layoutRef || !this.validatedLayouts?.[ref])
       .map((ref) => new URL(this.registry.asset(ref).path, this.baseUrl).href);
   }
-  admitTexture(bytes) {
-    const cache = this.areaCache,
-      budget = this.textureBudgetBytes;
+  admitTexture(bytes, budget = this.textureBudgetBytes) {
+    const cache = this.areaCache;
     let total = [...cache.stages.values()].reduce((n, stage) => n + stage.textureBytes(), 0) + bytes;
     if (total <= budget) return;
     const candidates = [...cache.stages]
@@ -410,13 +420,29 @@ export class LondonWorld {
         this.safehouseData,
         this.cursedRelicData,
       );
-      const texture = await new this.THREE.TextureLoader().loadAsync(
-        new URL(this.registry.asset(row.backdropRef).path, this.baseUrl).href,
-      );
+      const loadBackdrop = (ref) =>
+        new this.THREE.TextureLoader().loadAsync(new URL(this.registry.asset(ref).path, this.baseUrl).href);
+      let texture = null;
+      // Opt-in desktop backdrop: loaded only now, as the area is entered; any load failure or budget refusal falls back to the phone file.
+      if (this.wantsDesktopBackdrop(row)) {
+        try {
+          texture = await loadBackdrop(row.desktopBackdropRef);
+          if (cache.disposed) throw Error("London cache disposed");
+          this.admitTexture(backdropTextureBytes(texture), DESKTOP_BUDGET);
+        } catch (error) {
+          if (texture) {
+            texture.dispose();
+            texture.image = null;
+          }
+          texture = null;
+        }
+      }
+      const admitted = !!texture;
+      texture ??= await loadBackdrop(row.backdropRef);
       let next;
       try {
         if (cache.disposed) throw Error("London cache disposed");
-        this.admitTexture(backdropTextureBytes(texture));
+        if (!admitted) this.admitTexture(backdropTextureBytes(texture));
         next = new LondonWorld({
           THREE: this.THREE,
           scene: new this.THREE.Scene(),
@@ -428,6 +454,7 @@ export class LondonWorld {
           baseUrl: this.baseUrl,
           viewZoomMultiplier: this.viewZoomMultiplier,
           textureBudgetBytes: this.textureBudgetBytes,
+          desktopBackdrop: this.desktopBackdrop,
           validatedLayouts: this.validatedLayouts,
           residentPlacements: this.residentPlacements,
           areaAtmosphere: this.areaAtmosphere,
@@ -622,6 +649,7 @@ export async function createWorld({
   baseUrl = globalThis.document?.baseURI,
   viewZoomMultiplier = 1,
   content = null,
+  desktopBackdrop = null, // () => boolean: the device gate for the 1.5x desktop backdrops (the initial area always loads its phone file)
 }) {
   let manifest = content?.manifest;
   if (!manifest) {
@@ -679,6 +707,7 @@ export async function createWorld({
       baseUrl,
       viewZoomMultiplier,
       textureBudgetBytes: content?.textureBudgetBytes,
+      desktopBackdrop,
       validatedLayouts: content?.layouts,
       residentPlacements: content?.residents,
       areaAtmosphere: content?.atmosphere,

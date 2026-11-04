@@ -712,6 +712,7 @@ export function createBrowserSession(options = {}) {
         cores: navigator.hardwareConcurrency,
         memoryGb: navigator.deviceMemory,
         textureSize: renderer.capabilities?.maxTextureSize,
+        touchPoints: navigator.maxTouchPoints,
       });
       renderer.setPixelRatio(QUALITY.cap(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio), "pixelRatio"));
       renderer.setSize(innerWidth, innerHeight, false);
@@ -740,7 +741,15 @@ export function createBrowserSession(options = {}) {
   function prepareEncounter() {
     // Fetch and decode on page arrival, rather than making Enter start every request.
     return (startup ??= Promise.allSettled([
-      createWorld({ THREE, scene, camera, baseUrl, viewZoomMultiplier, content: privateContent }),
+      createWorld({
+        THREE,
+        scene,
+        camera,
+        baseUrl,
+        viewZoomMultiplier,
+        content: privateContent,
+        desktopBackdrop: () => QUALITY.desktopBackdrop(),
+      }),
       loadActors(baseUrl, () => (lastLoadProgress = performance.now()), actorManifest),
     ]).then((settled) => (preloadPhysicsDeath(), settled)));
   }

@@ -78,13 +78,15 @@ export function createAreaRegistry({
     byId = new Map(),
     exitIds = new Set();
   for (const row of rows) {
-    closed(row, ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"]);
+    const required = ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"];
+    closed(row, [...required, "desktopBackdropRef"], required); // desktopBackdropRef is optional
     if (!id(row.id) || byId.has(row.id)) fail("invalid or duplicate area ID");
     if (!["public", "private"].includes(row.visibility) || (row.visibility === "private" && !includePrivate))
       fail("private area requires explicit fixture opt-in");
     point(row.entry);
     if (!Array.isArray(row.exits)) fail("invalid exits");
     for (const [field, kind] of [
+      ...(row.desktopBackdropRef === undefined ? [] : [["desktopBackdropRef", "backdrop"]]),
       ["layoutRef", "layout"],
       ["backdropRef", "backdrop"],
       ["audioRef", "audio"],
@@ -169,7 +171,7 @@ export function createAreaRegistry({
       fail("manifest entries mismatch");
     const paths = new Set((manifest.files ?? []).map((f) => "world/" + f.path));
     for (const row of rows)
-      for (const field of ["layoutRef", "backdropRef"])
+      for (const field of ["layoutRef", "backdropRef", "desktopBackdropRef"].filter((f) => row[f] !== undefined))
         if (!paths.has(references[row[field]].path)) fail("manifest asset reference mismatch");
   }
   function nextExit(from, to) {

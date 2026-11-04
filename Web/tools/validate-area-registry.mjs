@@ -6,7 +6,7 @@ import {createGeometry} from '../src/world-geometry.js';
 const read=path=>JSON.parse(readFileSync(new URL(path,import.meta.url))),manifest=read('../public/world/manifest.json');
 function validate(options){
  const registry=createAreaRegistry(options),geometry=new Map();
- for(const areaId of registry.ids){const row=registry.get(areaId);for(const ref of [row.layoutRef,row.backdropRef,row.audioRef]){const asset=registry.asset(ref),bytes=readFileSync(new URL('../public/'+asset.path,import.meta.url));if(bytes.length!==asset.bytes||createHash('sha256').update(bytes).digest('hex')!==asset.sha256)throw Error('Area asset identity mismatch: '+ref);}
+ for(const areaId of registry.ids){const row=registry.get(areaId);for(const ref of [row.layoutRef,row.backdropRef,row.audioRef,...(row.desktopBackdropRef?[row.desktopBackdropRef]:[])]){const asset=registry.asset(ref),bytes=readFileSync(new URL('../public/'+asset.path,import.meta.url));if(bytes.length!==asset.bytes||createHash('sha256').update(bytes).digest('hex')!==asset.sha256)throw Error('Area asset identity mismatch: '+ref);}
   if(!geometry.has(row.layoutRef))geometry.set(row.layoutRef,createGeometry(read('../public/'+registry.asset(row.layoutRef).path)));
  }
  return{ids:registry.ids,entryChecks:validateAreaEntries(registry,geometry),referencesVerified:true};

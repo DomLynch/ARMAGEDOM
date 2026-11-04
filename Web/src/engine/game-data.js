@@ -773,7 +773,7 @@ export function validateAreas(d) {
   if (!Array.isArray(d.areas) || d.areas.length < 1 || d.areas.length > 64)
     fail("areas", "areas must list 1 to 64 rows");
   for (const row of d.areas) {
-    closed(row, ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"]);
+    closed(row, ["id", "visibility", "layoutRef", "backdropRef", "audioRef", "entry", "exits"], ["desktopBackdropRef"]);
     closed(row.entry, ["x", "y"]);
     if (!Array.isArray(row.exits)) fail("areas", `${row.id} exits`);
     for (const exit of row.exits)
@@ -781,7 +781,9 @@ export function validateAreas(d) {
   }
   if (!d.assets || typeof d.assets !== "object" || Array.isArray(d.assets)) fail("areas", "assets");
   for (const [ref, asset] of Object.entries(d.assets)) {
-    closed(asset, ["kind", "path", "sha256", "bytes"]);
+    closed(asset, ["kind", "path", "sha256", "bytes"], ["size"]);
+    if (asset.size !== undefined && (!Array.isArray(asset.size) || asset.size.length !== 2)) fail("areas", `${ref}.size`);
+    asset.size?.forEach((n, i) => count("areas", `${ref}.size[${i}]`, n, 1, 100000));
     if (!/^[0-9a-f]{64}$/.test(asset.sha256)) fail("areas", `${ref}.sha256`);
     count("areas", `${ref}.bytes`, asset.bytes, 1, 100000000);
   }
@@ -825,6 +827,7 @@ export function validateAreaRuntime(d) {
   closed(d.view, [
     "textureBudgetMiB",
     "textureBudgetMinMiB",
+    "desktopTextureBudgetMiB",
     "cameraNear",
     "cameraFar",
     "portraitActorPixels",
@@ -836,6 +839,7 @@ export function validateAreaRuntime(d) {
     "exitHintMeters",
     "defaultCharacterScale",
     "artSize",
+    "desktopArtSize",
     "londonEntry",
     "entryClearance",
     "followReference",
@@ -848,6 +852,10 @@ export function validateAreaRuntime(d) {
   if (!Array.isArray(d.view.artSize) || d.view.artSize.length !== 2)
     fail("areaRuntime", "view.artSize must hold width and height");
   d.view.artSize.forEach((n, i) => count("areaRuntime", `view.artSize[${i}]`, n, 1, 100000));
+  // desktopArtSize: the opt-in desktop backdrop's pixel size (1.5x); the same aspect to within a pixel, so the view crop is unchanged.
+  if (!Array.isArray(d.view.desktopArtSize) || d.view.desktopArtSize.length !== 2)
+    fail("areaRuntime", "view.desktopArtSize must hold width and height");
+  d.view.desktopArtSize.forEach((n, i) => count("areaRuntime", `view.desktopArtSize[${i}]`, n, d.view.artSize[i], 100000));
   closed(d.view.londonEntry, ["x", "z"]);
   closed(d.view.followReference, ["x", "y"]);
   for (const f of ["x", "z"]) number("areaRuntime", `view.londonEntry.${f}`, d.view.londonEntry[f], -1000);
@@ -860,6 +868,8 @@ export function validateAreaRuntime(d) {
   number("areaRuntime", "view.defaultCharacterScale", d.view.defaultCharacterScale, 0.1);
   count("areaRuntime", "view.textureBudgetMiB", d.view.textureBudgetMiB, 1, 1024);
   count("areaRuntime", "view.textureBudgetMinMiB", d.view.textureBudgetMinMiB, 1, d.view.textureBudgetMiB);
+  // desktopTextureBudgetMiB: the budget the opt-in 1.5x desktop backdrops are admitted against (active + parked + the one entering).
+  count("areaRuntime", "view.desktopTextureBudgetMiB", d.view.desktopTextureBudgetMiB, d.view.textureBudgetMiB, 4096);
   number("areaRuntime", "view.cameraNear", d.view.cameraNear, 0.001);
   if (!(d.view.cameraFar > d.view.cameraNear && d.view.cameraFar <= 10000))
     fail("areaRuntime", "view.cameraFar must be above cameraNear, at most 10000");

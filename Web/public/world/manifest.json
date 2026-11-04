@@ -34,6 +34,13 @@
       "sha256": "ebad2f43c2f633483a64b08d39d32128684725a3c734fead450b3d4ca9e4b061"
     },
     {
+      "area": "south",
+      "path": "south/backdrop-desktop.webp",
+      "source": "south-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 462714,
+      "sha256": "8689b63982295ddca9a46f7ee4324ea253fed644585e027e696137fa2857f939"
+    },
+    {
       "area": "east",
       "path": "east/layout.json",
       "source": "Owner-marked East136 bounded clearance and direct East/South route",
@@ -46,6 +53,13 @@
       "source": "Owner-marked East136 bounded clearance and direct East/South route; phone copy: backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
       "bytes": 373760,
       "sha256": "ddc745a7dc2d291e6d42f5c2b7e2fb586d0d727f59ca399110283e9457387158"
+    },
+    {
+      "area": "east",
+      "path": "east/backdrop-desktop.webp",
+      "source": "east-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 439940,
+      "sha256": "9e633bc7750d3029934bb33300622eb68ec6203e1d80df95435104dc021dd4ea"
     },
     {
       "area": "east-bridge",
@@ -62,6 +76,13 @@
       "sha256": "2666e7f8935a94055973b7b934483657d72120ae7c490f59a28d743b078a7a54"
     },
     {
+      "area": "east-bridge",
+      "path": "east-bridge/backdrop-desktop.webp",
+      "source": "east-bridge-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 464300,
+      "sha256": "a7596ee3cd850d262d9f719ae7734451fa9e12b0be58df9ddb7c89a343ee815f"
+    },
+    {
       "area": "elephant-and-castle",
       "path": "elephant-and-castle/layout.json",
       "source": "Owner original / individually traced image geometry",
@@ -76,6 +97,13 @@
       "sha256": "40b502c1628db48e969da6388dd053a7c391365feac15135655e9e59ac80de7a"
     },
     {
+      "area": "elephant-and-castle",
+      "path": "elephant-and-castle/backdrop-desktop.webp",
+      "source": "elephant-and-castle-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 474470,
+      "sha256": "9f21c5e011522e359ce5d01fe7ec6b71abf575799fed0725d68c5db539e96b00"
+    },
+    {
       "area": "lambeth",
       "path": "lambeth/layout.json",
       "source": "Owner original / individually traced image geometry",
@@ -88,6 +116,13 @@
       "source": "Owner original / individually traced image geometry; phone copy: backdrop.webp re-encoded lossy WebP quality 85, same 1672x941 pixels (original kept)",
       "bytes": 556624,
       "sha256": "cccea985e8a566b9892d3b5e6c362aa86f21c2bdd721c5028dcec244cf853756"
+    },
+    {
+      "area": "lambeth",
+      "path": "lambeth/backdrop-desktop.webp",
+      "source": "lambeth-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 628310,
+      "sha256": "5c2dc1e559e485e6b836e4e988b429d411a17a2c07dbb20e5475d17a66092486"
     },
     {
       "area": "shared",
@@ -110,6 +145,13 @@
       "bytes": 571818
     },
     {
+      "area": "area7",
+      "path": "area7/backdrop-desktop.webp",
+      "source": "area7-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 545618,
+      "sha256": "6fb4821fde2c3347424d7401f6f441d5b70c51930ba4211f5eaf1e6b75a6ad57"
+    },
+    {
       "area": "area8",
       "path": "area8/layout.json",
       "source": "Owner original / image-authored street geometry",
@@ -122,6 +164,13 @@
       "source": "area8/backdrop.png re-encoded lossy WebP quality 85, same 1672x941 pixels (original PNG kept); a red-and-white concrete barrier painted across the up-left lane (world/area8-barrier); the czech-hedgehog and sandbag pile on the arrival road painted out (art/area8-clear-road, original kept there)",
       "sha256": "b431d868d6e0d06bb9dbf6dd0110f50c1d7b7d407ea2306ba3f6ce5ac2999ef2",
       "bytes": 545776
+    },
+    {
+      "area": "area8",
+      "path": "area8/backdrop-desktop.webp",
+      "source": "area8-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 493320,
+      "sha256": "eb60ce07fa4d792e54480a54a4374cc0a442c6986b79fb744ab84344c2cd8987"
     },
     {
       "area": "central-hub",
@@ -138,11 +187,25 @@
       "bytes": 511722
     },
     {
+      "area": "central-hub",
+      "path": "central-hub/backdrop-desktop.webp",
+      "source": "central-hub-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 571932,
+      "sha256": "6193043f6cbc3891c261b3806fd56f68ca5ba7bcaf165226586d13fd3f72aa93"
+    },
+    {
       "area": "westminster",
       "path": "westminster/wanted-portrait.png",
       "source": "Existing accepted195 warrior head cached CPU portrait; Art portrait/INTAKE.json",
       "bytes": 43285,
       "sha256": "6f80a1aa9c5768eeb4e3e564066eb7bec0a37f309cef4320515aa0d07ee48f26"
+    },
+    {
+      "area": "westminster",
+      "path": "westminster/backdrop-desktop.webp",
+      "source": "westminster-1p5x-v2.webp 1.5x upscale of the phone backdrop (opt-in strong desktop tier only; the phone file is the default)",
+      "bytes": 370086,
+      "sha256": "d97876bc311eaa7a6b810fe1c14dd99b6270a8819de5ab5c406043c12591860c"
     }
   ],
   "lazyAreas": [
@@ -517,5 +580,16 @@
     "area8": "backdrop-phone.webp",
     "central-hub": "backdrop-phone.webp"
   },
-  "contentRef": "area-content.json"
+  "contentRef": "area-content.json",
+  "desktopBackdrops": {
+    "elephant-and-castle": "backdrop-desktop.webp",
+    "area8": "backdrop-desktop.webp",
+    "westminster": "backdrop-desktop.webp",
+    "east": "backdrop-desktop.webp",
+    "south": "backdrop-desktop.webp",
+    "east-bridge": "backdrop-desktop.webp",
+    "lambeth": "backdrop-desktop.webp",
+    "area7": "backdrop-desktop.webp",
+    "central-hub": "backdrop-desktop.webp"
+  }
 }
