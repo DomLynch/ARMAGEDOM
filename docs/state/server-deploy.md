@@ -1,7 +1,10 @@
 # Server & Deploy lane: handover (29 Oct 2026, paused on Dom's order)
 
-## Now
-- PAUSED. Nothing in flight on the VPS. Live = 330 (main cfd2eda04cf600fa94e8d1b7d313bfb9f0c79940), rollback 329, rollback floor 323 (LMG saves are one-way: a rollback below 323 forfeits them). Writer bundle 1ac6919, presence bundle a505657 (layout f5d9d528780ea92d), neither restarted since 28 Oct.
+## Now (updated 4 Nov 2026)
+- Live = three-20261028-343 (main afacbb9b8cf3f188ba1ae59f7d854b387e9f9a1c, release.json sha256 97c7da64...c9647fb), flipped 4 Nov by Lead on Dom's word. Previous live 341; 342 was staged but never flipped (skipped). Rollback: `bash /opt/armagedom-preview-staging/three-20261028-343-ops/rollback343.sh` (restores the nginx conf copies in /root/*.pre-343). 343 adds the opt-in 1.5x desktop backdrops (phone files unchanged), 8 smoke/fire anchors and the body-bag hint. Rollback floor still 323 (LMG saves are one-way); a rollback below the corpseBag client (#537) needs a tolerant reader first.
+- Hosted DB: migration 20261103000029 (corpseBag) applied 4 Nov by Lead via the Supabase tool, recorded in arma_schema_migrations with the file's sha256. No backup was taken before it (Dom's call); the newest file in /opt/backups was 19 Apr.
+- The cut scripts (cutNNN.sh / mkNNN.py) are gone from the volume; 343 was built on the VPS from /opt/armagedom at afacbb9 (nice 19) and installed additively, then flipped with flip343.sh. releases.json has no rows for 342 or 343 yet.
+- Older notes below describe the 28-29 Oct state (live 330, writer bundle 1ac6919, presence bundle a505657, layout f5d9d528780ea92d; neither service restarted since 28 Oct).
 - Preview-only three-20261028-491 (PR #490 head 360ba67d, shop only) is still served. Delete it when Lead says (recipe below).
 - Draft PR #503 (branch server/verify-hosted-drift-economy): verify-hosted.sql, drift coverage, drift-allow. Waits for CI + Lead PASS; migration 27 is then applied on hosted by Lead (Deploy never writes hosted).
 
