@@ -5,13 +5,15 @@ Owner-directed Witch-only change from published210:
 | Setting | Before | After |
 | --- | ---: | ---: |
 | Movement speed | 1.4 | 1.75 |
-| Flame contact and visible reach | 3 | 4.05 |
-| Legal acquisition distance | 3 | 4.05 |
+| Flame contact and visible reach | 3 | 4.05 (live value 4.86, see note) |
+| Legal acquisition distance | 3 | 4.05 (live value 4.86, see note) |
 | Post-burst cooldown | 72 ticks / 1.2 s | 58 ticks / 0.967 s |
 | Warning | 42 ticks | unchanged |
 | Active burst | 24 ticks | unchanged |
 | Pulse spacing and damage | 12 ticks, two ×4 HP | unchanged |
 | Cone | 40 degrees | unchanged |
+
+Note (2026-11-04): the shipped Witch reach is 4.86, not 4.05: `range` in `Web/src/data/creatures.json`, `Web/public/world/area-content.json` and the area-bosses witch row. This file records the 211 step; the 4.05 figures below are historical.
 
 58 ticks is the nearest integer to a20% reduction in the existing72-tick cooldown. Minimum warning-to-warning cycle drops138→124 ticks (2.3→2.067s). The72-tick value was a validator floor and next-attack clock, not a native flame recovery clip; no new cooldown field or timer is introduced. Other bosses retain their previous validation limits.
 
