@@ -7,7 +7,8 @@ export const HINT_STORAGE_KEY = "armagedom.firstTimeHints.v1";
 // How long a hint shows: data/visual.json `firstTimeHints`.
 export const HINT_SECONDS = GAME_DATA.visual.firstTimeHints.seconds;
 function validateHintSeconds(seconds) {
-  if (!Number.isFinite(seconds) || !(seconds > 0)) throw TypeError("Invalid game data visual: firstTimeHints.seconds must be above 0");
+  if (!Number.isFinite(seconds) || !(seconds > 0))
+    throw TypeError("Invalid game data visual: firstTimeHints.seconds must be above 0");
 }
 validateHintSeconds(HINT_SECONDS);
 
@@ -20,6 +21,7 @@ const checks = {
     g.enemies.some((e) => alive(e) && !e.bossProfile && distance(e.pos, g.player.pos) <= meters),
   tookHit: (_, { tookHit }) => tookHit,
   lootDropped: (_, { g }) => g.loot?.dropped === true, // a rare drop has come back with a kill credit (engine/loot.js)
+  bagDropped: (_, { g }) => !!g.corpseBag, // a body bag is waiting where the player fell (engine/corpse-run.js)
   flameEquipped: (_, { g }) => !!g.flame?.equipped,
   bossWithin: ({ name, meters }, { g }) =>
     g.enemies.some((e) => alive(e) && e.bossProfile?.name === name && distance(e.pos, g.player.pos) <= meters),
@@ -85,7 +87,9 @@ export function createFirstTimeHints({ storage = browserStorage(), rows = table 
   // that is somehow lost still comes back while its condition holds.
   const start = (row) => {
     if (!row.stays) remember(row.id);
-    active = { id: row.id, text: row.text, left: HINT_SECONDS, stays: row.stays, overMessage: !!row.overMessage };
+    // {seconds} in a row text is the bag scavenger limit, so the hint never drifts from data/corpseRun.json.
+    const text = row.text.replace("{seconds}", GAME_DATA.corpseRun.bag.scavengerSeconds);
+    active = { id: row.id, text, left: HINT_SECONDS, stays: row.stays, overMessage: !!row.overMessage };
     return active;
   };
   const finish = (hint) => {

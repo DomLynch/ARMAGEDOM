@@ -41,7 +41,7 @@ test("the table is valid data: unique ids, one known trigger each, short texts",
   assert.doesNotThrow(() => validateHintTable(table));
   assert.deepEqual(
     table.map((row) => row.id),
-    ["attack", "dodge-guard", "ember-fire", "first-loot"],
+    ["attack", "dodge-guard", "ember-fire", "first-loot", "body-bag"],
   );
   assert.throws(() => validateHintTable([{ id: "x", when: { nope: 1 }, text: "t" }]), /Unknown hint trigger/);
   assert.throws(
@@ -270,4 +270,16 @@ test("the hint pop-up is pale gold (the HUD text colour) and only for hints", ()
   assert.match(css, /#notice\.hint \{[^}]*#f1d28c/);
   const hud = readFileSync(new URL("../src/hud.js", import.meta.url), "utf8");
   assert.match(hud, /classList\.toggle\("hint", gold\)/);
+});
+
+test("a waiting body bag teaches the scavenger limit once, taken from the corpse-run data", async () => {
+  const { GAME_DATA } = await import("../src/engine/game-data.js");
+  const hints = createFirstTimeHints({ storage: memory() }),
+    g = world();
+  assert.equal(hints.current(g), "", "no bag, no hint");
+  g.corpseBag = { areaId: "westminster" };
+  const shown = hints.current(g);
+  assert.ok(shown.includes(String(GAME_DATA.corpseRun.bag.scavengerSeconds)) && !shown.includes("{"), shown);
+  assert.equal(run(hints, g, HINT_SECONDS + 1), "");
+  assert.equal(createFirstTimeHints({ storage: memory({ [HINT_STORAGE_KEY]: JSON.stringify(["body-bag"]) }) }).current(g), "");
 });

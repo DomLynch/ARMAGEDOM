@@ -11,5 +11,6 @@
     "when": { "flameEquipped": true },
     "text": "Hold FLAME to burn the enemy in front of you."
   },
-  { "id": "first-loot", "when": { "lootDropped": true }, "text": "Rare drop kept. Menu, Items tab, to see it." }
+  { "id": "first-loot", "when": { "lootDropped": true }, "text": "Rare drop kept. Menu, Items tab, to see it." },
+  { "id": "body-bag", "when": { "bagDropped": true }, "text": "Body bag: reach it in {seconds} s or lose it." }
 ]

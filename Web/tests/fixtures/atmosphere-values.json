@@ -1,53 +1,53 @@
 {
  "westminster": {
-  "meshes": "257d9547314caf3b5729af82085c00fd6b8f5c75671e3013af4b365864e52d0b",
+  "meshes": "17a2a4a2251778badc8f39b6ff5d70b7cdd1ff7b4dcf87f0e0af7362458e3d2a",
   "meshNames": [
    [
     "Atmosphere smoke",
     -80,
-    66
+    78
    ],
    [
     "Atmosphere flame",
-    -80,
-    18
-   ],
-   [
-    "Atmosphere ember",
-    -80,
-    36
-   ]
-  ],
-  "stats": "cc8a5dcf9ce75e6224167d2ab72ea359678ee2b087199472720846b8549c9505"
- },
- "east": {
-  "meshes": "0af83c9996d4ccc2272e361e812748f9fb85ba21dfd02df10e8cf605d176b924",
-  "meshNames": [
-   [
-    "Atmosphere smoke",
-    -80,
-    54
-   ],
-   [
-    "Atmosphere flame",
-    -80,
-    24
-   ],
-   [
-    "Atmosphere ember",
     -80,
     30
+   ],
+   [
+    "Atmosphere ember",
+    -80,
+    48
    ]
   ],
-  "stats": "96aa13bc9d49f07854fd90b3b92250a970119fcbcfd8ac71b81d3076ed59fcf9"
+  "stats": "65ac7e556643a3c651b623a648a719e1bbc684edc371f5c9e74ab62e57660818"
  },
- "south": {
-  "meshes": "4b0976dd344f96893d1b61494d7d7f6e2c3d1276362abd40aad0e27dca85d6ed",
+ "east": {
+  "meshes": "f20657e35fdead23d178856a61dff85fa76112365c7ef6991a801b8757396b62",
   "meshNames": [
    [
     "Atmosphere smoke",
     -80,
-    60
+    72
+   ],
+   [
+    "Atmosphere flame",
+    -80,
+    36
+   ],
+   [
+    "Atmosphere ember",
+    -80,
+    42
+   ]
+  ],
+  "stats": "ae2eba1de7f046697f60258b5908addbca7d3f2378d2b9e4bfd46118268f5373"
+ },
+ "south": {
+  "meshes": "6d6f02f2d9b5e7d67a5a433a7972c0efeb7da2d340252efe22363bd845e4784c",
+  "meshNames": [
+   [
+    "Atmosphere smoke",
+    -80,
+    84
    ],
    [
     "Atmosphere flame",
@@ -60,6 +60,6 @@
     24
    ]
   ],
-  "stats": "11e50e3630b765bd1a921cc1966a8b87c080c3ea56f9c5408560c572afa9d728"
+  "stats": "471761bbd4080f95f8ba38ccfed077a0eb1e4048c88f872e688f74bf3f430f5b"
  }
 }
