@@ -6,6 +6,7 @@
       "visibility": "public",
       "layoutRef": "layout.westminster",
       "backdropRef": "backdrop.westminster",
+      "desktopBackdropRef": "backdrop.westminster.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.52,
@@ -59,6 +60,7 @@
       "visibility": "public",
       "layoutRef": "layout.east",
       "backdropRef": "backdrop.east",
+      "desktopBackdropRef": "backdrop.east.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.1,
@@ -110,6 +112,7 @@
       "visibility": "public",
       "layoutRef": "layout.south",
       "backdropRef": "backdrop.south",
+      "desktopBackdropRef": "backdrop.south.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.55,
@@ -162,6 +165,7 @@
       "visibility": "public",
       "layoutRef": "layout.east-bridge",
       "backdropRef": "backdrop.east-bridge",
+      "desktopBackdropRef": "backdrop.east-bridge.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.07,
@@ -201,6 +205,7 @@
       "visibility": "public",
       "layoutRef": "layout.elephant-and-castle",
       "backdropRef": "backdrop.elephant-and-castle",
+      "desktopBackdropRef": "backdrop.elephant-and-castle.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.07,
@@ -239,6 +244,7 @@
       "visibility": "public",
       "layoutRef": "layout.lambeth",
       "backdropRef": "backdrop.lambeth",
+      "desktopBackdropRef": "backdrop.lambeth.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.29,
@@ -278,6 +284,7 @@
       "visibility": "public",
       "layoutRef": "layout.area7",
       "backdropRef": "backdrop.area7",
+      "desktopBackdropRef": "backdrop.area7.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.11317835,
@@ -330,6 +337,7 @@
       "visibility": "public",
       "layoutRef": "layout.area8",
       "backdropRef": "backdrop.area8",
+      "desktopBackdropRef": "backdrop.area8.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.2092118,
@@ -369,6 +377,7 @@
       "visibility": "public",
       "layoutRef": "layout.central-hub",
       "backdropRef": "backdrop.central-hub",
+      "desktopBackdropRef": "backdrop.central-hub.desktop",
       "audioRef": "audio.combat",
       "entry": {
         "x": 0.5,
@@ -443,6 +452,16 @@
       "sha256": "6aef2ea1005f5a25f56b763cdacbf57554e38933c041b7c8ec043e42c6a3c434",
       "bytes": 391872
     },
+    "backdrop.westminster.desktop": {
+      "kind": "backdrop",
+      "path": "world/westminster/backdrop-desktop.webp",
+      "sha256": "d97876bc311eaa7a6b810fe1c14dd99b6270a8819de5ab5c406043c12591860c",
+      "bytes": 370086,
+      "size": [
+        2508,
+        1411
+      ]
+    },
     "layout.south": {
       "kind": "layout",
       "path": "world/south/layout.json",
@@ -455,6 +474,16 @@
       "sha256": "ebad2f43c2f633483a64b08d39d32128684725a3c734fead450b3d4ca9e4b061",
       "bytes": 474344
     },
+    "backdrop.south.desktop": {
+      "kind": "backdrop",
+      "path": "world/south/backdrop-desktop.webp",
+      "sha256": "8689b63982295ddca9a46f7ee4324ea253fed644585e027e696137fa2857f939",
+      "bytes": 462714,
+      "size": [
+        2508,
+        1411
+      ]
+    },
     "layout.east": {
       "kind": "layout",
       "path": "world/east/layout.json",
@@ -466,6 +495,16 @@
       "path": "world/east/backdrop-phone.webp",
       "sha256": "ddc745a7dc2d291e6d42f5c2b7e2fb586d0d727f59ca399110283e9457387158",
       "bytes": 373760
+    },
+    "backdrop.east.desktop": {
+      "kind": "backdrop",
+      "path": "world/east/backdrop-desktop.webp",
+      "sha256": "9e633bc7750d3029934bb33300622eb68ec6203e1d80df95435104dc021dd4ea",
+      "bytes": 439940,
+      "size": [
+        2508,
+        1411
+      ]
     },
     "audio.combat": {
       "kind": "audio",
@@ -485,6 +524,16 @@
       "sha256": "2666e7f8935a94055973b7b934483657d72120ae7c490f59a28d743b078a7a54",
       "bytes": 509572
     },
+    "backdrop.east-bridge.desktop": {
+      "kind": "backdrop",
+      "path": "world/east-bridge/backdrop-desktop.webp",
+      "sha256": "a7596ee3cd850d262d9f719ae7734451fa9e12b0be58df9ddb7c89a343ee815f",
+      "bytes": 464300,
+      "size": [
+        2508,
+        1411
+      ]
+    },
     "layout.elephant-and-castle": {
       "kind": "layout",
       "path": "world/elephant-and-castle/layout.json",
@@ -496,6 +545,16 @@
       "path": "world/elephant-and-castle/backdrop-phone.webp",
       "sha256": "40b502c1628db48e969da6388dd053a7c391365feac15135655e9e59ac80de7a",
       "bytes": 515708
+    },
+    "backdrop.elephant-and-castle.desktop": {
+      "kind": "backdrop",
+      "path": "world/elephant-and-castle/backdrop-desktop.webp",
+      "sha256": "9f21c5e011522e359ce5d01fe7ec6b71abf575799fed0725d68c5db539e96b00",
+      "bytes": 474470,
+      "size": [
+        2508,
+        1411
+      ]
     },
     "layout.lambeth": {
       "kind": "layout",
@@ -509,6 +568,16 @@
       "sha256": "cccea985e8a566b9892d3b5e6c362aa86f21c2bdd721c5028dcec244cf853756",
       "bytes": 556624
     },
+    "backdrop.lambeth.desktop": {
+      "kind": "backdrop",
+      "path": "world/lambeth/backdrop-desktop.webp",
+      "sha256": "5c2dc1e559e485e6b836e4e988b429d411a17a2c07dbb20e5475d17a66092486",
+      "bytes": 628310,
+      "size": [
+        2508,
+        1411
+      ]
+    },
     "layout.area7": {
       "kind": "layout",
       "path": "world/area7/layout.json",
@@ -520,6 +589,16 @@
       "path": "world/area7/backdrop-phone.webp",
       "sha256": "a9ff5928994e47e2c9656a2c74bcb109661a32d17f28c12dea8338b077e00f50",
       "bytes": 571818
+    },
+    "backdrop.area7.desktop": {
+      "kind": "backdrop",
+      "path": "world/area7/backdrop-desktop.webp",
+      "sha256": "6fb4821fde2c3347424d7401f6f441d5b70c51930ba4211f5eaf1e6b75a6ad57",
+      "bytes": 545618,
+      "size": [
+        2508,
+        1411
+      ]
     },
     "layout.area8": {
       "kind": "layout",
@@ -533,6 +612,16 @@
       "sha256": "b431d868d6e0d06bb9dbf6dd0110f50c1d7b7d407ea2306ba3f6ce5ac2999ef2",
       "bytes": 545776
     },
+    "backdrop.area8.desktop": {
+      "kind": "backdrop",
+      "path": "world/area8/backdrop-desktop.webp",
+      "sha256": "eb60ce07fa4d792e54480a54a4374cc0a442c6986b79fb744ab84344c2cd8987",
+      "bytes": 493320,
+      "size": [
+        2508,
+        1411
+      ]
+    },
     "layout.central-hub": {
       "kind": "layout",
       "path": "world/central-hub/layout.json",
@@ -544,6 +633,16 @@
       "path": "world/central-hub/backdrop-phone.webp",
       "sha256": "579ee1d23d147dc27a1794588a13336e4b2bd6eebbf8a5e6f2a78c1e48b0ffc0",
       "bytes": 511722
+    },
+    "backdrop.central-hub.desktop": {
+      "kind": "backdrop",
+      "path": "world/central-hub/backdrop-desktop.webp",
+      "sha256": "6193043f6cbc3891c261b3806fd56f68ca5ba7bcaf165226586d13fd3f72aa93",
+      "bytes": 571932,
+      "size": [
+        2508,
+        1411
+      ]
     }
   }
 }

@@ -37,6 +37,21 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     onChange: (fn) => listeners.add(fn),
     // True once the device probe and the frame sample have both landed (or the tier is forced or off): row() is then final.
     settled: () => (probed || !rules.enabled || !!forced) && sampled,
+    // Opt-in 1.5x desktop backdrop: only a tier row that allows it, once settled, with every need met. A missing reading follows its
+    // need's whenMissing (cores and texture size must be reported; deviceMemory and touch points may be absent). ?desktop=0 is off;
+    // ?desktop=1 skips the needs and the settle wait but never the tier row, so a low or mid tier can never be forced onto it.
+    desktopBackdrop() {
+      const rule = rules.desktopBackdrop,
+        asked = new URLSearchParams(search).get(rule.param);
+      if (!current.desktopBackdrop || asked === rule.offValue) return false;
+      if (asked === rule.forceValue) return true;
+      if (!(probed || forced) || !sampled) return false;
+      return rule.needs.every((n) => {
+        const v = values[n.name];
+        if (!Number.isFinite(v)) return n.whenMissing;
+        return (n.min === undefined || v >= n.min) && (n.max === undefined || v <= n.max);
+      });
+    },
     // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
     report: () =>
       Object.freeze({

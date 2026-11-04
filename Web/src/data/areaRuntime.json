@@ -12,6 +12,7 @@
   "view": {
     "textureBudgetMiB": 48,
     "textureBudgetMinMiB": 16,
+    "desktopTextureBudgetMiB": 64,
     "cameraNear": 0.1,
     "cameraFar": 300,
     "portraitActorPixels": 63,
@@ -23,6 +24,7 @@
     "exitHintMeters": 6,
     "defaultCharacterScale": 1.265,
     "artSize": [1672, 941],
+    "desktopArtSize": [2508, 1411],
     "londonEntry": { "x": 0, "z": -6 },
     "entryClearance": 0.4,
     "followReference": { "x": 0.52, "y": 0.78 },
