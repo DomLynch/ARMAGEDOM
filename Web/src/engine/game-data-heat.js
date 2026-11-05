@@ -1,50 +1,7 @@
-// data/heat.json (engine/heat.js, engine/heat-tally-view.js): the wanted/heat tally and the hunter pressure it adds. The validator lives here
+// data/heat.json (engine/heat.js): the wanted/heat count and the hunter pressure it adds. The validator lives here
 // so the loader stays small.
 import { closed } from "./content-schema.js";
 import { fail, number, count } from "./game-data-checks.js";
-
-const checkHex = (field, v) => {
-  if (typeof v !== "string" || !/^[0-9a-f]{6}$/.test(v)) fail("heat", `${field} must be a six-digit hex colour`);
-};
-const checkNumbers = (path, o) => {
-  for (const k of Object.keys(o)) if (!Number.isFinite(o[k])) fail("heat", `${path}.${k} must be a number`);
-};
-
-function validateLook(s) {
-  closed(s, ["label", "placement", "centre", "colours", "mark", "companions", "strike"]);
-  if (s.placement !== "hud" && s.placement !== "world") fail("heat", "look.placement must be hud or world");
-  number("heat", "look.centre", s.centre, 0);
-  closed(s.colours, ["fill", "core", "edge", "glow", "glowAlpha", "glowBlurPx"]);
-  for (const k of ["fill", "core", "edge", "glow"]) checkHex(`look.colours.${k}`, s.colours[k]);
-  number("heat", "look.colours.glowAlpha", s.colours.glowAlpha);
-  number("heat", "look.colours.glowBlurPx", s.colours.glowBlurPx);
-  closed(s.mark, [
-    "lengthPx",
-    "widthPx",
-    "bendPx",
-    "segments",
-    "edgeJitterPx",
-    "notchProb",
-    "notchPx",
-    "notchBias",
-    "tipSharpness",
-    "entryPower",
-    "bodyPower",
-    "tiltJitterDeg",
-    "baseTiltDeg",
-    "spacingPx",
-    "edgeLinePx",
-    "coreShare",
-  ]);
-  checkNumbers("look.mark", s.mark);
-  count("heat", "look.mark.segments", s.mark.segments, 4, 64);
-  closed(s.companions, ["offsetsPx", "widthPx", "lengthShare", "startShare", "followShare"]);
-  if (!Array.isArray(s.companions.offsetsPx) || s.companions.offsetsPx.some((n) => !Number.isFinite(n)))
-    fail("heat", "look.companions.offsetsPx must list numbers");
-  for (const k of ["widthPx", "lengthShare", "startShare", "followShare"]) number("heat", `look.companions.${k}`, s.companions[k]);
-  closed(s.strike, ["angleDeg", "halfLengthPx", "widthPx", "bendPx"]);
-  checkNumbers("look.strike", s.strike);
-}
 
 // What raises heat besides a kill: cash by source prefix (+1 per perHeat cash), a flat amount per claim source, a flat amount per event.
 function validateValuables(v) {
@@ -95,9 +52,6 @@ export function validateHeat(d) {
     "tierMessageSeconds",
     "valuables",
     "pressure",
-    "world",
-    "hud",
-    "look",
   ]);
   number("heat", "tierMessageSeconds", d.tierMessageSeconds, 0.1);
   validateValuables(d.valuables);
@@ -116,14 +70,6 @@ export function validateHeat(d) {
   closed(d.pressure, ["minSeconds", "tiers"]);
   number("heat", "pressure.minSeconds", d.pressure.minSeconds, 1);
   validateTiers(d.pressure.tiers);
-  closed(d.world, ["heightMetres", "widthMetresPerGroup", "canvasPxPerGroup", "canvasHeightPx", "maxGroups", "renderOrder"]);
-  for (const k of ["heightMetres", "widthMetresPerGroup", "canvasPxPerGroup", "canvasHeightPx"]) number("heat", `world.${k}`, d.world[k], 0.1);
-  count("heat", "world.maxGroups", d.world.maxGroups, 1, 12);
-  count("heat", "world.renderOrder", d.world.renderOrder, 0, 1000);
-  closed(d.hud, ["widthPxPerGroup", "topOffsetPx", "rightOffsetPx", "zIndex"]);
-  for (const k of ["widthPxPerGroup", "topOffsetPx", "rightOffsetPx"]) number("heat", `hud.${k}`, d.hud[k], 0);
-  count("heat", "hud.zIndex", d.hud.zIndex, 0, 1000);
-  validateLook(d.look);
   const top = d.pressure.tiers[d.pressure.tiers.length - 1].minHeat;
-  count("heat", "maxHeat", d.maxHeat, top, d.world.maxGroups * d.groupSize); // reaches the top tier and fits the tally's groups
+  count("heat", "maxHeat", d.maxHeat, top, 99); // reaches the top tier
 }

@@ -3,13 +3,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateHeat } from "../src/engine/game-data-heat.js";
-import { heatEnabled, stepHeat, resetHeat, heatTier, heatSeconds, heatHunterLimit, heatStarHunter, heatShown } from "../src/engine/heat.js";
-import { groupSlots, seeded } from "../src/engine/heat-tally-strokes.js";
+import { heatEnabled, stepHeat, resetHeat, heatTier, heatSeconds, heatHunterLimit, heatStarHunter, heatShown, seeded } from "../src/engine/heat.js";
 import { stepMarkedHunters, clearMarkedHunters } from "../src/engine/marked-hunters.js";
 import { make, shipped } from "./helpers/marked-fixture.js";
 import { LondonWorld } from "../src/world.js";
 import { Vector3 } from "three";
-import { createHeatTallyView } from "../src/engine/heat-tally-view.js";
 
 const HEAT = GAME_DATA.heat,
   CAP = GAME_DATA.postBossRaid.maxSimultaneous,
@@ -51,15 +49,6 @@ test("heat goes up by one for every kill, and kills made before the session neve
   assert.equal(g.heat.count, 4);
   stepHeat(g);
   assert.equal(g.heat.count, 4, "reading the same kills again adds nothing");
-});
-
-test("groups of five: four marks then a strike, and a second group after five", () => {
-  const slots = (n) => groupSlots(HEAT.look, HEAT.groupSize, n, (i) => seeded(i + 1));
-  assert.deepEqual(slots(4).map((s) => s.kind), ["mark", "mark", "mark", "mark"]);
-  assert.deepEqual(slots(5).map((s) => s.kind), ["mark", "mark", "mark", "mark", "strike"]);
-  assert.equal(slots(2).length, 2);
-  assert.equal(slots(9).length, HEAT.groupSize, "one group never draws more than its five");
-  for (const s of slots(5).slice(0, 4)) assert.equal(s.gouges.length, 1 + HEAT.look.companions.offsetsPx.length);
 });
 
 test("fade: a mark drops after secondsPerMark without a kill, the newest dims first, and a kill restarts the clock", () => {
@@ -220,7 +209,6 @@ test("heat is session-only: a persisted run carries no heat", () => {
 
 test("the heat count is capped by the data row: kills past it add nothing, and the tally and tier lookup clamp to it", () => {
   assert.ok(HEAT.maxHeat >= HEAT.pressure.tiers.at(-1).minHeat);
-  assert.ok(HEAT.maxHeat <= HEAT.world.maxGroups * HEAT.groupSize, "the tally has room for every mark");
   const g = fake();
   stepHeat(g);
   g.kills = HEAT.maxHeat + 20;
@@ -234,81 +222,6 @@ test("the heat count is capped by the data row: kills past it add nothing, and t
   const bad = raw();
   bad.maxHeat = bad.pressure.tiers.at(-1).minHeat - 1;
   assert.throws(() => validateHeat(bad));
-});
-
-// A stub page: counts the canvases the tally view asks for, with a 2D context that accepts every drawing call.
-function withStubPage(run) {
-  const real = globalThis.document;
-  let canvases = 0;
-  globalThis.document = {
-    createElement() {
-      canvases++;
-      const canvas = { width: 0, height: 0 };
-      canvas.getContext = () => new Proxy({ canvas }, { get: (t, k) => (k in t ? t[k] : () => {}), set: () => true });
-      return canvas;
-    },
-  };
-  try {
-    return run(() => canvases);
-  } finally {
-    globalThis.document = real;
-  }
-}
-
-test("a fade builds no new texture: only a change of count does, and the newest mark's opacity does the dimming", () => {
-  withStubPage((canvases) => {
-    const added = [],
-      scene = { add: (s) => added.push(s), remove() {} },
-      view = createHeatTallyView(scene, "world"),
-      at = new Vector3(1, 2, 3);
-    view.update({ count: 7, lastAlpha: 1 }, at);
-    const built = canvases();
-    assert.equal(built, 2, "one texture for the settled marks, one for the newest");
-    const alphas = [];
-    for (let i = 0; i <= 70; i++) {
-      const lastAlpha = 1 - (i / 70) * (1 - HEAT.decay.minAlpha);
-      view.update({ count: 7, lastAlpha }, at);
-      alphas.push(added.at(-1).material.opacity);
-    }
-    assert.equal(canvases(), built, "70 fade steps built nothing");
-    assert.ok(alphas[0] > alphas.at(-1) && alphas.at(-1) >= HEAT.decay.minAlpha - 1e-9, "the newest mark dims");
-    assert.equal(added.at(-2).material.opacity, 1, "the settled marks stay solid");
-    view.update({ count: 8, lastAlpha: 1 }, at);
-    assert.equal(canvases(), built + 2, "a new kill repaints once");
-    view.update(null, at);
-    view.dispose();
-  });
-});
-
-test("hud placement: a top-right overlay from the data row, hidden at zero heat, the newest mark fades by CSS opacity alone", () => {
-  assert.equal(HEAT.look.placement, "hud");
-  const real = globalThis.document,
-    made = [],
-    el = (tag) => {
-      const e = { tag, style: {}, children: [], hidden: false, width: 0, height: 0, setAttribute() {}, remove() {} };
-      e.appendChild = (c) => e.children.push(c);
-      e.replaceChildren = () => (e.children = []);
-      e.getContext = () => new Proxy({ canvas: e }, { get: (t, k) => (k in t ? t[k] : () => {}), set: () => true });
-      return e;
-    };
-  globalThis.document = { createElement: (t) => { const e = el(t); made.push(e); return e; }, getElementById: () => el("hud"), body: el("body") };
-  try {
-    const view = createHeatTallyView({}),
-      root = made[0];
-    assert.equal(root.hidden, true, "no heat, nothing shown");
-    view.update({ count: 7, lastAlpha: 1 });
-    assert.equal(root.hidden, false);
-    assert.equal(root.children.length, 2, "settled marks and newest mark");
-    assert.equal(root.style.width, `${2 * HEAT.hud.widthPxPerGroup}px`);
-    assert.ok(root.style.top.includes(`${HEAT.hud.topOffsetPx}px`) && root.style.right.includes("--safe-r"));
-    view.update({ count: 7, lastAlpha: 0.5 });
-    assert.equal(root.children[1].style.opacity, "0.5");
-    assert.equal(made.length, 3, "a fade builds no canvas");
-    view.update(null);
-    assert.equal(root.hidden, true, "zero heat hides it");
-  } finally {
-    globalThis.document = real;
-  }
 });
 
 test("the off-switch answer is worked out once per page and tiers are walked without sorting", () => {
