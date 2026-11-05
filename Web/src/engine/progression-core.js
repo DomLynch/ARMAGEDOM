@@ -4,6 +4,7 @@ import { deathWeaponDescriptor } from "./weapon-credit-policy.js";
 import { createProgressionModel, closedData, copyProgression } from "./progression-state.js";
 import { AREA1_SUPPLIES } from "../supplies.js";
 import { DRONE_KEYS } from "../drone-mechanics.js";
+import { applyStaminaUpgrade } from "./upgrades-state.js";
 const packetFields = ["placementKey", "areaId", "weaponId", "damageApplied"];
 const envelopeFields = ["version", "pistol", "hp", "supplies", "vest", "droneDeaths", "animalCycle", "progression"];
 export const PROGRESSION_SAVE_KEY = "armagedom:progression-run:v4";
@@ -205,6 +206,7 @@ export function createProgressionComponent({ baseCodec, getRun, ...options }) {
     g.progression = copyProgression(saved.progression);
     g.player.maxHP = model.maxHP(g.progression);
     g.player.maxStamina = model.maxStamina(g.progression);
+    applyStaminaUpgrade(g.player, undefined, 0); // the maximum was just reset to the base: put the stamina upgrade back on top
     baseCodec.applySavedRun(g, saved);
     // Web must also use deadPlacements at its shared resident initialization seam.
     const dead = new Set(model.deadPlacements(g.progression, g.world.areaId));

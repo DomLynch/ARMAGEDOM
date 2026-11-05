@@ -317,6 +317,7 @@ export function createBrowserLoop(s) {
     s.hud.update(s.game, hint, hints.overMessage);
     s.updateExpedition?.();
     s.shop?.update(s);
+    s.upgrades?.update(s);
     s.updateRunHud?.(); // after the HUD: the run's results card stands in front of the death card
     if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth, feel.shake());
     else s.renderer.render(s.scene, s.camera);

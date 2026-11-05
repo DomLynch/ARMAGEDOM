@@ -125,6 +125,17 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       if (!active) throw new HttpError(403, "no-character");
       return call("arma_sell_item", [account, active, String(body.shop_id ?? ""), String(body.item_id ?? ""), Number.isInteger(body.qty) ? body.qty : 0, String(body.request_id ?? "")]);
     },
+    // Permanent safehouse upgrades (supabase/migrations/20261105000032). The database settles price, order, cash and replay.
+    async upgrades_get({ account }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_upgrades_get", [account, active]);
+    },
+    async upgrade_buy({ account, body }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_upgrade_buy", [account, active, String(body.upgrade_id ?? ""), Number.isInteger(body.to_level) ? body.to_level : 0, String(body.request_id ?? "")]);
+    },
     // Today's board (migration 000031): the top 20 and the caller's own rank. The database answers with account ids; they become names here and
     // never leave this function. `you` marks the caller's row. Read only, and no character is needed.
     async leaderboard({ account }) {

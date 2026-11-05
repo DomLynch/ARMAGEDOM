@@ -1,6 +1,6 @@
 import { publicAreaRegistry } from "../area-registry.js";
 import { closed, freeze } from "./content-schema.js";
-import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { carryCapOf } from "./locker-state.js";
 // The values live only in area-content.json `marked`. This is the hard ceiling on any money field (a limit, not a default).
 export const MAX_MONEY_CEILING = 1e9; // tuning-ok: a hard validation ceiling on any money field, a limit and not a default
 export function validateMarkedData(input, registry = publicAreaRegistry) {
@@ -127,10 +127,10 @@ export function markedShopEligible(g, id) {
   const row = g.world?.markedData?.shop[id];
   if (!row || !(g.marked?.bank >= row.price)) return false;
   if (id === "pistol")
-    return !!g.pistol?.collected && g.pistol.reserve + row.amount <= LOCKER_RESOURCE_RULES["pistol-reserve"].carryCap;
+    return !!g.pistol?.collected && g.pistol.reserve + row.amount <= carryCapOf("pistol-reserve");
   if (id === "rifle")
     return (
-      g.rifle?.status === "owned" && g.rifle.reserve + row.amount <= LOCKER_RESOURCE_RULES["rifle-reserve"].carryCap
+      g.rifle?.status === "owned" && g.rifle.reserve + row.amount <= carryCapOf("rifle-reserve")
     );
   return id === "dressing" && g.player.hp > 0 && g.player.hp < g.player.maxHP;
 }

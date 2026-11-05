@@ -2,8 +2,13 @@ import { REAPER_ITEM_ID, REAPER_RECEIPT } from "./reaper.js";
 import { createLockerModel, LOCKER_WEAPON_IDS, LOCKER_RESOURCE_RULES } from "./locker-state.js";
 import { closedData } from "./progression-state.js";
 import { safehouseProp } from "./safehouse.js";
+import { reserveBonus, reserveBonusMax } from "./upgrades-state.js";
 export const LOCKER_SAVE_KEY = "armagedom:safehouse-run:v12";
-const model = createLockerModel({ weaponIds: LOCKER_WEAPON_IDS, resourceRules: LOCKER_RESOURCE_RULES });
+const model = createLockerModel({
+  weaponIds: LOCKER_WEAPON_IDS,
+  resourceRules: LOCKER_RESOURCE_RULES,
+  carryExtra: { bound: reserveBonusMax, live: reserveBonus },
+});
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b),
   fail = (code) => ({ ok: false, code, events: [] });
 // The locker's weapons by name, in the saved order of LOCKER_WEAPON_IDS (locker-state.js).

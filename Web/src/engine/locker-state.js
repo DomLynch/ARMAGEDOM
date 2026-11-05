@@ -1,4 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
+import { reserveBonus } from "./upgrades-state.js";
 // Locker location and supply proposals only. Entitlement/ammo DTOs remain the
 // existing inventory authority; host commits both sides through its one writer.
 // The ten saved weapon ids, in saved order, come from data/locker.json (weaponIds).
@@ -27,6 +28,10 @@ const lockerRules = (caps) =>
     ),
   );
 export const LOCKER_RESOURCE_RULES = lockerRules(GAME_DATA.locker.resourceCaps);
+// What the player may carry NOW: the base cap plus the spare-magazine upgrade for the pistol and rifle reserve (engine/upgrades-state.js).
+// Every way of GAINING carried ammo (ground pickups, the Marked shop, an ammo box, a locker withdraw) asks this; the saved-run validators
+// ask the upgrade's top level instead (reserveBonusMax), so a run stays readable whatever the live level is.
+export const carryCapOf = (resource) => LOCKER_RESOURCE_RULES[resource].carryCap + reserveBonus(resource);
 import { closed } from "./shared-checks.js";
 const dense = (rows) =>
   Array.isArray(rows) &&
@@ -35,7 +40,9 @@ const dense = (rows) =>
   Array.from({ length: rows.length }, (_, i) => Object.getOwnPropertyDescriptor(rows, String(i))).every(
     (d) => d?.enumerable && "value" in d,
   );
-export function createLockerModel({ weaponIds, resourceRules }) {
+// carryExtra.bound(resource): the most rounds an upgrade could ever add to the carry cap (a carried amount is VALID up to cap + bound);
+// carryExtra.live(resource): what it adds now (a withdraw may fill the carry up to cap + live). Both are 0 without upgrades.
+export function createLockerModel({ weaponIds, resourceRules, carryExtra = { bound: () => 0, live: () => 0 } }) {
   if (
     !dense(weaponIds) ||
     weaponIds.length !== weaponIdsAllowed.length ||
@@ -64,7 +71,8 @@ export function createLockerModel({ weaponIds, resourceRules }) {
     resources.every((resource) => {
       const n = value[resource],
         rule = rules[resource];
-      return Number.isFinite(n) && n >= 0 && n <= rule[side] && (!rule.integer || Number.isSafeInteger(n));
+      const limit = rule[side] + (side === "carryCap" ? carryExtra.bound(resource) : 0);
+      return Number.isFinite(n) && n >= 0 && n <= limit && (!rule.integer || Number.isSafeInteger(n));
     });
   const freshState = () => ({
     version: 1,
@@ -144,8 +152,8 @@ export function createLockerModel({ weaponIds, resourceRules }) {
       const deposit = action.type === "depositSupply",
         from = deposit ? ammo : next.ammo,
         to = deposit ? next.ammo : ammo;
-      if (amount > from[resource] || to[resource] + amount > rules[resource][deposit ? "stashCap" : "carryCap"])
-        return null;
+      const room = deposit ? rules[resource].stashCap : rules[resource].carryCap + carryExtra.live(resource);
+      if (amount > from[resource] || to[resource] + amount > room) return null;
       from[resource] -= amount;
       to[resource] += amount;
     }

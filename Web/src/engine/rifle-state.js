@@ -1,4 +1,5 @@
 import { RIFLE_PROFILE, validateRangedWeaponCatalog } from "./weapon-catalog.js";
+import { reserveBonusMax } from "./upgrades-state.js";
 const fields = ["version", "status", "dropPosition", "rewardReceipt", "magazine", "reserve", "selected"];
 const closed = (value, names) =>
   !!value &&
@@ -19,7 +20,8 @@ export function createAmmoRewardModel(profile) {
   const data = validateRangedWeaponCatalog({ [profile.itemId]: profile })[profile.itemId];
   if (!data.source) throw TypeError("Boss reward source required");
   const { placementKey, areaId, receiptId } = data.source,
-    { capacity, reserve: initialReserve } = data.rules;
+    { capacity, reserve: initialReserve } = data.rules,
+    reserveLimit = initialReserve + (data.family === "rifles" ? reserveBonusMax("rifle-reserve") : 0); // the safehouse upgrade raises the rifle's room
   const clone = (s) => ({ ...s, dropPosition: s.dropPosition === null ? null : { ...s.dropPosition } });
   const freshState = () => ({
     version: 1,
@@ -42,7 +44,7 @@ export function createAmmoRewardModel(profile) {
         s.magazine <= capacity &&
         Number.isSafeInteger(s.reserve) &&
         s.reserve >= 0 &&
-        s.reserve <= initialReserve &&
+        s.reserve <= reserveLimit &&
         (s.status === "pending" ? point(s.dropPosition) : s.dropPosition === null) &&
         (s.status === "owned"
           ? s.rewardReceipt === receiptId

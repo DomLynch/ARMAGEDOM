@@ -75,6 +75,8 @@ import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
+import safehouseUpgrades from "../data/safehouseUpgrades.json" with { type: "json" };
+import { validateUpgrades } from "./game-data-upgrades.js";
 import uiScale from "../data/uiScale.json" with { type: "json" };
 import colourBlind from "../data/colourBlind.json" with { type: "json" };
 import heatDial from "../data/heatDial.json" with { type: "json" };
@@ -1175,6 +1177,7 @@ const sources = () => ({
   minimap: [minimap, validateMinimap],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  safehouseUpgrades: [safehouseUpgrades, validateUpgrades],
   uiScale: [uiScale, validateUiScale],
   colourBlind: [colourBlind, validateColourBlind],
   heatDial: [heatDial, validateHeatDial],

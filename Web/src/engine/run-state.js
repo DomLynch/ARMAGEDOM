@@ -13,6 +13,7 @@ import {
 } from "../supplies.js";
 import { createVestState, isVestState, collectVest, VEST_RULES } from "../vest.js";
 import { PISTOL_RULES } from "../pistol.js";
+import { reserveBonusMax } from "./upgrades-state.js";
 
 const NOTICES = GAME_DATA.runNotices; // data/runNotices.json: how long each run message stays up
 // Clear native circle movement/LOS from spawn;1.15m from the pistol stash.
@@ -48,7 +49,7 @@ export function restorePistol(state, raw) {
     saved.magazine > PISTOL_RULES.capacity ||
     !Number.isInteger(saved.reserve) ||
     saved.reserve < 0 ||
-    saved.reserve > PISTOL_RULES.reserve ||
+    saved.reserve > PISTOL_RULES.reserve + reserveBonusMax("pistol-reserve") ||
     (!saved.collected && (saved.equipped || saved.magazine || saved.reserve))
   )
     return null;
