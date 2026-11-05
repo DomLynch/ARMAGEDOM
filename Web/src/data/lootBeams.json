@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": { "param": "nobeams", "value": "1" },
+  "maxBeams": 6,
+  "riseSeconds": 0.3,
+  "fadeSeconds": 1,
+  "ringGrowFrom": 0.4,
+  "pulse": { "hz": 0.8, "depth": 0.25 },
+  "lift": 0.03,
+  "renderOrder": 14,
+  "heightSegments": 4,
+  "fadePower": 1.6,
+  "styles": {
+    "uncommon": {
+      "colour": "009e73",
+      "opacity": 0.5,
+      "seconds": 3,
+      "beamHeight": 2.2,
+      "beamRadius": 0.07,
+      "beamTaper": 0.4,
+      "beamSides": 3,
+      "ringSegments": 3,
+      "ringRadius": 0.7,
+      "rings": [[0.78, 1]]
+    },
+    "rare": {
+      "colour": "56b4e9",
+      "opacity": 0.6,
+      "seconds": 5,
+      "beamHeight": 4,
+      "beamRadius": 0.1,
+      "beamTaper": 0.4,
+      "beamSides": 6,
+      "ringSegments": 24,
+      "ringRadius": 0.9,
+      "rings": [[0.82, 1]]
+    },
+    "epic": {
+      "colour": "cc79a7",
+      "opacity": 0.7,
+      "seconds": 7,
+      "beamHeight": 6.5,
+      "beamRadius": 0.15,
+      "beamTaper": 0.35,
+      "beamSides": 4,
+      "ringSegments": 4,
+      "ringRadius": 1.1,
+      "rings": [
+        [0.84, 1],
+        [0.5, 0.62]
+      ]
+    },
+    "legendary": {
+      "colour": "f0e442",
+      "opacity": 0.85,
+      "seconds": 10,
+      "beamHeight": 9.5,
+      "beamRadius": 0.22,
+      "beamTaper": 0.3,
+      "beamSides": 8,
+      "ringSegments": 6,
+      "ringRadius": 1.35,
+      "rings": [
+        [0.86, 1],
+        [0.58, 0.68],
+        [0.3, 0.38]
+      ]
+    }
+  }
+}

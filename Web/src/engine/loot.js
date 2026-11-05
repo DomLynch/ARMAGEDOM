@@ -1,4 +1,5 @@
 import { GAME_DATA, fillText } from "./game-data.js";
+import { queueBeam, strongestRarity } from "./loot-beams.js";
 // Rare drops, client side (data/loot.json). The server rolls loot and sends it back with the kill credit; nothing here rolls or asserts it.
 // This file holds the rules: whether the feature is on, the owned-items store (what the inventory strip shows), and what a drop does to the
 // run (a toast on the notice line, a glint where the body fell, the first-drop hint flag). Drawing is engine/loot-glint-view.js and
@@ -91,6 +92,7 @@ export function createLootStore({ api, rules }) {
         state.toastUntil = g.messageUntil = g.time + data.toastSeconds;
       }
       state.glints.push({ x: where.x, z: where.z, from: g.time, until: g.time + data.glint.seconds });
+      queueBeam(g, where, strongestRarity(loot.map((row) => describe(row.item_id).rarity), data.rarityOrder)); // the light column (data/lootBeams.json)
       // The server answered, so it holds these: add them here when the list is known, otherwise learn the whole list.
       if (status === "ok") add(loot);
       else store.refresh();
