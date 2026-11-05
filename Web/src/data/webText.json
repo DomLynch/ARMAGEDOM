@@ -205,6 +205,21 @@
     "board.score": "${score}",
     "board.you": "(you)",
     "board.me": "Your rank today: {rank} with ${score}",
-    "board.rowAria": "Rank {rank}, {name}, ${score}, {kills} kills"
+    "board.rowAria": "Rank {rank}, {name}, ${score}, {kills} kills",
+    "bossGoal.count": "{done} / {total}",
+    "bossGoal.surgeon.hud": "Lure the Lambeth Surgeon",
+    "bossGoal.surgeon.arrive": "The blood draws him in. The Lambeth Surgeon is here.",
+    "bossGoal.butcher.hud": "Feed the Borough Butcher",
+    "bossGoal.butcher.arrive": "The Borough Butcher steps out of the meat, hungry for more.",
+    "bossGoal.warden.hud": "Rouse the Bridge Warden",
+    "bossGoal.warden.arrive": "The Bridge Warden has seen enough. He marches.",
+    "bossGoal.witch.hud": "Stir the Ember Matron",
+    "bossGoal.witch.arrive": "The embers flare. The Ember Matron rises.",
+    "bossGoal.nightborn.hud": "Call the Southbank Stalker",
+    "bossGoal.nightborn.arrive": "Something old has your scent. The Southbank Stalker hunts.",
+    "bossGoal.knight.hud": "Draw the Station Breaker",
+    "bossGoal.knight.arrive": "The doors cave in. The Station Breaker is on you.",
+    "bossGoal.veteran.hud": "Summon the Borough Marshal",
+    "bossGoal.veteran.arrive": "The Borough Marshal rides out to meet you."
   }
 }

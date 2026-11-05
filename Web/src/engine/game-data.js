@@ -73,6 +73,8 @@ import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
+import lootBeams from "../data/lootBeams.json" with { type: "json" };
+import { validateLootBeams } from "./game-data-loot-beams.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -112,6 +114,8 @@ import runSummary from "../data/runSummary.json" with { type: "json" };
 import { validateRunSummary } from "./game-data-run-summary.js";
 import dailyBoard from "../data/dailyBoard.json" with { type: "json" };
 import { validateDailyBoard } from "./game-data-daily-board.js";
+import bossGoals from "../data/bossGoals.json" with { type: "json" };
+import { validateBossGoals } from "./game-data-boss-goals.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1162,10 +1166,12 @@ const sources = () => ({
   threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  lootBeams: [lootBeams, validateLootBeams],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],
   dailyBoard: [dailyBoard, validateDailyBoard],
+  bossGoals: [bossGoals, validateBossGoals],
 });
 
 /**
