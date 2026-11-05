@@ -640,6 +640,12 @@
   "source": "f9d8f9e9bb745c65d5c249341e8991b76167e66c",
   "version": "three-20261028-346"
  },
+ "347": {
+  "fingerprint": "94fd96671bf8b06ecc61bfed559bd47906b807d5d94303375394b58f38ce9c67",
+  "releaseSHA": "6f9bdf8ad134200b7626a020b828ba3707380723aefd0ff4c2c70de944dd45d8",
+  "source": "437d8ec3bc3f48050922cc4a9a5973b0022b4003",
+  "version": "three-20261028-347"
+ },
  "_floor": 323,
  "_unstaged": [
   "338",
