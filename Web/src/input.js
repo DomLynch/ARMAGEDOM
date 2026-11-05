@@ -182,7 +182,7 @@ export function attachInput({
   const gameplayTouch = (target) =>
     !isPaused() &&
     !target?.closest?.(
-      "#weapon-tiles, #safehouse-interact, #menu, #menu-button, #entry, #ending, #pistol-interact, #rifle-pickup, #rifle-equipment, #boss-equipment, [data-boss-equipment-control], a, input, select, textarea",
+      "#weapon-tiles, #safehouse-interact, #menu, #menu-button, #minimap, #entry, #ending, #pistol-interact, #rifle-pickup, #rifle-equipment, #boss-equipment, [data-boss-equipment-control], a, input, select, textarea",
     ) &&
     (target === document.body ||
       target === document.documentElement ||
