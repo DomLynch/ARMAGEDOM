@@ -17,6 +17,7 @@ const DYNAMIC_PREFIXES = [
   { prefix: "summary.label.", reason: "engine/run-summary.js names each summary row's label by the stat id of the row in data/runSummary.json" },
   { prefix: "summary.goal.", reason: "engine/run-summary.js names the goal line by the stat id (and .one for a single unit) of the row in data/runSummary.json" },
   { prefix: "heatDial.tier.", reason: "engine/heat-dial.js names the tier by its 1-based row number in data/heat.json pressure.tiers; heat-dial.test.js checks every tier has a name" },
+  { prefix: "bossGoal.", reason: "engine/boss-goals.js and boss-goal-view.js name a goal's lines bossGoal.<id>.hud and .arrive by the row id in data/bossGoals.json" },
   { prefix: "hud.keys.", reason: "engine/input-keymap.js builds each key-hint label from the hint row's text in data/inputKeys.json" },
 ];
 

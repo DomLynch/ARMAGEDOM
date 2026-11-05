@@ -77,6 +77,8 @@ import uiScale from "../data/uiScale.json" with { type: "json" };
 import colourBlind from "../data/colourBlind.json" with { type: "json" };
 import heatDial from "../data/heatDial.json" with { type: "json" };
 import { validateColourBlind, validateHeatDial, validateUiScale } from "./game-data-ui-options.js";
+import lootBeams from "../data/lootBeams.json" with { type: "json" };
+import { validateLootBeams } from "./game-data-loot-beams.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -114,6 +116,8 @@ import perks from "../data/perks.json" with { type: "json" };
 import { validatePerks } from "./game-data-perks.js";
 import runSummary from "../data/runSummary.json" with { type: "json" };
 import { validateRunSummary } from "./game-data-run-summary.js";
+import bossGoals from "../data/bossGoals.json" with { type: "json" };
+import { validateBossGoals } from "./game-data-boss-goals.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1167,9 +1171,11 @@ const sources = () => ({
   uiScale: [uiScale, validateUiScale],
   colourBlind: [colourBlind, validateColourBlind],
   heatDial: [heatDial, validateHeatDial],
+  lootBeams: [lootBeams, validateLootBeams],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],
+  bossGoals: [bossGoals, validateBossGoals],
 });
 
 /**

@@ -3,6 +3,7 @@ import { GAME_DATA } from "./game-data.js";
 import { populationPlacements, populationAllowsDrone } from "./area-population.js";
 import { reviveDue } from "./respawn.js";
 import { applyBossProfile } from "./area-bosses.js";
+import { bossGoalLocks } from "./boss-goal-core.js";
 import { creatureCatalogue, animalFoundationParameters, ENGINE_CREATURE_CAPABILITIES } from "./creature-catalogue.js";
 import { resolveBoundAnimalRole } from "../animal-role-bindings.js";
 import { resolveRoachNestGuard } from "../roach-territory.js";
@@ -139,6 +140,7 @@ function buildResidents(g, area, revived, onlyRevived) {
         revived.has(p.key) ||
         (!onlyRevived &&
           !dead.has(p.key) &&
+          !bossGoalLocks(g, p.key) && // ?bossgoals=1: a boss with an unmet goal is not placed yet (boss-goals.js brings it in)
           (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
             !g.supplies?.issued.includes(p.key)) &&
           (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key))),
@@ -228,5 +230,13 @@ export function initializeAreaResidents(g) {
     g.nextWave = Infinity;
     g.nextEnemyAttackAt = g.time;
   }
+}
+// Builds the boss placed with `key` in the area the player stands in (a boss whose goal was met, boss-goals.js). Null when it is already
+// there, already beaten (a progression award or an issued supply) or not placed in this area; the caller adds it to g.enemies.
+export function buildGoalBoss(g, key) {
+  const area = g.world.areaId ?? "westminster",
+    dead = g.progressionModel?.deadPlacements(g.progression, area) ?? [];
+  if (dead.includes(key) || g.supplies?.issued.includes(key) || g.enemies.some((e) => e.placementKey === key)) return null;
+  return buildResidents(g, area, new Set([key]), true).find((e) => e.bossProfile && e.placementKey === key) ?? null;
 }
 export const reviveAreaResidents = (g) => reviveDue(g, buildResidents, AREA_MOB_SPAWNS);
