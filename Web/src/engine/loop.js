@@ -201,9 +201,24 @@ export function createBrowserLoop(s) {
         });
         s.diagnostics?.afterStep();
         if (weaponBefore !== s.game.player.weapon || flameBefore !== !!s.game.flame?.equipped) {
-          s.input.clear();
-          submitted = null;
+          // A switch drops stale fire/aim/attack input, never the walk: held move keys, the stick and the speed carry on,
+          // exactly as every tile, key and pickup equip does (input.clear({ keepMovement: true })).
+          const velocity = s.game.player.velocity;
+          s.input.clear({ keepMovement: true });
+          if (submitted)
+            submitted = {
+              ...submitted,
+              actions: [],
+              held: [],
+              guard: false,
+              guardPressed: false,
+              dodge: false,
+              aim: null,
+              fireAim: null,
+              worldTap: null,
+            };
           resetMobileControls(s.game);
+          s.game.player.velocity = velocity;
         }
         s.collectNearbySupplies(s.game, value);
         s.collectNearbyVest(s.game);
