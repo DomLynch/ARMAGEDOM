@@ -77,8 +77,8 @@ export function validateLootBeams(d) {
       fail("lootBeams", `${name}.rings must list one to four bands`);
     for (const band of row.rings) {
       if (!Array.isArray(band) || band.length !== 2) fail("lootBeams", `${name}.rings bands are [inner, outer]`);
-      fraction(`${name}.rings inner`, band[0], 0.01);
-      fraction(`${name}.rings outer`, band[1], 0.01);
+      fraction(`${name}.rings.inner`, band[0], 0.01);
+      fraction(`${name}.rings.outer`, band[1], 0.01);
       if (band[0] >= band[1]) fail("lootBeams", `${name}.rings inner must be below outer`);
     }
   }
