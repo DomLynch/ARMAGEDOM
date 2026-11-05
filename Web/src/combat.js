@@ -3,6 +3,7 @@ import { stepPlayerHealth } from "./engine/player-health.js";
 import { rigCapability, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
+import { stepTrashWave, clearTrashWave } from "./engine/trash-wave.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
   BONE_SAW_RULES,
@@ -989,7 +990,7 @@ function enemyMove(g, e, dir, speed, dt, backward = false) {
         actor: e,
         goal,
         time: g.time,
-        ...(e.markedHunter || (rigCapability(e.rig, "areaPursuit") && e.residentIntent?.pursuitScope === "area")
+        ...(e.markedHunter || e.waveMob || (rigCapability(e.rig, "areaPursuit") && e.residentIntent?.pursuitScope === "area")
           ? { leash: Infinity }
           : {}),
       });
@@ -1103,6 +1104,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
   if (g.flame && (g.finished || intent.cancel || intent.paused)) stopFlame(g);
   if (g.finished) {
     if (g.player.hp <= 0) clearMarkedHunters(g, { death: true }), clearCursed(g, "death");
+    if (g.trashWave) clearTrashWave(g); // a finished run takes its wave mobs with it
     stopReaper(g, "terminal");
     stopAllBoneSaws(g, "terminal");
     resetDeadPlayerBossPursuit(g);
@@ -1267,6 +1269,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
     stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
+    stepTrashWave(g, dt, services); // opt-in timed trash-mob waves (?waves=1); returns at once when off
     if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");

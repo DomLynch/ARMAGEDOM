@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "note": "Timed trash-mob waves (opt-in). OFF by default: wavesEnabledDefault is false and the page turns waves on only with ?waves=1 (startSwitch). engine/trash-wave.js runs this data; with the flag off it creates no state and touches no actor. Donor shapes: Mindustry SpawnGroup (begin, spacing, unit amount scaling, max), Shattered PD respawner (a clock that pauses while the room is crowded), TFS spawn (ring of cells that must be free), claudecraft escort waves (packs with leashed followers).",
+  "note2": "Group size for wave w (counted from 1): when w >= begin and (w - begin) is a multiple of spacing, n = w - begin and size = min(max, round(unitAmount * (1 + unitGrowth * n)) + unitStep * floor(n / spacing)). unitGrowth is the fraction of unitAmount added per wave (0.06 = about 6% a wave); unitStep is whole units added per firing of the group. The tier row (full, mid, low) comes from qualityTier.json, so a weaker device gets smaller waves and a lower live cap.",
+  "note3": "Pacing: the clock runs clockSeconds between waves and stops while more than pauseAboveLive mobs are alive. With earlyAtMostLive or fewer alive, the next wave starts early, but never sooner than earlyMinGapSeconds after the last one. After an elite wave is cleared there is a breatherSeconds pause before the next wave. The first wave comes firstWaveSeconds after the area is entered.",
+  "note4": "Rewards are in-run only: a wave CLEAR heals the combatRules legacy.waveClearHeal amount, refills ammo and adds to a session-only wave score (never cash, never saved). Coin drops: only the elite and the last mob killed of a wave may drop (at most drops.maxPerWave per wave), through kill-drops.js, even while killDrops.json stays disabled for every other enemy. Wave mobs have no placement key: no progression award, no respawn, no loot ledger.",
+  "enabled": true,
+  "wavesEnabledDefault": false,
+  "startSwitch": { "param": "waves", "value": "1" },
+  "excludedAreas": ["westminster", "central-hub"],
+  "seed": { "fallbackDay": "sandbox", "separator": ":", "salt": "trash-wave" },
+  "clockSeconds": 30,
+  "firstWaveSeconds": 20,
+  "messageSeconds": 4,
+  "pacing": { "pauseAboveLive": 10, "earlyAtMostLive": 2, "earlyMinGapSeconds": 8, "breatherSeconds": 6 },
+  "tiers": {
+    "full": { "liveCap": 24 },
+    "mid": { "liveCap": 16 },
+    "low": { "liveCap": 10 }
+  },
+  "groups": [
+    {
+      "id": "trash",
+      "kind": "trash",
+      "begin": 1,
+      "spacing": 1,
+      "unitGrowth": 0.06,
+      "unitStep": 0,
+      "sizes": {
+        "full": { "unitAmount": 8, "max": 16 },
+        "mid": { "unitAmount": 6, "max": 12 },
+        "low": { "unitAmount": 5, "max": 8 }
+      }
+    },
+    {
+      "id": "elite",
+      "kind": "elite",
+      "begin": 5,
+      "spacing": 5,
+      "unitGrowth": 0,
+      "unitStep": 1,
+      "sizes": {
+        "full": { "unitAmount": 1, "max": 3 },
+        "mid": { "unitAmount": 1, "max": 3 },
+        "low": { "unitAmount": 1, "max": 3 }
+      }
+    }
+  ],
+  "bossMarker": { "begin": 11, "spacing": 11 },
+  "mobs": {
+    "pursuit": {
+      "pursuitScope": "area",
+      "wakeDistance": 1000,
+      "homeLeash": 1000,
+      "holdUntilWake": false,
+      "retreatSeconds": 0,
+      "companionDistance": 0,
+      "isolationDistance": 0,
+      "burstSeconds": 0,
+      "pauseSeconds": 0
+    },
+    "trash": { "healthScale": 1, "speedScale": 1 },
+    "elite": { "healthScale": 2, "speedScale": 1, "stars": 1 }
+  },
+  "spawn": {
+    "perFrame": 4,
+    "packMin": 3,
+    "packMax": 5,
+    "followerRadius": 2,
+    "minPlayerMetres": 8,
+    "ringInnerMetres": 10,
+    "ringOuterMetres": 28,
+    "headlessViewMetres": 14,
+    "tries": 30,
+    "viewMargin": 0.12,
+    "angleJitterTurns": 0.04,
+    "bodyRadius": 0.4,
+    "safehouseRadius": 0.43,
+    "occupiedGap": 0.65,
+    "graceSeconds": 5,
+    "retrySeconds": 0.1,
+    "giveUpSeconds": 8,
+    "stuckSeconds": 15,
+    "stuckProgressMetres": 1,
+    "stuckMinMetres": 6,
+    "corpseKeep": 12
+  },
+  "rewards": {
+    "refillAmmo": true,
+    "score": { "perKill": 10, "perEliteKill": 50, "clearBase": 100, "clearPerWave": 10 }
+  },
+  "drops": {
+    "enabled": true,
+    "tier": "trash",
+    "maxPerWave": 2,
+    "despawnSeconds": 20,
+    "minSecondsBetween": 6
+  }
+}

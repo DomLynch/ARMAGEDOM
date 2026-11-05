@@ -37,7 +37,7 @@ export function createKillDropsView(world) {
     // Once a frame: add a mesh for each new drop, drop the ones that are gone, move the live ones with the game clock.
     sync(g) {
       glints.sync(g); // rare-drop rings (data/loot.json) run whether or not coins are on
-      if (disposed || !killDropsOn()) return;
+      if (disposed || (!killDropsOn() && !g.killDrops?.wave)) return;
       const list = g.killDrops?.list ?? [],
         live = new Set(),
         m = look?.material ?? {};
