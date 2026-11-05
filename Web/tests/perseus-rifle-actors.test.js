@@ -68,7 +68,7 @@ test("the real actors build holds the rifle, shotgun, rocket launcher and LMG on
       actors.update(g, 1 / 60);
       const view = actors.views.get(0);
       assert(
-        view.riflePose && view.shotgunPose && view.rocketPose && view.railgunPose && view.lmgDrum,
+        view.riflePose && view.shotgunPose && view.rocketPose && view.railgunPose,
         "every pose built on Perseus",
       );
       actors.dispose();

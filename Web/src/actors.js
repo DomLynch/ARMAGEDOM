@@ -10,7 +10,6 @@ import {
 } from "./engine/crowd-bodies.js";
 import { wolfBodyReceiverBindings } from "./wolf-native.js";
 import { salamanderMouthSource } from "./salamander-native.js";
-import { createLmgDrum } from "./engine/lmg-drum.js";
 import { reaperSelected } from "./engine/reaper.js";
 import { createBoneSaw, animateBoneSaw, boneSawContact } from "./engine/bone-saw-view.js";
 import { physicsDeathStep, releasePhysicsDeath } from "./engine/physics-death.js";
@@ -653,7 +652,6 @@ export function createActors(
     view.shadow.removeFromParent();
     view.shadow.material.dispose();
     view.bossGunPose?.dispose();
-    view.lmgDrum?.dispose();
     view.railgunPose?.dispose();
     view.riflePose?.dispose();
     view.shotgunPose?.dispose();
@@ -1684,12 +1682,10 @@ export function createActors(
           if (railgunSource && !view.railgunPose) {
             view.railgunPose = createRiflePose(view.model, railgunSource);
             view.railgunPose.mount.name = "LightMachineGunMount";
-            view.lmgDrum = createLmgDrum(view.railgunPose.mount.getObjectByName("Rifle"));
             view.flashMaterials.push(...view.railgunPose.materials);
           }
           if (view.railgunPose) {
             view.railgunPose.mount.visible = railgunPose;
-            view.lmgDrum.update({ visible: railgunPose });
             if (railgunPose) {
               const clock = game.bossEquipmentAction?.commanderPistol ?? {},
                 reloading = clock.reloadingUntil > game.time,
