@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "maxArrows": 4,
+  "sectorDegrees": 20,
+  "aggroMetres": 14,
+  "viewFraction": 0.9,
+  "distanceFade": { "nearMetres": 8, "farMetres": 40, "minScale": 0.45 },
+  "projectHeight": 1,
+  "fadeInMs": 150,
+  "insetPx": 24,
+  "touchBandPx": { "portrait": 280, "landscape": 230 },
+  "outline": { "colour": "000000", "blurPx": 2 },
+  "clipPath": "polygon(50% 0, 100% 100%, 50% 72%, 0 100%)",
+  "plain": { "sizePx": 14, "colour": "e0453a", "opacity": 0.9 },
+  "marked": { "sizePx": 20, "colour": "ddba70", "opacity": 1 }
+}

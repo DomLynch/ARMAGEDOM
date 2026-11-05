@@ -80,9 +80,9 @@ summary:focus-visible {
 }
 #vitals {
   margin-bottom: var(--hud-status-gap);
-  width: clamp(170px, 25vw, 240px);
+  width: clamp(200px, 25vw, 240px);
   text-shadow: 0 1px 3px #000;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.09em;
 }
 .hud-name {
@@ -94,7 +94,7 @@ summary:focus-visible {
 }
 #health-number {
   letter-spacing: 0;
-  font-size: 11px;
+  font-size: 12px;
 }
 .bar {
   height: 5px;
@@ -118,9 +118,20 @@ summary:focus-visible {
 .guard-line {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
-  margin: 7px 0 3px;
+  gap: 6px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  margin: 4px 0 3px;
   opacity: 0.92;
+}
+.guard-line span {
+  white-space: nowrap;
+}
+/* The state word (LOW / EXHAUSTED) is the only part that may give way when a narrow vitals block is full. */
+#stamina-state {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #objective {
   margin-top: 9px;
@@ -130,7 +141,7 @@ summary:focus-visible {
 }
 #cursed-status {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #ff6a52;
@@ -180,11 +191,18 @@ summary:focus-visible {
   left: 36%;
   right: 22%;
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
+  line-height: 1.1;
   letter-spacing: 0.1em;
 }
+#boss > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 #boss .bar {
-  margin-top: 6px;
+  margin-top: 4px;
 }
 #touch-controls {
   display: none;
@@ -238,8 +256,9 @@ summary:focus-visible {
   justify-content: center;
   align-items: center;
   padding: 0;
-  letter-spacing: 0.07em;
-  font-size: 11px;
+  letter-spacing: 0.03em;
+  font-size: 12px;
+  line-height: 1.1;
   font-weight: 600;
 }
 .action.primary {
@@ -247,11 +266,13 @@ summary:focus-visible {
   height: 66px;
 }
 .action small {
-  font-size: 9px;
+  font-size: 12px;
+  line-height: 1.1;
   font-weight: 400;
   letter-spacing: 0;
+  white-space: nowrap;
   color: #f0d28c;
-  margin-top: 2px;
+  margin-top: 1px;
   min-height: 0;
 }
 .action small:empty {
@@ -504,7 +525,7 @@ summary {
 }
 @media (max-height: 350px) {
   #vitals {
-    width: 170px;
+    width: 200px;
   }
   #action-cluster {
     height: 190px;
@@ -531,10 +552,10 @@ summary {
 @media (orientation: portrait) {
   :root {--portrait-actions: clamp(172px, calc(100vw - 191px), 184px);}
   #vitals {
-    width: clamp(170px, 52vw, 220px);
+    width: clamp(200px, 58vw, 232px);
   }
   #notice {
-    font-size: 11px;
+    font-size: 12px;
   }
   #notice.hint {
     top: calc(var(--safe-t) + 144px);
@@ -543,7 +564,6 @@ summary {
     top: calc(var(--safe-t) + 83px);
     left: var(--safe-l);
     right: var(--safe-r);
-    font-size: 9px;
   }
   #move {
     width: min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px));
@@ -555,14 +575,14 @@ summary {
     height: 216px;
     bottom: calc(var(--safe-b) + 12px);
   }
-  .action {font-size: 10px;}
+  /* Five circles on a 216px column, every pair of edges at least 10px apart (measured 360 to 412 wide): Stab on top, Slash and Heavy
+     a row lower and wider apart, Dodge under Slash, Guard in the bottom corner. Touch targets stay 56 to 64px. */
   .action.primary {width: 60px; height: 60px;}
-  #slash {left: max(5px, min(calc(var(--portrait-actions) + var(--safe-r) + 35px - 50vw), calc(100% - 114px))); top: 58px;}
+  #slash {left: max(5px, min(calc(var(--portrait-actions) + var(--safe-r) + 35px - 50vw), calc(100% - 128px))); top: 70px;}
   #stab {width: 56px; height: 56px; left: calc(50% - 28px); top: 0;}
-  #heavy {width: 58px; height: 58px; right: 0; top: 90px;}
-  #dodge {width: 60px; height: 60px; left: calc(50% - 54px); top: 138px; font-size: 10px;}
+  #heavy {width: 58px; height: 58px; right: 0; top: 76px;}
+  #dodge {width: 60px; height: 60px; left: calc(50% - 54px); top: 148px;}
   #guard {width: 64px; height: 64px; right: 0; bottom: 0;}
-
 }
 
 /* Energy feedback retains each control's hit area and drag-to-aim input. */
@@ -584,9 +604,9 @@ summary {
 
 #ammo {margin:0;color:#edcb8c;font-size:12px;letter-spacing:.06em;pointer-events:none}
 #pistol-interact {min-height:44px;max-width:calc(100vw - 32px);line-height:1.2;position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);pointer-events:auto;background:#30261a;border:1px solid #ad8543;color:#f2d397;padding:10px 14px;border-radius:6px;touch-action:none}
-#pistol-icon {position:absolute;transform:translate(-50%,-100%);padding:3px 6px;color:#f2d397;font-size:10px;letter-spacing:.08em;background:#231c14b3;border-radius:3px;pointer-events:none}
+#pistol-icon {position:absolute;transform:translate(-50%,-100%);padding:3px 6px;color:#f2d397;font-size:12px;letter-spacing:.08em;background:#231c14b3;border-radius:3px;pointer-events:none}
 .action:disabled {opacity:.35;pointer-events:none}
-@media(max-width:500px){#ammo{font-size:11px}#pistol-interact{bottom:calc(12px + env(safe-area-inset-bottom));font-size:11px;padding:9px}}
+@media(max-width:500px){#pistol-interact{bottom:calc(12px + env(safe-area-inset-bottom));font-size:12px;padding:9px}}
 
 /* Held Fire is neutral aim; shot recoil/muzzle/audio follow actual shot events. */
 .action.pistol-aim.pressed {
@@ -612,7 +632,7 @@ summary {
     right: calc(var(--safe-r) + 222px);
     bottom: var(--safe-b);
     transform: none;
-    font-size: 11px;
+    font-size: 12px;
     padding: 9px 4px;
   }
 }
@@ -620,10 +640,10 @@ summary {
   #pistol-interact {bottom: var(--safe-b);}
 }
 
-#mastery{font-size:10px;letter-spacing:.06em;color:#dec087;margin-top:3px}#progression-panel p{font-size:13px;line-height:1.5}
+#mastery{font-size:12px;letter-spacing:.06em;color:#dec087;margin-top:3px}#progression-panel p{font-size:13px;line-height:1.5}
 
-#expedition-objective {position:absolute;top:calc(var(--safe-t) + 154px);left:12px;right:12px;margin:0;text-align:center;font-size:10px;white-space:pre-line;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
-.expedition-world-label {position:absolute;transform:translate(-50%,-100%);max-width:190px;padding:3px 5px;background:#101719db;border:1px solid #b2a476;color:#f4ead1;font-size:10px;text-align:center;pointer-events:none;}
+#expedition-objective {position:absolute;top:calc(var(--safe-t) + 154px);left:12px;right:12px;margin:0;text-align:center;font-size:12px;white-space:pre-line;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
+.expedition-world-label {position:absolute;transform:translate(-50%,-100%);max-width:190px;padding:3px 5px;background:#101719db;border:1px solid #b2a476;color:#f4ead1;font-size:12px;text-align:center;pointer-events:none;}
 #expedition-panel {border-top:1px solid #716b54;margin-top:16px;padding-top:8px;text-align:left;}
 #expedition-panel p {font-size:12px;line-height:1.4;}
 #expedition-panel button {min-height:44px;font-size:12px;}
@@ -639,7 +659,7 @@ summary {
 #atlas-nodes button:disabled {opacity:.6;}
 @media (orientation:landscape) {#expedition-objective {top:calc(var(--safe-t) + 154px);}}
 
-.boss-world-label {position:absolute;max-width:calc(100vw - 16px);color:#f4ead1;font-size:11px;line-height:1.25;text-align:center;text-shadow:0 1px 3px #000,0 0 4px #000;pointer-events:none;}
+.boss-world-label {position:absolute;max-width:calc(100vw - 16px);color:#f4ead1;font-size:12px;line-height:1.25;text-align:center;text-shadow:0 1px 3px #000,0 0 4px #000;pointer-events:none;}
 
 /* Fieldtabs: persistent exit/navigation; this is the only menu content scroller. */
 #menu{box-sizing:border-box;width:min(600px,calc(100vw - 24px));height:min(760px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:0;overflow:hidden;}
@@ -663,8 +683,8 @@ summary {
 #menu-content:focus-visible,#menu button:focus-visible,#menu summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 @media(orientation:landscape) and (max-height:500px){#menu{height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);}#menu-header{padding:8px 16px;}#menu-content{padding:14px 18px;}#menu-footer{padding:4px 16px;}}
 
-.safehouse-label{position:fixed;transform:translate(-50%,-100%);padding:4px 7px;border:1px solid #b08a43;background:#17130eeb;color:#e0c18b;font-size:11px;pointer-events:none;z-index:8;white-space:nowrap}
-#safehouse-status{display:none;position:absolute;top:115px;left:50%;transform:translateX(-50%);font-size:10px;color:#e0c18b;pointer-events:none;white-space:nowrap}
+.safehouse-label{position:fixed;transform:translate(-50%,-100%);padding:4px 7px;border:1px solid #b08a43;background:#17130eeb;color:#e0c18b;font-size:12px;pointer-events:none;z-index:8;white-space:nowrap}
+#safehouse-status{display:none;position:absolute;top:115px;left:50%;transform:translateX(-50%);font-size:12px;color:#e0c18b;pointer-events:none;white-space:nowrap}
 .locker-row{padding:10px 0;border-bottom:1px solid #514630;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.locker-row p{flex-basis:100%;margin:0}.locker-row input{width:80px;min-height:40px}.locker-row button{min-height:42px}
 #items-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
 #items-strip .item-slot{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;width:auto;margin:0;min-height:96px;padding:8px 2px 6px;border:1px solid #546c6d;border-radius:6px;background:#17201f;color:#e8eeea;font-size:11px;line-height:1.2}
@@ -682,16 +702,21 @@ summary {
 #weapon-tiles-current,#weapon-tiles-position{display:none;}
 #weapon-tiles-track{display:flex;flex:0 0 168px;width:168px;gap:0;overflow-x:auto;overscroll-behavior:contain;scrollbar-width:none;touch-action:pan-x;scroll-snap-type:x mandatory;}
 #weapon-tiles-track::-webkit-scrollbar{display:none;}
-#weapon-tiles-track button{flex:0 0 52px;min-width:52px;width:52px;height:52px;min-height:52px;padding:4px 3px 2px;border:1px solid #85877f;border-radius:7px;background:rgba(17,23,23,.78);color:#d7d5ca;touch-action:pan-x;white-space:nowrap;font-size:9px;line-height:1;}
-#weapon-tiles-track button::before{content:"";display:block;width:40px;height:24px;margin:0 auto 3px;background-color:#96968b;-webkit-mask:var(--weapon-icon) center/contain no-repeat;mask:var(--weapon-icon) center/contain no-repeat;pointer-events:none;}
+/* Tile: 52 wide (the page width in data/visual.json) by 56 tall: 22px icon, then a 10px caption and a 10px ammo line. */
+#weapon-tiles-track button{
+  flex:0 0 52px;min-width:52px;width:52px;height:56px;min-height:56px;padding:4px 0 2px;
+  border:1px solid #85877f;border-radius:7px;background:rgba(17,23,23,.78);color:#d7d5ca;
+  touch-action:pan-x;white-space:nowrap;font-size:10px;line-height:1;overflow:hidden;
+}
+#weapon-tiles-track button::before{content:"";display:block;width:40px;height:22px;margin:0 auto 2px;background-color:#96968b;-webkit-mask:var(--weapon-icon) center/contain no-repeat;mask:var(--weapon-icon) center/contain no-repeat;pointer-events:none;}
 #weapon-tiles-track button[aria-pressed="true"]{border-color:#e1bb65;color:#e1bb65;}
 #weapon-tiles-track button[aria-pressed="true"]::before{background-color:#e1bb65;}
 #weapon-tiles-track button[data-golden]{position:relative;border-color:#ffd24a;box-shadow:0 0 0 1px #8a5a00 inset,0 0 7px rgba(255,200,60,.65);}
 #weapon-tiles-track button[data-golden]::before{background-color:#ffd24a;}
 #weapon-tiles-track button[data-golden]::after{content:attr(data-golden);position:absolute;top:1px;right:3px;color:#ffd24a;font-size:10px;line-height:10px;text-shadow:0 0 3px #000;pointer-events:none;}
 #weapon-tiles-track button:disabled{opacity:.45;}
-#weapon-tiles-track span{display:block;font-size:8px;font-weight:600;letter-spacing:.09em;line-height:10px;}
-#weapon-tiles-track small{font-size:8px;line-height:9px;display:block;margin:0;letter-spacing:.02em;}
+#weapon-tiles-track span{display:block;overflow:hidden;text-overflow:ellipsis;font-size:10px;font-weight:600;letter-spacing:-.02em;line-height:12px;}
+#weapon-tiles-track small{font-size:10px;line-height:11px;display:block;margin:0;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;}
 @media(orientation:portrait){#weapon-tiles{bottom:calc(var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)));}}
 
 #weapon-tiles-track .weapon-page{display:flex;flex:0 0 168px;width:168px;gap:6px;scroll-snap-align:start;scroll-snap-stop:always;}
@@ -703,7 +728,7 @@ summary {
 @media(prefers-reduced-motion:reduce){#weapon-tiles.flash #weapon-tiles-track button,#weapon-tiles.flash::after{animation:none;}}
 @media(orientation:portrait)and(max-width:374px){#weapon-tiles{bottom:calc(var(--safe-b) + 232px);}}
 
-#marked-status{position:absolute;top:calc(var(--safe-t) + 180px);left:12px;right:12px;margin:0;text-align:center;white-space:pre-line;font-size:10px;line-height:1.5;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
+#marked-status{position:absolute;top:calc(var(--safe-t) + 180px);left:12px;right:12px;margin:0;text-align:center;white-space:pre-line;font-size:12px;line-height:1.5;color:var(--gold);text-shadow:0 1px 4px #000;pointer-events:none;}
 #marked-status[data-marked="true"],.hunter-world-label{color:#e2a28b;}
 #marked-bank{border-bottom:1px solid #58615a;margin:0 0 16px;padding-bottom:12px;}
 #marked-bank h4{margin:0 0 8px;}#marked-bank>button{display:block;width:100%;min-height:44px;margin:8px 0;}#marked-bank .marked-hint,#marked-shop-status{font-size:11px;line-height:1.45;}
@@ -748,7 +773,7 @@ summary {
   align-self: stretch;
   margin: 0;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: #e8a35a;
