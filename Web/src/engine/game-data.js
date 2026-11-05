@@ -49,6 +49,8 @@ import remoteSurvivors from "../data/remoteSurvivors.json" with { type: "json" }
 import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import haptics from "../data/haptics.json" with { type: "json" };
 import { validateHaptics } from "./game-data-haptics.js";
+import gameFeel from "../data/gameFeel.json" with { type: "json" };
+import { validateGameFeel } from "./game-data-game-feel.js";
 import lmgDrum from "../data/lmgDrum.json" with { type: "json" };
 import damageFeedback from "../data/damageFeedback.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
@@ -1139,6 +1141,7 @@ const sources = () => ({
   goldenWeapons: [goldenWeapons, validateGoldenWeapons],
   renderBudget: [renderBudget, validateRenderBudget],
   haptics: [haptics, validateHaptics],
+  gameFeel: [gameFeel, validateGameFeel],
   guestAuth: [guestAuth, validateGuestAuth],
   presenceClient: [presenceClient, validatePresenceClient],
   progressionBase: [progressionBase, validateProgressionBase],
