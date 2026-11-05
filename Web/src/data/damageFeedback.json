@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "numbers": {
+    "cap": 16,
+    "perTargetCap": 4,
+    "mergeSeconds": 0.1,
+    "lifeSeconds": 1.2,
+    "reducedLifeSeconds": 0.4,
+    "fadeSeconds": 0.6,
+    "alpha": 0.95,
+    "risePxPerSecond": 50,
+    "startLiftPx": 22,
+    "stackGapPx": 4,
+    "basePx": { "phone": 12, "desktop": 16 },
+    "sizeSteps": 10,
+    "sizeStepPx": 3,
+    "popSeconds": 0.1,
+    "popPx": 6,
+    "colourRamp": [
+      [255, 255, 255],
+      [255, 165, 0],
+      [255, 69, 0]
+    ],
+    "critColour": [255, 215, 0],
+    "critScale": { "from": 0.1, "peak": 2, "end": 1, "lifeShare": 0.2, "peakShare": 0.5 },
+    "critMultiple": 2,
+    "minimumShown": 1
+  },
+  "vignette": {
+    "flash": {
+      "rgb": [255, 0, 0],
+      "gain": 3,
+      "minCount": 10,
+      "hpLostDivisor": 2,
+      "scale": 255,
+      "maxAlpha": 0.59,
+      "decayCount": 150,
+      "reducedScale": 0.6
+    },
+    "low": {
+      "hpShare": 0.33,
+      "dark": [102, 0, 0],
+      "light": [204, 0, 0],
+      "opacity": 0.5,
+      "staticMix": 0.5,
+      "cyclesGain": 5,
+      "cyclesFrom": 0.4
+    }
+  }
+}
