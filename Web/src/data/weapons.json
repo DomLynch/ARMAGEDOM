@@ -154,7 +154,7 @@
       "guidance": "none",
       "fireMode": "held",
       "attachment": "hand_r",
-      "modelRef": "player-rifle",
+      "modelRef": "player-lmg",
       "finisherBinding": "pistol",
       "rules": {
         "capacity": 40,

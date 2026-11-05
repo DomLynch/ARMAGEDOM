@@ -11,7 +11,7 @@ const models = JSON.parse(asset("manifest-hollow.json")).models,
   row = models.vagrant;
 const world = (bone) => bone.getWorldPosition(new T.Vector3());
 
-for (const key of ["player-rifle", "player-shotgun", "player-rocket-launcher"])
+for (const key of ["player-rifle", "player-lmg", "player-shotgun", "player-rocket-launcher"])
   test(`Perseus holds the ${key} two-handed: no throw, mount in the right hand, left hand on the foregrip`, async () => {
     const body = await loadGeometry(asset(row.url)),
       gun = await loadGeometry(asset(models[key].url)),
