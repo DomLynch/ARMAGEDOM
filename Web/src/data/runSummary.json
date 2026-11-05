@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "note": "The run summary card on the death screen (engine/run-summary.js). Client only: personal bests live in the browser's localStorage under storage.key (a versioned record, every access guarded), never in the server save. Each stat row says where its value comes from (source) and when it is shown (needs: always, waves = only with ?waves=1, heat = only when the heat tally exists). format time shows m:ss, count shows a whole number. The goal line names the stat nearest to its best, by the share of the best still missing. timeDigits pads the seconds of m:ss.",
+  "storage": { "key": "armagedom.runSummary", "version": 1 },
+  "timeDigits": 2,
+  "stats": [
+    { "id": "time", "source": "time", "format": "time", "needs": "always" },
+    { "id": "kills", "source": "kills", "format": "count", "needs": "always" },
+    { "id": "cleared", "source": "cleared", "format": "count", "needs": "waves" },
+    { "id": "wave", "source": "wave", "format": "count", "needs": "waves" },
+    { "id": "score", "source": "score", "format": "count", "needs": "waves" },
+    { "id": "heat", "source": "heat", "format": "count", "needs": "heat" }
+  ]
+}

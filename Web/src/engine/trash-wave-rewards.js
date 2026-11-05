@@ -2,6 +2,7 @@ import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { healPlayer, refillAmmo } from "./world-pickups-core.js";
 import { TRASH_WAVE, liveWaveMobs, wavesEnabled } from "./trash-wave-core.js";
+import { perkDropRoll, perkOnClear } from "./perks.js";
 
 // What a wave mob's death is worth (data/trashWave.json rewards and drops). All of it is in-run and client-only: a session score that is
 // never cash and never saved, the wave-clear heal and ammo top-up, and at most `drops.maxPerWave` coin drops per wave (the elite and the
@@ -19,10 +20,11 @@ function queued(state, waveId) {
 
 // The wave is cleared: heal the combatRules waveClearHeal amount, top the ammo up and add the clear score. Returns the HP given.
 function payClear(g, state, waveId, rules) {
-  const p = g.player;
+  const p = g.player,
+    perked = perkOnClear(g); // the perks: bonus HP refills, the Field Medic perk multiplies the heal
   let hp = 0;
   if (p.hp > 0) {
-    hp = Math.ceil(healPlayer(p, GAME_DATA.combatRules.legacy.waveClearHeal / p.maxHP));
+    hp = Math.ceil(healPlayer(p, (GAME_DATA.combatRules.legacy.waveClearHeal / p.maxHP) * perked));
     if (rules.rewards.refillAmmo) refillAmmo(g);
   }
   state.score += rules.rewards.score.clearBase + rules.rewards.score.clearPerWave * waveId;
@@ -60,7 +62,7 @@ export function onWaveKill(g, mob, rules = TRASH_WAVE, search = undefined) {
   const d = rules.drops;
   if (
     !d.enabled ||
-    !(mob.elite || last) ||
+    !(mob.elite || last || perkDropRoll(g)) ||
     tally.paid >= d.maxPerWave ||
     g.time - state.lastDropAt < d.minSecondsBetween
   )

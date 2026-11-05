@@ -1104,6 +1104,211 @@ summary {
 .hurt-vignette {position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse at center, transparent 45%, currentColor 100%);}
 
+/* Run summary (engine/run-summary.js, data/runSummary.json): a compact card inside the death screen, under the hint. The death card can now
+   be taller than a short phone, so the overlay scrolls instead of clipping (auto margins keep it centred while it fits). */
+#ending {
+  overflow-y: auto;
+}
+#ending > .card {
+  margin: auto;
+}
+.run-summary {
+  margin: 10px auto;
+  padding: 8px 12px 10px;
+  max-width: 340px;
+  text-align: left;
+  background: rgba(8, 12, 14, 0.82);
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+}
+.card .rs-heading {
+  margin: 0 0 4px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.rs-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rs-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.5fr);
+  align-items: baseline;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 13px;
+}
+.rs-label {
+  color: #c9c3b6;
+}
+.rs-value {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.rs-note {
+  font-size: 12px;
+  color: #c9c3b6;
+  text-align: right;
+}
+.rs-tag {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--gold);
+  color: #101719;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.rs-new .rs-value {
+  color: var(--gold);
+}
+.card .rs-goal {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--gold);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rs-tag {
+    animation: rs-pop 0.45s ease-out;
+  }
+  @keyframes rs-pop {
+    from {
+      transform: scale(1.4);
+    }
+    to {
+      transform: none;
+    }
+  }
+}
+
+/* Wave perks (engine/perks.js, data/perks.json, ?waves=1 only): a non-pausing pick row below the vitals; only the cards take taps. */
+#perk-pick {
+  position: fixed;
+  z-index: 6;
+  top: calc(var(--safe-t) + 150px);
+  left: 0;
+  right: 0;
+  padding: 0 var(--safe-l);
+  text-align: center;
+  pointer-events: none;
+}
+#perk-heading {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 3px #000,
+    0 0 4px #000;
+}
+#perk-cards {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.perk-card {
+  pointer-events: auto;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  box-sizing: border-box;
+  width: min(120px, calc((100vw - var(--safe-l) - var(--safe-r) - 12px) / 3));
+  min-height: 92px;
+  padding: 6px 6px 8px;
+  background: rgba(8, 12, 14, 0.88);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  color: #eee9df;
+}
+.perk-card[hidden] {
+  display: none;
+}
+.perk-key {
+  min-width: 20px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--gold);
+  color: #101719;
+  font-size: 12px;
+  line-height: 18px;
+}
+body.touch .perk-key {
+  display: none;
+}
+.perk-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--gold);
+}
+.perk-text {
+  font-size: 12px;
+  line-height: 1.25;
+  color: #d8d2c4;
+}
+#perk-timer {
+  height: 3px;
+  max-width: 372px;
+  margin: 6px auto 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+}
+#perk-bar {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+  transform: scaleX(var(--left, 1));
+}
+#perk-status {
+  align-self: stretch;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-shadow:
+    0 1px 2px #000,
+    0 0 4px #000;
+  pointer-events: none;
+}
+#perk-status[hidden] {
+  display: none;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  #perk-pick {
+    top: var(--safe-t);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #perk-pick:not([hidden]) {
+    animation: perk-in 0.18s ease-out;
+  }
+  @keyframes perk-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */

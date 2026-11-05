@@ -92,6 +92,7 @@
       <p id="expedition-objective" hidden></p>
       <p id="run-hud" hidden role="status"></p>
       <p id="marked-status" hidden role="status"></p>
+      <p id="perk-status" hidden role="status"></p>
       </div>
       <div id="extraction-ring" hidden role="status">
         <svg viewBox="0 0 100 100" aria-hidden="true"><circle id="extraction-ring-track" cx="50" cy="50"></circle><circle id="extraction-ring-fill" cx="50" cy="50"></circle></svg>
@@ -225,10 +226,16 @@
       </div>
       <footer id="menu-footer"><button id="menu-settings-button" type="button" aria-controls="menu-settings" aria-pressed="false">Settings</button><span>Field menu</span></footer>
     </dialog>
+    <div id="perk-pick" hidden role="group" aria-labelledby="perk-heading">
+      <p id="perk-heading"></p>
+      <div id="perk-cards"></div>
+      <div id="perk-timer" aria-hidden="true"><i id="perk-bar"></i></div>
+    </div>
     <section id="ending" class="overlay" hidden>
       <div class="card">
         <h2 id="result"></h2>
         <p id="result-hint"></p>
+        <div id="run-summary" class="run-summary" hidden role="group"></div>
         <div id="share-card" class="share-card" hidden>
           <p id="share-heading" class="eyebrow"></p>
           <div id="share-picks" class="share-picks"></div>
