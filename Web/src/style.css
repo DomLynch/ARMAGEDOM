@@ -1071,6 +1071,14 @@ summary {
   height: 100%;
   pointer-events: none;
 }
+/* Floating damage numbers and the hurt vignettes (engine/damage-feedback.js, data/damageFeedback.json). Size, colour, place and opacity are set
+   inline by the module; both layers sit under the HUD and take no input. */
+.damage-layer {position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden;}
+.damage-number {position: absolute; left: 0; top: 0; line-height: 1; font-weight: 800; opacity: 0; transform-origin: 50% 100%;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000, 1px 1px 0 #000; will-change: transform, opacity;}
+.hurt-vignette {position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, currentColor 100%);}
+
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */
@@ -1158,3 +1166,4 @@ body.desktop-ui:not(.touch) #pistol-interact {
 .menu-open #key-hints {
   visibility: hidden;
 }
+

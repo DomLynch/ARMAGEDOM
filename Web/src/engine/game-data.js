@@ -50,6 +50,7 @@ import renderBudget from "../data/renderBudget.json" with { type: "json" };
 import haptics from "../data/haptics.json" with { type: "json" };
 import { validateHaptics } from "./game-data-haptics.js";
 import lmgDrum from "../data/lmgDrum.json" with { type: "json" };
+import damageFeedback from "../data/damageFeedback.json" with { type: "json" };
 import saveClient from "../data/saveClient.json" with { type: "json" };
 import uniqueReward from "../data/uniqueReward.json" with { type: "json" };
 import inputKeys from "../data/inputKeys.json" with { type: "json" };
@@ -137,6 +138,7 @@ import { validateDonorMotionData } from "./game-data-donor-motion.js";
 import { validateGuestAuth, validatePresenceClient } from "./game-data-presence.js";
 import { validateProgressionBase } from "./game-data-progression.js";
 import { validateLmgDrum } from "./game-data-lmg-drum.js";
+import { validateDamageFeedback } from "./damage-feedback-data.js";
 import { validateFinisherData } from "./finisher-data-validator.js";
 import { validateCreatures } from "./game-data-creatures.js";
 import {
@@ -1132,6 +1134,7 @@ const sources = () => ({
   progressionBase: [progressionBase, validateProgressionBase],
   remoteSurvivors: [remoteSurvivors, validateRemoteSurvivors],
   lmgDrum: [lmgDrum, validateLmgDrum],
+  damageFeedback: [damageFeedback, validateDamageFeedback],
   saveClient: [saveClient, validateSaveClient],
   spawns: [spawns, validateSpawns],
   supplies: [supplies, validateSupplies],

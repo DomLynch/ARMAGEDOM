@@ -886,6 +886,7 @@ export function createBrowserSession(options = {}) {
               : actors.views.get(0)?.pistolMount?.getObjectByName("Muzzle"),
         {
           hitMarker: document.getElementById("hit-marker"),
+          damageDocument: document,
           getView: (actor) => actors.views.get(actor.id),
           getFlameSource: () => actors.flameSource(),
         },
