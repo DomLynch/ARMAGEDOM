@@ -69,6 +69,8 @@ import offscreenActors from "../data/offscreenActors.json" with { type: "json" }
 import { validateOffscreenActors } from "./game-data-offscreen.js";
 import threatArrows from "../data/threatArrows.json" with { type: "json" };
 import { validateThreatArrows } from "./game-data-threat-arrows.js";
+import minimap from "../data/minimap.json" with { type: "json" };
+import { validateMinimap } from "./game-data-minimap.js";
 import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
@@ -1162,6 +1164,7 @@ const sources = () => ({
   spawnVariation: [spawnVariation, validateSpawnVariation],
   offscreenActors: [offscreenActors, validateOffscreenActors],
   threatArrows: [threatArrows, validateThreatArrows],
+  minimap: [minimap, validateMinimap],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
   lootBeams: [lootBeams, validateLootBeams],
