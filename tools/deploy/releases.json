@@ -628,6 +628,12 @@
   "source": "918179865ddecc8a2bcd3a4b46414dcfb0eecbd4",
   "version": "three-20261028-344"
  },
+ "345": {
+  "fingerprint": "f088302774864ca0e0afe78e7a7d2d785cec40fb19d8c44350b68632bfb6e222",
+  "releaseSHA": "ea0fb387f0b79c44d34fba00ecc23792846b5a27ef54a6fed6d6cac256443c79",
+  "source": "11ec74f9a60482eb4aea74a831f14de47275ac0a",
+  "version": "three-20261028-345"
+ },
  "_floor": 323,
  "_unstaged": [
   "338",
