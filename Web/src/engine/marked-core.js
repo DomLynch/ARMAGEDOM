@@ -1,7 +1,7 @@
 import { closedData } from "./progression-state.js";
 import { freshMarked, validMarked, copyMarked, cleanGolden, markedShopEligible } from "./marked.js";
 import { safehouseInteraction } from "./safehouse.js";
-import { LOCKER_RESOURCE_RULES } from "./locker-state.js";
+import { carryCapOf } from "./locker-state.js";
 import {
   makeCorpseBag,
   placeCorpseBag,
@@ -142,14 +142,14 @@ export function createMarkedComponent({ base, getRun, getAction = () => null, ca
               if (action.itemId === "pistol") {
                 if (
                   !next.pistol?.collected ||
-                  next.pistol.reserve + row.amount > LOCKER_RESOURCE_RULES["pistol-reserve"].carryCap
+                  next.pistol.reserve + row.amount > carryCapOf("pistol-reserve")
                 )
                   return false;
                 next.pistol = { ...next.pistol, reserve: next.pistol.reserve + row.amount };
               } else if (action.itemId === "rifle") {
                 if (
                   next.rifle?.status !== "owned" ||
-                  next.rifle.reserve + row.amount > LOCKER_RESOURCE_RULES["rifle-reserve"].carryCap
+                  next.rifle.reserve + row.amount > carryCapOf("rifle-reserve")
                 )
                   return false;
                 next.rifle = { ...next.rifle, reserve: next.rifle.reserve + row.amount };

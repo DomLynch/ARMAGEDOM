@@ -124,6 +124,17 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       if (!active) throw new HttpError(403, "no-character");
       return call("arma_sell_item", [account, active, String(body.shop_id ?? ""), String(body.item_id ?? ""), Number.isInteger(body.qty) ? body.qty : 0, String(body.request_id ?? "")]);
     },
+    // Permanent safehouse upgrades (supabase/migrations/20261105000032). The database settles price, order, cash and replay.
+    async upgrades_get({ account }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_upgrades_get", [account, active]);
+    },
+    async upgrade_buy({ account, body }) {
+      const active = await call("arma_active", [account]);
+      if (!active) throw new HttpError(403, "no-character");
+      return call("arma_upgrade_buy", [account, active, String(body.upgrade_id ?? ""), Number.isInteger(body.to_level) ? body.to_level : 0, String(body.request_id ?? "")]);
+    },
     async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];
       return call("arma_spawn_state", [account, instances]);

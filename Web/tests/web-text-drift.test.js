@@ -17,6 +17,10 @@ const DYNAMIC_PREFIXES = [
   { prefix: "summary.label.", reason: "engine/run-summary.js names each summary row's label by the stat id of the row in data/runSummary.json" },
   { prefix: "summary.goal.", reason: "engine/run-summary.js names the goal line by the stat id (and .one for a single unit) of the row in data/runSummary.json" },
   { prefix: "hud.keys.", reason: "engine/input-keymap.js builds each key-hint label from the hint row's text in data/inputKeys.json" },
+  { prefix: "upgrades.name.", reason: "engine/upgrades-core.js names each upgrade row by its id in data/safehouseUpgrades.json (also the .desc. line)" },
+  { prefix: "upgrades.desc.", reason: "engine/upgrades-core.js describes each upgrade row by its id in data/safehouseUpgrades.json" },
+  { prefix: "upgrades.effect.", reason: "engine/upgrades-core.js words an upgrade's effect by its effect kind in data/safehouseUpgrades.json" },
+  { prefix: "upgrades.error.", reason: "engine/upgrades-core.js words a writer refusal by its error code, falling back to upgrades.error.refused" },
 ];
 
 // An id read by something other than a webText() call counts as used; each names who reads it and which test keeps the copy in step.

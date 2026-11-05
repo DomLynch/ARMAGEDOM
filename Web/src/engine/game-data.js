@@ -73,6 +73,8 @@ import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
+import safehouseUpgrades from "../data/safehouseUpgrades.json" with { type: "json" };
+import { validateUpgrades } from "./game-data-upgrades.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -1160,6 +1162,7 @@ const sources = () => ({
   threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  safehouseUpgrades: [safehouseUpgrades, validateUpgrades],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],

@@ -36,6 +36,8 @@ import { createGuestAuth } from "./guest-auth.js";
 import { createMarketApi } from "./market-api.js";
 import { drainCashClaims } from "./world-pickups-core.js";
 import { createShop } from "./shop.js";
+import { createUpgrades } from "./upgrades.js";
+import { createUpgradesApi } from "./upgrades-api.js";
 import { installQaBridge } from "./qa-bridge.js";
 import { createClientLog, releaseOf } from "./client-log.js";
 import { mountAccountControl } from "./account-control.js";
@@ -119,6 +121,7 @@ export function createBrowserSession(options = {}) {
     saveClient = null,
     auth = null,
     marketApi = null,
+    upgradesApi = null,
     survivorLibrary = null,
     account = null,
     diagnostics = null;
@@ -148,6 +151,23 @@ export function createBrowserSession(options = {}) {
     search: location.search,
     listen,
   });
+  // Permanent safehouse upgrades: the panel in the Storage page and the stamina hook. Cash is carried plus banked (the server takes carried first).
+  const upgrades = createUpgrades({
+    doc: document,
+    api: () => upgradesApi,
+    isGuest: () => auth?.isGuest !== false,
+    localCash: () => (game?.marked ? game.marked.carried + game.marked.bank : null),
+    onCash: (delta) => {
+      const money = game?.marked;
+      if (!money) return;
+      const spend = Math.max(0, -delta),
+        fromCarried = Math.min(money.carried, spend);
+      money.carried -= fromCarried;
+      money.bank = Math.max(0, money.bank - (spend - fromCarried));
+    },
+    storage: runStorage,
+    search: location.search,
+  });
   function pause(value) {
     if (travelRecoveryFailed || resetting) value = true;
     paused = value;
@@ -172,6 +192,7 @@ export function createBrowserSession(options = {}) {
   }
   const context = {
     shop,
+    upgrades,
     // World-event journal of this session's run. Written by the loop and the dispatchers; nothing reads it yet.
     worldJournal: createJournal(),
     failTravelRecovery() {
@@ -439,6 +460,7 @@ export function createBrowserSession(options = {}) {
       return token;
     };
     marketApi = createMarketApi({ baseUrl: `${location.origin}/arma/api`, getToken });
+    upgradesApi = createUpgradesApi({ baseUrl: `${location.origin}/arma/api`, getToken });
     // A3: every local run save is also queued for the writer (report-only; the server's clamped cash is adopted).
     saveClient = createSaveClient({
       baseUrl: `${location.origin}/arma/api`,
@@ -1002,6 +1024,7 @@ export function createBrowserSession(options = {}) {
       saveClient?.stop();
       account?.dispose();
       shop.dispose();
+      upgrades.dispose();
       actors?.dispose();
       pendingLibrary?.dispose();
       effects?.dispose();

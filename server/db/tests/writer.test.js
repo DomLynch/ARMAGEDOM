@@ -286,6 +286,28 @@ test("market routes: inventory, stock, loot on a kill, buy, sell and replay over
   }
 });
 
+test("upgrade routes: levels, buy, replay and the production buckets over HTTP as the writer role", async () => {
+  assert.deepEqual(DEFAULT_LIMITS.upgrades_get, { burst: 5, refillMs: 5000 });
+  assert.deepEqual(DEFAULT_LIMITS.upgrade_buy, { burst: 4, refillMs: 2000 });
+  const t = await start();
+  try {
+    const post = (op, body) => t.post("/arma/" + op, body, { as: ids.alice });
+    assert.deepEqual([(await post("upgrades_get", {})).status, (await post("upgrades_get", {})).body.error], [403, "no-character"]);
+    assert.equal((await post("upgrade_buy", { upgrade_id: "stamina", to_level: 1, request_id: "upg-http-0001" })).status, 403);
+    await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice });
+    await t.pg.exec("reset role; update public.arma_config set value = 'true'::jsonb where key = 'enforce_cash'; insert into public.arma_cash (character, earned) select id, 500 from public.arma_characters; set role arma_writer");
+    assert.deepEqual((await post("upgrades_get", {})).body, { upgrades: [], cash: 0, bank: 0, ceiling: 500 });
+    const bought = await post("upgrade_buy", { upgrade_id: "stamina", to_level: 1, request_id: "upg-http-0001" });
+    assert.deepEqual([bought.body.ok, bought.body.level, bought.body.delta, bought.body.replayed], [true, 1, -300, false]);
+    assert.equal((await post("upgrade_buy", { upgrade_id: "stamina", to_level: 1, request_id: "upg-http-0001" })).body.replayed, true);
+    assert.equal((await post("upgrade_buy", { upgrade_id: "stamina", to_level: "2", request_id: "upg-http-0002" })).body.error, "bad-request");
+    assert.equal((await post("upgrade_buy", { upgrade_id: "stamina", to_level: 2, request_id: "upg-http-0003" })).body.error, "insufficient-cash");
+    assert.deepEqual((await post("upgrades_get", {})).body.upgrades, [{ upgrade_id: "stamina", level: 1 }]);
+  } finally {
+    await t.close();
+  }
+});
+
 test("rate limit, production numbers: save_run takes a burst of 6, refuses the 7th with retryMs 5000, and one token returns every 5 s", async () => {
   assert.deepEqual(DEFAULT_LIMITS.save_run, { burst: 6, refillMs: 5000 });
   let clock = 1_000_000;
@@ -406,7 +428,7 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
 });
 
 test("every client op has a bucket in server/data/rate-limits.json, load_run is one per 10 s, and the token-bearing status read is limited while the anonymous one is not", async () => {
-  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "buy_item", "claim_pickup", "create_character", "inventory_get", "item_defs", "load_run", "market_stock", "save_run", "sell_item", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "buy_item", "claim_pickup", "create_character", "inventory_get", "item_defs", "load_run", "market_stock", "save_run", "sell_item", "set_active", "spawn_engage", "spawn_state", "status", "upgrade_buy", "upgrades_get"]);
   assert.deepEqual(DEFAULT_LIMITS.load_run, { burst: 3, refillMs: 10000 });
   let clock = 1_000_000;
   const t = await start({ limits: { status: { burst: 2, refillMs: 5000 }, active: { burst: 1, refillMs: 10000 } }, now: () => clock });

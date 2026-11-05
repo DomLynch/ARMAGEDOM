@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "note": "Permanent safehouse upgrades (engine/upgrades*.js). An upgrade is a ROW: id (the server's upgrade id: supabase/migrations/20261105000032 seeds arma_upgrade_defs with these ids, maxLevel and prices, and a test pins the two), maxLevel, prices (the cash price of level 1, 2, ... in order; the server charges its own copy) and effect (what each level does on the phone: reserveMagazines adds perLevel spare magazines of roundsPerMagazine[resource] rounds to that resource's carry cap; maxStamina adds perLevel to the player's maximum stamina; dodgeRecovery shortens the dodge's recovery by perLevel of the whole recovery per level). Levels are bought one at a time, in order, with cash the server has granted. The levels come from the writer (api.calls.get) and are cached in localStorage under cacheKey so they still apply offline; a panel with no server answer is locked. Words are in webText.json under the upgrades. ids. enabled false or ?noupgrades=1 hides the panel; the cached levels then still apply, so a full rollback ships the previous release. limits are the validator's bounds (maxLevels and maxPrice mirror arma_upgrade_defs; maxDodgeCut is the most of a roll's recovery the upgrade may remove). refreshMs is how long an answer is trusted before the next safehouse visit asks again; retryMs the wait after a failed ask; percentScale turns a share (0.3) into the percentage the dodge line shows (30).",
+  "enabled": true,
+  "offParam": "noupgrades",
+  "offValue": "1",
+  "cacheKey": "armagedom:upgrades:v1",
+  "refreshMs": 60000,
+  "retryMs": 30000,
+  "percentScale": 100,
+  "limits": { "maxLevels": 20, "maxPrice": 1000000, "maxPerLevel": 1000, "maxRounds": 99, "maxDodgeCut": 0.5 },
+  "api": {
+    "timeoutMs": 8000,
+    "authStatuses": [401],
+    "signedOutErrors": ["signin", "token", "guest"],
+    "serverErrorFrom": 500,
+    "calls": { "get": "upgrades_get", "buy": "upgrade_buy" }
+  },
+  "upgrades": [
+    {
+      "id": "reserve-magazine",
+      "maxLevel": 3,
+      "prices": [400, 900, 1600],
+      "effect": { "kind": "reserveMagazines", "perLevel": 1, "roundsPerMagazine": { "pistol-reserve": 6, "rifle-reserve": 8 } }
+    },
+    {
+      "id": "stamina",
+      "maxLevel": 5,
+      "prices": [300, 600, 1000, 1500, 2200],
+      "effect": { "kind": "maxStamina", "perLevel": 10 }
+    },
+    {
+      "id": "dodge-recovery",
+      "maxLevel": 5,
+      "prices": [300, 600, 1000, 1500, 2200],
+      "effect": { "kind": "dodgeRecovery", "perLevel": 0.1 }
+    }
+  ]
+}

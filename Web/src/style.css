@@ -1295,6 +1295,16 @@ body.touch .perk-key {
   }
 }
 
+#upgrades-panel{margin:16px 0 0;padding-top:12px;border-top:1px solid #58615a;}
+#upgrades-panel[hidden]{display:none;}
+.upgrades-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.upgrades-title{margin:0;}.upgrades-cash{margin:0;font-weight:700;}.upgrades-intro,.upgrades-state{font-size:12px;line-height:1.45;margin:6px 0;}
+.upgrades-list{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0;}
+.upgrades-card{border:1px solid #514630;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0;}
+.upgrades-card p,.upgrades-card h5{margin:0;overflow-wrap:anywhere;}.upgrades-name{font-size:14px;}.upgrades-desc,.upgrades-next{font-size:12px;opacity:.85;}.upgrades-level{font-weight:700;}
+.upgrades-buy,.upgrades-retry{min-height:44px;width:100%;margin-top:6px;}.upgrades-retry{max-width:260px;}
+.upgrades-note{min-height:1.4em;font-size:12px;margin:4px 0 0;}.upgrades-note.error{color:#e3a21a;}.upgrades-note.ok{color:#9ad39a;}
+@media (min-width:560px),(orientation:landscape){.upgrades-list{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}}
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */

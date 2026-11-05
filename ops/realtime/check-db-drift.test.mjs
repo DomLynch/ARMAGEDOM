@@ -44,7 +44,7 @@ test("an untouched database reports zero drift, and the report says what it chec
   assert.deepEqual(report.differences, []);
   assert.equal(
     report.text.replace(/\d+ seeded rows/, "N seeded rows"),
-    `zero drift (${files.length} migrations, N seeded rows, 36 functions, 29 tables, 20 policies)`,
+    `zero drift (${files.length} migrations, N seeded rows, 39 functions, 31 tables, 22 policies)`,
   );
 });
 

@@ -1,5 +1,6 @@
 import { isExtendedSupplies, issueExtendedSupply } from "./supply-ledger-v2.js";
 import { GAME_DATA } from "./engine/game-data.js";
+import { reserveBonus, reserveBonusMax } from "./engine/upgrades-state.js";
 // Area1-only rules; caller owns actual kill authority and atomic run persistence.
 export const SUPPLY_RULES = GAME_DATA.supplies.rules; // data/supplies.json: pickupRadius, reserveCap, healFraction
 export const AREA1_SUPPLIES = GAME_DATA.supplies.area1; // data/supplies.json: roamer key -> { kind, amount } or null
@@ -110,7 +111,7 @@ export function collectSupply(state, { dropId, areaId, position, resources, line
     typeof resources.pistolOwned !== "boolean" ||
     !Number.isInteger(resources.reserve) ||
     resources.reserve < 0 ||
-    resources.reserve > SUPPLY_RULES.reserveCap ||
+    resources.reserve > SUPPLY_RULES.reserveCap + reserveBonusMax("pistol-reserve") ||
     (!resources.pistolOwned && resources.reserve !== 0)
   )
     return deny("invalid");
@@ -125,7 +126,7 @@ export function collectSupply(state, { dropId, areaId, position, resources, line
   let amount, remaining;
   if (drop.kind === "rounds") {
     if (!resources.pistolOwned) return deny("pistol-required");
-    amount = Math.min(drop.remaining, SUPPLY_RULES.reserveCap - resources.reserve);
+    amount = Math.min(drop.remaining, SUPPLY_RULES.reserveCap + reserveBonus("pistol-reserve") - resources.reserve);
     if (amount <= 0) return deny("reserve-full");
     nextResources.reserve += amount;
     remaining = drop.remaining - amount;

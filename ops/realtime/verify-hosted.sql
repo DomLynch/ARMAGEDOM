@@ -13,12 +13,12 @@ declare
   writer_functions text[] := array['arma_active', 'arma_buy_item', 'arma_claim_pickup', 'arma_create_character', 'arma_inventory_get', 'arma_item_defs',
     'arma_load_run', 'arma_market_stock', 'arma_prune_engages', 'arma_prune_market_requests', 'arma_record_event', 'arma_save_location', 'arma_save_run',
     'arma_saved_location', 'arma_sell_item', 'arma_set_active', 'arma_spawn_engage', 'arma_spawn_hit', 'arma_spawn_hit_batch', 'arma_spawn_state',
-    'arma_wallet', 'arma_world_status'];
+    'arma_upgrade_buy', 'arma_upgrades_get', 'arma_wallet', 'arma_world_status'];
   -- The only functions presence may call.
   presence_functions text[] := array['arma_active', 'arma_save_location', 'arma_saved_location'];
   -- Internal helpers, callable only from inside other arma functions: no server role and no client may execute them directly.
   internal_functions text[] := array['arma_allowed', 'arma_owns', 'arma_cash_ceiling', 'arma_check_record', 'arma_grant_kill_cash', 'arma_inventory_add',
-    'arma_inventory_json', 'arma_market_trade', 'arma_roll_loot', 'arma_shop_no_loop', 'arma_spawn_view', 'arma_unreceipted'];
+    'arma_inventory_json', 'arma_market_trade', 'arma_roll_loot', 'arma_shop_no_loop', 'arma_spawn_view', 'arma_unreceipted', 'arma_upgrades_json'];
   fn text;
 begin
   -- 1. Switches: reported. A missing row is a problem (the writer reads both); the value is the operator's choice.

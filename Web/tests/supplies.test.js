@@ -74,7 +74,7 @@ test('walk-near requires same area, inclusive1.3m distance and unobstructed segm
 });
 test('invalid resources and missing LOS cannot consume rewards',()=>{
   const state=kill(createSuppliesState()).state;
-  for(const r of [{...resources,hp:NaN},{...resources,hp:151},{...resources,reserve:13},
+  for(const r of [{...resources,hp:NaN},{...resources,hp:151},{...resources,reserve:31},
     {...resources,reserve:1.5},{...resources,pistolOwned:false}, {...resources,maxHP:0}])
     assert.equal(collect(state,{resources:r}).reason,'invalid');
   assert.equal(collect(state,{lineClear:undefined}).reason,'invalid');

@@ -36,6 +36,7 @@ import { SALAMANDER_BREATH } from "./salamander-native.js";
 import { rigResponse } from "./rig-response.js";
 import { CREATURE_MOVES } from "./creature-moves.js";
 import { GAME_DATA, fillText } from "./engine/game-data.js";
+import { dodgeCooldown, rollTicks } from "./engine/upgrades-state.js";
 import { recordResidentKill } from "./engine/respawn.js";
 import { posedMeleeMove } from "./engine/melee-equipment-data.js";
 import { bossMove, bossHazardPosition, resetBossPursuit } from "./engine/area-bosses.js";
@@ -652,7 +653,7 @@ function dodge(g, move, aim) {
   p.facing = { ...p.dodgeDirection };
   p.dodgeUntil = g.time + LEGACY.player.dodge.seconds;
   p.invulnerableUntil = g.time + LEGACY.player.dodge.invulnerableSeconds;
-  p.dodgeReady = g.time + LEGACY.player.dodge.cooldownSeconds;
+  p.dodgeReady = g.time + dodgeCooldown(LEGACY.player.dodge.cooldownSeconds); // the safehouse dodge-recovery upgrade shortens it
   g.started = true;
   event(g, "dodge", { actor: p });
 }
@@ -1503,12 +1504,13 @@ function knifeDodge(g, move, aim) {
   p.dodgeDirection = normal(move, { x: -facing.x, z: -facing.z });
   p.facing = { ...p.dodgeDirection };
   p.dodgeStart = t;
-  p.dodgeUntil = t + R.roll / 60;
+  const roll = rollTicks(R.roll, R.safeEnd); // the safehouse dodge-recovery upgrade shortens the recovery after the safe interval
+  p.dodgeUntil = t + roll / 60;
   p.dodgeReady = p.dodgeUntil;
   // Safety is a middle interval, not instant invulnerability on press.
   p.invulnerableUntil = 0;
   g.started = true;
-  event(g, "dodge", { actor: p, clip: "Roll", ticks: R.roll });
+  event(g, "dodge", { actor: p, clip: "Roll", ticks: roll });
 }
 function knifeGuard(g, intent, swinging, dodging) {
   const p = g.player,
