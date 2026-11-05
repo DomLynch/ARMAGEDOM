@@ -817,10 +817,11 @@ export function createEffects(
     pistolRecoil(game) {
       return active(game) ? (feedback.mode === "off" ? basicRecoil * FRAME.offRecoilShare : feedback.shot) : 0;
     },
-    render(renderer, camera, game, height, width = height * (camera.aspect ?? 1)) {
+    // `shake` (engine/game-feel.js): { x, y } screen pixels added to the same camera offset as the hit kick; the HUD is DOM and never moves.
+    render(renderer, camera, game, height, width = height * (camera.aspect ?? 1), shake = null) {
       const visible = game.player.hp > 0 && !game.finished && !reducedMotion(),
-        x = visible ? feedback.cameraX : 0,
-        y = visible ? feedback.cameraY : 0;
+        x = visible ? feedback.cameraX + (shake?.x ?? 0) : 0,
+        y = visible ? feedback.cameraY + (shake?.y ?? 0) : 0;
       if (!(height > 0) || (!x && !y)) return renderer.render(scene, camera);
       projection.copy(camera.projectionMatrix);
       inverse.copy(camera.projectionMatrixInverse);

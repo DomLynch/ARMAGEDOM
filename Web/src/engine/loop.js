@@ -20,6 +20,7 @@ import { createAirdropView } from "./airdrop-view.js";
 import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
+import { createGameFeel } from "./game-feel.js";
 import { createBossTaunts, tauntsEnabled } from "./boss-taunts.js";
 import { burnLevel, createSoundHooks, soundHooksEnabled } from "./sound-hooks.js";
 import { burnEnabled } from "./burn-presentation.js";
@@ -28,6 +29,7 @@ export function createBrowserLoop(s) {
   const hints = createFirstTimeHints(),
     pickupFlash = createPickupFlash(),
     haptics = createHaptics({ listen: s.listen }),
+    feel = createGameFeel({ listen: s.listen }), // data/gameFeel.json: hit-stop, camera shake and the View zoom preset
     taunts = tauntsEnabled() ? createBossTaunts() : null, // data/bossTaunts.json; ?taunts=0 turns them off
     soundHooks = soundHooksEnabled() ? createSoundHooks() : null, // data/soundHooks.json; ?sound=0 turns the hooks off
     burning = !!soundHooks && burnEnabled(); // the crackle follows ?burn=0 too
@@ -47,6 +49,7 @@ export function createBrowserLoop(s) {
     s.listen(globalThis.document, "visibilitychange", () => {
       if (globalThis.document.hidden) {
         deathCam.reset();
+        feel.reset();
         haptics.cancel();
         shareClip.gap();
       }
@@ -132,13 +135,20 @@ export function createBrowserLoop(s) {
     if (s.traveling || s.game.player.hp <= 0 || s.game !== seenGame || s.world.areaId !== seenArea) deathCam.reset();
     shareCard.sync(s.game.finished && s.game.player.hp <= 0);
     if (s.game !== seenGame || s.world.areaId !== seenArea) shareClip.reset();
-    if (s.game !== seenGame) taunts?.reset();
+    if (s.game !== seenGame) {
+      taunts?.reset();
+      feel.reset();
+    }
     seenGame = s.game;
     seenArea = s.world.areaId;
     const audioEvents = [],
       // Boss / marked-hunter death slow-mo: scale the frame's seconds ONCE, here, so simulation, ragdoll and effects share one clock.
       cam = s.traveling || s.paused ? deathCam.tick(0) : deathCam.tick(realElapsed),
-      elapsed = realElapsed * cam.timeScale,
+      // Hit-stop: the share of this frame that runs once a heavy event has frozen it; paused, travel and scripted steps are never frozen.
+      elapsed =
+        realElapsed *
+        cam.timeScale *
+        feel.tick(realElapsed, { paused: s.paused || s.traveling, scripted: providedElapsed !== undefined }),
       dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
     // Travel holds this frame and simulation. Re-rendering the unchanged rigs
     // consumes the idle budget needed to finish the destination's preparation.
@@ -204,6 +214,7 @@ export function createBrowserLoop(s) {
         s.effects.events(s.game);
         s.actors?.events(s.game);
         deathCam.observe(s.game.events);
+        feel.observe(s.game.events, s.game);
         shareClip.observe(s.game.events, s.game);
         audioEvents.push(...s.game.events);
         taunts?.observe(s.game, s.game.events);
@@ -222,6 +233,7 @@ export function createBrowserLoop(s) {
         }
       }
     }
+    s.world.viewZoomMultiplier = feel.viewZoom(); // the existing world zoom path (never below 1); Standard is exactly 1
     s.world.update(
       s.game.player.pos,
       s.paused ? 0 : Math.min(GAME_DATA.browserSession.maxStepSeconds, realElapsed), // camera follow runs on real time
@@ -270,18 +282,20 @@ export function createBrowserLoop(s) {
     s.updateExpedition?.();
     s.shop?.update(s);
     s.updateRunHud?.(); // after the HUD: the run's results card stands in front of the death card
-    if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth);
+    if (s.effects) s.effects.render(s.renderer, s.camera, s.game, s.canvas.clientHeight, s.canvas.clientWidth, feel.shake());
     else s.renderer.render(s.scene, s.camera);
     if (!s.paused) shareClip.capture(s.canvas, realElapsed, s.world.areaId); // right after the render: the drawing buffer is valid only in this task
   }
   return {
     deathCam,
     shareClip,
+    feel,
     frame,
     intent,
     combatVisibleIds,
     reset() {
       deathCam.reset();
+      feel.reset();
       last = 0;
       accumulator = 0;
       submitted = null;
