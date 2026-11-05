@@ -194,6 +194,10 @@
     "perk.heading": "Choose a perk",
     "perk.picked": "Perk taken: {name}.",
     "perk.status": "Perks {count}",
-    "perk.statusShield": "Perks {count} · Bonus HP {shield}"
+    "perk.statusShield": "Perks {count} · Bonus HP {shield}",
+    "minimap.chip": "MAP",
+    "minimap.tap.small": "Minimap. Tap to enlarge.",
+    "minimap.tap.large": "Minimap. Tap to hide.",
+    "minimap.tap.hidden": "Show minimap"
   }
 }

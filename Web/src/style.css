@@ -1383,3 +1383,60 @@ body.desktop-ui:not(.touch) #pistol-interact {
   visibility: hidden;
 }
 
+
+/* Corner minimap (engine/minimap.js, numbers in data/minimap.json): a round map just left of the menu button, in the top band where neither the
+   joystick nor the action buttons ever reach, in portrait, landscape and the desktop layout alike. --minimap-size and --minimap-offset (menu
+   button width plus gap) are set from the data. A large map in portrait hangs below the menu button instead, clear of the vitals block. When
+   hidden it is a 44px chip with the word MAP. */
+#minimap {
+  position: absolute;
+  top: var(--safe-t);
+  right: calc(var(--safe-r) + var(--minimap-offset, 56px));
+  width: var(--minimap-size, 76px);
+  height: var(--minimap-size, 76px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--gold);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+#minimap[hidden] {
+  display: none;
+}
+#minimap canvas {
+  position: static; /* the global canvas rule pins every canvas to the screen */
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#minimap .minimap-chip {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+#minimap[data-mode="hidden"] {
+  border: 1px solid var(--minimap-chip-border, var(--edge));
+  background: var(--minimap-chip-back, rgba(13, 24, 27, 0.66));
+}
+#minimap[data-mode="hidden"] canvas {
+  display: none;
+}
+#minimap[data-mode="hidden"] .minimap-chip {
+  display: block;
+}
+@media (orientation: portrait) {
+  #minimap[data-mode="large"] {
+    top: calc(var(--safe-t) + var(--minimap-offset, 56px));
+    right: var(--safe-r);
+  }
+}
+.menu-open #minimap {
+  visibility: hidden;
+}
