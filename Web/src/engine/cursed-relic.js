@@ -2,6 +2,7 @@ import { closed, freeze } from "./content-schema.js";
 import { safehouseTouches } from "./safehouse.js";
 import { markedEntry } from "./marked-hunters.js";
 import { fillText } from "./game-data.js";
+import { perkDamage } from "./perks.js";
 // CURSED RELIC. Every value lives in area-content.json `cursedRelic`. The relic is a rare pickup, one fixed hard-to-reach spot per
 // listed area. While it is carried: player damage is multiplied and extra marked hunters arrive on a timer. A safehouse, death or
 // leaving the area (hunters only) ends it. The state lives on the run object and is never saved, so a reload clears it exactly as a
@@ -91,7 +92,7 @@ export function relicAvailable(g) {
 // that pass raw damage (shotgun, grenade, rocket, railgun, reaper), so no weapon is doubled twice.
 // The one damage hook. combat.js calls it where the player's damage lands (ranged, flame, melee), so the existing hit code is the pipeline.
 export function cursedDamage(g, amount) {
-  return g.cursed?.active ? amount * g.world.cursedRelicData.damageMultiplier : amount;
+  return perkDamage(g, g.cursed?.active ? amount * g.world.cursedRelicData.damageMultiplier : amount); // and the wave perk's damage bonus
 }
 export function cursedHudText(g) {
   const c = g.world?.cursedRelicData;

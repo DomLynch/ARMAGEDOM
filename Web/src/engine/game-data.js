@@ -106,6 +106,10 @@ import apocalypseRun from "../data/apocalypseRun.json" with { type: "json" };
 import { validateApocalypseRun } from "./game-data-run.js";
 import trashWave from "../data/trashWave.json" with { type: "json" };
 import { validateTrashWave } from "./game-data-trash-wave.js";
+import perks from "../data/perks.json" with { type: "json" };
+import { validatePerks } from "./game-data-perks.js";
+import runSummary from "../data/runSummary.json" with { type: "json" };
+import { validateRunSummary } from "./game-data-run-summary.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1157,6 +1161,8 @@ const sources = () => ({
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
   trashWave: [trashWave, validateTrashWave],
+  perks: [perks, validatePerks],
+  runSummary: [runSummary, validateRunSummary],
 });
 
 /**

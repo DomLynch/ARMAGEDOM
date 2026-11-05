@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "note": "Wave perks (engine/perks.js). Opt-in with the waves: offered only when the page carries ?waves=1 (trashWave.json startSwitch); with the flag off nothing here creates state or touches a stat. After every everyWaves-th wave clear (counted over the whole session, across areas) the player is offered `choices` different perks and takes one by tap, click or the 1-2-3 keys; ignoring it for autoPickSeconds takes the first. The game never pauses. Perks are session-only run modifiers held on the live game (g.perks): never saved, never sent, gone with the run. A perk can be taken again until its maxStacks. stats names how each effect combines (mul multiplies, add sums) and the stat the hooks read: damage (every player hit), moveSpeed (walking and sprinting), shield (bonus HP that absorbs damage before health; the run save's max HP stays untouched, so a pick also heals this much and each wave clear refills the shield), staminaRegen (the player's own staminaRegen field, multiplied once per pick), magazine (extra pistol rounds, as a fraction: every shot earns a share of a round back, so the magazine lasts this much longer and never holds more than it can), reload (pistol and rifle reload seconds), waveHeal (multiplies the wave-clear heal), dropChance (chance that an ordinary wave kill may leave a coin drop; the per-wave cap and spacing in trashWave.json drops still apply). Names and texts are shown as written (cards are about 120 px wide).",
+  "everyWaves": 3,
+  "choices": 3,
+  "autoPickSeconds": 8,
+  "messageSeconds": 4,
+  "seed": { "fallbackDay": "sandbox", "separator": ":", "salt": "perks", "dropSalt": "perk-drops" },
+  "stats": {
+    "damage": { "mode": "mul" },
+    "moveSpeed": { "mode": "mul" },
+    "shield": { "mode": "add" },
+    "staminaRegen": { "mode": "mul" },
+    "magazine": { "mode": "add" },
+    "reload": { "mode": "mul" },
+    "waveHeal": { "mode": "mul" },
+    "dropChance": { "mode": "add" }
+  },
+  "perks": [
+    { "id": "damage", "name": "Heavy Hand", "text": "+15% damage", "stat": "damage", "value": 1.15, "maxStacks": 3 },
+    { "id": "speed", "name": "Light Feet", "text": "+10% move speed", "stat": "moveSpeed", "value": 1.1, "maxStacks": 3 },
+    { "id": "hide", "name": "Thick Skin", "text": "+25 max HP and a heal", "stat": "shield", "value": 25, "maxStacks": 3 },
+    { "id": "wind", "name": "Second Wind", "text": "+20% stamina regen", "stat": "staminaRegen", "value": 1.2, "maxStacks": 3 },
+    { "id": "drum", "name": "Deep Drum", "text": "+25% pistol magazine", "stat": "magazine", "value": 0.25, "maxStacks": 2 },
+    { "id": "hands", "name": "Quick Hands", "text": "-20% reload time", "stat": "reload", "value": 0.8, "maxStacks": 2 },
+    { "id": "medic", "name": "Field Medic", "text": "Wave-clear heal x2", "stat": "waveHeal", "value": 2, "maxStacks": 1 },
+    { "id": "luck", "name": "Lucky Pockets", "text": "More coin drops", "stat": "dropChance", "value": 0.15, "maxStacks": 3 }
+  ]
+}

@@ -5,6 +5,8 @@ import { QUALITY } from "./quality-tier.js";
 import { createDeathPresentation } from "./death-presentation.js";
 import { createShareClip } from "./share-clip.js";
 import { createShareCard } from "./share-card.js";
+import { createRunSummary, createRunTracker } from "./run-summary.js";
+import { createPerkPicker, perksEnabled, stepPerks } from "./perks.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -41,7 +43,11 @@ export function createBrowserLoop(s) {
   const deathCam = createDeathPresentation(),
     // Viral death cam (shareClip.json, ?noshare=1 off): a small rolling frame ring, and the SHARE card on the death screen.
     shareClip = createShareClip(),
-    shareCard = createShareCard({ share: shareClip });
+    shareCard = createShareCard({ share: shareClip }),
+    // Run summary on the death screen (runSummary.json) and, with ?waves=1 only, the wave perk picks (perks.json).
+    tracker = createRunTracker(),
+    runSummary = createRunSummary({ tracker }),
+    perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null;
   let seenGame = null,
     seenArea = null;
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
@@ -232,6 +238,12 @@ export function createBrowserLoop(s) {
           break;
         }
       }
+    }
+    tracker.observe(s.game);
+    runSummary.frame(s.game);
+    if (perkPicker) {
+      stepPerks(s.game, tracker.cleared(), s.paused ? 0 : realElapsed);
+      perkPicker.frame(s.game);
     }
     s.world.viewZoomMultiplier = feel.viewZoom(); // the existing world zoom path (never below 1); Standard is exactly 1
     s.world.update(

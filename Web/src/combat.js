@@ -4,6 +4,7 @@ import { rigCapability, rigText } from "./rig-capabilities.js";
 import { stepMarkedHunters, clearMarkedHunters } from "./engine/marked-hunters.js";
 import { stepCursedRelic, cursedDamage, clearCursed } from "./engine/cursed-relic.js";
 import { stepTrashWave, clearTrashWave } from "./engine/trash-wave.js";
+import { perkMove, perkAbsorb, perkPistol, perkShot, perkReload } from "./engine/perks.js";
 import { stepReaper, stopReaper, REAPER_ITEM_ID } from "./engine/reaper.js";
 import {
   BONE_SAW_RULES,
@@ -318,7 +319,7 @@ function rifleIntent(g, intent, dispatch) {
     state.reserve > 0 &&
     g.time + EPS >= clock.nextFireAt
   ) {
-    clock.reloadingUntil = g.time + rules.reload;
+    clock.reloadingUntil = g.time + perkReload(g, rules.reload);
     event(g, "reload-start", { until: clock.reloadingUntil, weapon: "rifle" });
   }
   const firing =
@@ -397,7 +398,7 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
             canAct: !!canAct,
           })
         : stepPistol(g.pistol, {
-            profile: selectedPistolProfile(g),
+            profile: perkPistol(g, selectedPistolProfile(g)),
             time: g.time,
             areaId: g.world.areaId ?? "westminster",
             position: p.pos,
@@ -414,6 +415,7 @@ function pistolIntent(g, intent, dispatchPistol, dispatchMarshalPistol) {
             lineClear: (a, b) => g.world.lineClear(a, b),
           });
   if (!(routed && eligible && holster) && coreEvents.length) result.events.unshift(...coreEvents);
+  perkShot(g, g.pistol.magazine, result); // the magazine perk gives some rounds back
   g.pistol = result.state;
   p.weapon = g.pistol.equipped ? "pistol" : "knife";
   for (let e of result.events) {
@@ -1224,7 +1226,8 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
         : LEGACY.player.walkSpeed;
       const scale =
         (p.guarding ? (g.pilot ? R.guardSpeed : LEGACY.player.guardMoveScale) : 1) *
-        (p.saw?.active ? BONE_SAW_RULES.moveScale : 1);
+        (p.saw?.active ? BONE_SAW_RULES.moveScale : 1) *
+        perkMove(g); // the wave perks (?waves=1); 1 without them
       const vel = { x: m.x * speed * scale, z: m.z * speed * scale },
         difference = sub(vel, p.velocity),
         n = mag(difference),
@@ -1604,7 +1607,7 @@ function knifeReceive(g, hit) {
   }
   if (amount <= 0) return false;
   amount = damageAfterVest(amount, g.vest, { blocked });
-  p.hp = Math.max(0, p.hp - amount);
+  p.hp = Math.max(0, p.hp - perkAbsorb(g, amount)); // the wave perks' bonus HP takes the hit first; the hit itself still shows
   p.flashUntil = t + RULES.hitFlashSeconds;
   if (blocked && p.hp > 0) {
     event(g, "hit", { actor: p, amount, blocked: true, ...meta });
