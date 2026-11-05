@@ -6,6 +6,7 @@ import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { call, freshDb, ids, openFor } from "./helpers.js";
 import { createWriter, DEFAULT_LIMITS, spawnRowsFrom } from "../../writer/writer.js";
+import { guestName } from "../../presence/names.js";
 
 const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
 const KEY = "internal-key-for-tests";
@@ -406,7 +407,8 @@ test("the service is OFF unless ARMA_WRITER=1", () => {
 });
 
 test("every client op has a bucket in server/data/rate-limits.json, load_run is one per 10 s, and the token-bearing status read is limited while the anonymous one is not", async () => {
-  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "buy_item", "claim_pickup", "create_character", "inventory_get", "item_defs", "load_run", "market_stock", "save_run", "sell_item", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(Object.keys(DEFAULT_LIMITS).sort(), ["active", "buy_item", "claim_pickup", "create_character", "inventory_get", "item_defs", "leaderboard", "load_run", "market_stock", "save_run", "sell_item", "set_active", "spawn_engage", "spawn_state", "status"]);
+  assert.deepEqual(DEFAULT_LIMITS.leaderboard, { burst: 5, refillMs: 5000 });
   assert.deepEqual(DEFAULT_LIMITS.load_run, { burst: 3, refillMs: 10000 });
   let clock = 1_000_000;
   const t = await start({ limits: { status: { burst: 2, refillMs: 5000 }, active: { burst: 1, refillMs: 10000 } }, now: () => clock });
@@ -444,6 +446,47 @@ test("auth: when Supabase Auth cannot answer the writer says 503 with a retry ti
     assert.equal((await fetch(t.base + "/arma/active", { method: "POST", headers: { Authorization: "Bearer forged-token-123" }, body: "{}" })).status, 401);
   } finally {
     await t.close();
+  }
+});
+
+test("leaderboard: the top and your own rank by name, no account id leaves the writer, and the route is rate limited", async () => {
+  const awards = (keys) => keys.map((key) => ({ areaId: key.split(":")[0], placementKey: key.split(":")[1], weaponId: "knife" }));
+  const t = await start();
+  try {
+    const mine = (await t.post("/arma/create_character", { name: "Alice" }, { as: ids.alice })).body.character;
+    const theirs = (await t.post("/arma/create_character", { name: "Bob" }, { as: ids.bob })).body.character;
+    const empty = await t.post("/arma/leaderboard", {}, { as: ids.alice });
+    assert.deepEqual([empty.status, empty.body.top, empty.body.me], [200, [], null]);
+    const save = (character, as, keys) =>
+      t.post("/arma/save_run", { character, era: 18, record: { ...v18, progression: { ...v18.progression, awards: awards(keys) } }, revision: 0, seq: 1 }, { as });
+    assert.equal((await save(mine, ids.alice, ["westminster:westminster-roamer-1", "westminster:boss-witch-v1"])).body.awarded, 300);
+    assert.equal((await save(theirs, ids.bob, ["south:south-roamer-1"])).body.awarded, 100);
+    const board = await t.post("/arma/leaderboard", {}, { as: ids.bob });
+    assert.equal(board.status, 200);
+    assert.deepEqual(board.body.top, [
+      { rank: 1, name: guestName(ids.alice), score: 300, kills: 2, you: false },
+      { rank: 2, name: guestName(ids.bob), score: 100, kills: 1, you: true },
+    ]);
+    assert.deepEqual(board.body.me, { rank: 2, score: 100, kills: 1 });
+    assert.match(board.body.day, /^\d{4}-\d{2}-\d{2}$/);
+    const text = JSON.stringify(board.body);
+    assert.ok(!text.includes(ids.alice) && !text.includes(ids.bob) && !text.includes("pc:"), "no account or character id in the answer");
+    assert.equal((await t.post("/arma/leaderboard", {}, { as: ids.carol })).status, 403, "an account without access");
+    assert.equal((await t.post("/arma/leaderboard", {})).status, 401);
+  } finally {
+    await t.close();
+  }
+  let clock = 1_000_000;
+  const limited = await start({ limits: { leaderboard: DEFAULT_LIMITS.leaderboard }, now: () => clock });
+  try {
+    const read = () => limited.post("/arma/leaderboard", {}, { as: ids.alice });
+    for (let i = 0; i < 5; i++) assert.equal((await read()).status, 200);
+    const refused = await read();
+    assert.deepEqual([refused.status, refused.body.error, refused.body.retryMs], [429, "rate-limited", 5000]);
+    clock += 5000;
+    assert.equal((await read()).status, 200);
+  } finally {
+    await limited.close();
   }
 });
 

@@ -120,6 +120,8 @@ import perks from "../data/perks.json" with { type: "json" };
 import { validatePerks } from "./game-data-perks.js";
 import runSummary from "../data/runSummary.json" with { type: "json" };
 import { validateRunSummary } from "./game-data-run-summary.js";
+import dailyBoard from "../data/dailyBoard.json" with { type: "json" };
+import { validateDailyBoard } from "./game-data-daily-board.js";
 import bossGoals from "../data/bossGoals.json" with { type: "json" };
 import { validateBossGoals } from "./game-data-boss-goals.js";
 import {
@@ -1181,6 +1183,7 @@ const sources = () => ({
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],
+  dailyBoard: [dailyBoard, validateDailyBoard],
   bossGoals: [bossGoals, validateBossGoals],
 });
 

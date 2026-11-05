@@ -7,6 +7,7 @@ import fs from "node:fs";
 import http from "node:http";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { AUTH } from "../shared/supabase-verify.js";
+import { guestName } from "../presence/names.js";
 import { CLIENTLOG_LIMIT, CLIENTLOG_MAX_BODY, cleanClientLog, clientIp, ipLimiter } from "./clientlog.js";
 
 const MAX_BODY = 256 * 1024;
@@ -123,6 +124,13 @@ export function createWriter({ db, verify, spawnRows, internalKey, log = () => {
       const active = await call("arma_active", [account]);
       if (!active) throw new HttpError(403, "no-character");
       return call("arma_sell_item", [account, active, String(body.shop_id ?? ""), String(body.item_id ?? ""), Number.isInteger(body.qty) ? body.qty : 0, String(body.request_id ?? "")]);
+    },
+    // Today's board (migration 000031): the top 20 and the caller's own rank. The database answers with account ids; they become names here and
+    // never leave this function. `you` marks the caller's row. Read only, and no character is needed.
+    async leaderboard({ account }) {
+      const board = await call("arma_leaderboard", [account]);
+      const top = (board?.top ?? []).map((row) => ({ rank: row.rank, name: guestName(row.account), score: row.score, kills: row.kills, you: row.account === account }));
+      return { day: board?.day ?? null, top, me: board?.me ?? null };
     },
     async spawn_state({ account, body }) {
       const instances = Array.isArray(body.instances) ? body.instances.filter((s) => typeof s === "string").slice(0, 200) : [];

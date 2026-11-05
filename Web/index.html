@@ -243,6 +243,15 @@
         <h2 id="result"></h2>
         <p id="result-hint"></p>
         <div id="run-summary" class="run-summary" hidden role="group"></div>
+        <div id="daily-board" class="daily-board" hidden>
+          <button id="daily-board-open" class="daily-board-open" type="button" aria-expanded="false" aria-controls="daily-board-panel"></button>
+          <div id="daily-board-panel" class="daily-board-panel" hidden role="region" aria-labelledby="daily-board-heading">
+            <p id="daily-board-heading" class="db-heading"></p>
+            <ol id="daily-board-list" class="db-list"></ol>
+            <p id="daily-board-me" class="db-me" role="status"></p>
+            <p id="daily-board-status" class="db-status" role="status"></p>
+          </div>
+        </div>
         <div id="share-card" class="share-card" hidden>
           <p id="share-heading" class="eyebrow"></p>
           <div id="share-picks" class="share-picks"></div>
