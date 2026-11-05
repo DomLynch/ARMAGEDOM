@@ -75,6 +75,8 @@ import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
+import telegraph from "../data/telegraph.json" with { type: "json" };
+import { validateTelegraph } from "./game-data-telegraph.js";
 import lootBeams from "../data/lootBeams.json" with { type: "json" };
 import { validateLootBeams } from "./game-data-loot-beams.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
@@ -1167,6 +1169,7 @@ const sources = () => ({
   minimap: [minimap, validateMinimap],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  telegraph: [telegraph, validateTelegraph],
   lootBeams: [lootBeams, validateLootBeams],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
