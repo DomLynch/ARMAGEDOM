@@ -12,9 +12,10 @@ begin;
 --     once each, and credits their cash to arma_cash.earned BEFORE the clamp (so the clamp sees it) and writes one arma_award_credits row per credit.
 --     Existing awards on a stored run are not back-credited (the stored record already holds them), and a retry that resets the awards simply
 --     starts counting again from the new record.
---   * The credit is capped per ACCOUNT over a rolling window with arma_world_config.kills_per_min / kills_per_hour (6 and 120 as shipped; one UPDATE
---     retunes them): a forged record that toggles awards on and off can farm at most 120 x $200 = $24,000 an hour. A credit past the cap is dropped
---     (the stored record then holds its award, so it is not offered again) and counted in the reply.
+--   * The credit is capped per ACCOUNT over a rolling HOUR with arma_world_config.kills_per_hour (120 as shipped; one UPDATE retunes it): a forged
+--     record that toggles awards on and off can farm at most 120 x $200 = $24,000 an hour. There is deliberately no per-minute cap: an honest save can
+--     carry a burst of new awards (20 kills before the phone saves), and a credit dropped by a minute cap is gone for good. A credit past the hourly
+--     cap is dropped (the stored record then holds its award, so it is not offered again) and counted in the reply.
 -- The reply gains `awarded` (cash credited by this save) and `awardCapped` (credits dropped by the cap), each only when above zero.
 -- Signature, grants and every other behaviour of arma_save_run are as 000029 left them; each addition is marked "000030" below (a pinned test diffs this
 -- function against 000029). Lock order: the character's arma_cash row first, then its run (as arma_market_trade does), so a save and a trade cannot
@@ -126,12 +127,11 @@ on conflict (instance) do update set cash = excluded.cash;
 -- The placements in p_new's progression.awards that p_old's do not have, that have a row above and a free window slot, paid and written once each.
 -- Highest cash first, then by name, so the order is the same on a retry. Returns {cash, kills, capped}. Internal: callable only from arma_save_run.
 create function public.arma_credit_awards(p_account uuid, p_character text, p_old jsonb, p_new jsonb) returns jsonb language plpgsql security definer set search_path = '' as $$
-declare cfg public.arma_world_config; used_min int; used_hour int; room int; paid int := 0; kills int := 0; capped int := 0; c record;
+declare cfg public.arma_world_config; used_hour int; room int; paid int := 0; kills int := 0; capped int := 0; c record;
 begin
   select * into cfg from public.arma_world_config;
-  select (count(*) filter (where at > now() - interval '1 minute'))::int, count(*)::int into used_min, used_hour
-    from public.arma_award_credits where account = p_account and at > now() - interval '1 hour';
-  room := greatest(least(cfg.kills_per_min - used_min, cfg.kills_per_hour - used_hour), 0);
+  select count(*)::int into used_hour from public.arma_award_credits where account = p_account and at > now() - interval '1 hour';
+  room := greatest(cfg.kills_per_hour - used_hour, 0);
   for c in
     select n.instance, k.cash
     from (select distinct (e ->> 'areaId') || ':' || (e ->> 'placementKey') as instance

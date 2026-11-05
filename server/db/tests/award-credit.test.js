@@ -85,8 +85,19 @@ test("a retry of the same save replays the answer and credits once", async () =>
   assert.equal((await ledger()).length, 2);
 });
 
-test("the window caps credits per account: 6 a minute by default, then the minute reopens; the hour cap bounds the rest", async () => {
+test("a burst of new awards in one save is credited in full: there is no per-minute cap", async () => {
+  const { db, save, earned } = await setup();
+  const rows = await call(db, "select instance from public.arma_placement_cash where cash = 100 order by instance limit 20");
+  const burst = rows.map((r) => r.instance);
+  assert.equal(burst.length, 20);
+  const r = await save(burst, 2000, 0);
+  assert.deepEqual([r.awarded, r.awardCapped, r.clamped], [2000, undefined, undefined]);
+  assert.equal(await earned(), 2000);
+});
+
+test("the hourly window caps credits per account (120 by default, 6 here), and the hour reopens it", async () => {
   const { db, save, earned, ledger } = await setup();
+  await db.exec("update public.arma_world_config set kills_per_hour = 6");
   const eight = [...ROAMERS, "westminster:westminster-roamer-6", "westminster:westminster-roamer-7", "westminster:westminster-roamer-8", "south:south-roamer-1"].slice(0, 8);
   const capped = await save(eight, 600, 0);
   assert.deepEqual([capped.awarded, capped.awardCapped], [600, 2], "6 credited, 2 dropped by the cap");
@@ -94,40 +105,41 @@ test("the window caps credits per account: 6 a minute by default, then the minut
   // The two dropped awards are in the stored record now, so they are not offered again.
   const again = await save(eight, 600, 0);
   assert.deepEqual([again.awarded, again.awardCapped], [undefined, undefined]);
-  // A boss in the same minute: the window is full.
+  // A boss in the same hour: the window is full.
   const full = await save([...eight, BOSS], 600, 0);
   assert.deepEqual([full.awarded, full.awardCapped, full.clamped], [undefined, 1, undefined]);
-  // Two minutes later the minute window has room again; the hour window (120) still has plenty. The first boss was dropped and stored, the second is new.
+  // Two minutes later the hour is still full.
   await db.exec("update public.arma_award_credits set at = now() - interval '2 minutes'");
-  const later = await save([...eight, BOSS, "area7:boss-knight-v1"], 800, 0);
+  assert.equal((await save([...eight, BOSS, "area7:boss-knight-v1"], 600, 0)).awardCapped, 1);
+  // Two hours later the window has room again. The first boss was dropped and stored; a boss not seen yet is new.
+  await db.exec("update public.arma_award_credits set at = now() - interval '2 hours'");
+  const later = await save([...eight, BOSS, "area7:boss-knight-v1", "area8:boss-veteran-v1"], 800, 0);
   assert.deepEqual([later.awarded, later.awardCapped], [200, undefined]);
   assert.equal(await earned(), 800);
-  // The hour cap: 7 credits in the last hour and a limit of 7 an hour.
-  await db.exec("update public.arma_world_config set kills_per_hour = 7, kills_per_min = 60");
-  const hour = await save([...eight, BOSS, "area7:boss-knight-v1", "area7:area7-resident-1"], 800, 0);
-  assert.deepEqual([hour.awarded, hour.awardCapped], [undefined, 1], "no room in the hour");
   assert.equal((await ledger()).length, 7);
 });
 
 test("the cap is per account, across its characters", async () => {
   const { db, save } = await setup();
+  await db.exec("update public.arma_world_config set kills_per_hour = 6");
   assert.equal((await save([...ROAMERS, "westminster:westminster-roamer-6", "westminster:westminster-roamer-7", "westminster:westminster-roamer-8"], 600, 0)).awardCapped, 1);
   const firstSave = async (account, name) => {
     const [{ id }] = await call(db, "select public.arma_create_character($1, $2) as id", [account, name]);
     return (await call(db, "select public.arma_save_run($1, $2, 18, $3::jsonb, 0, 1) as r", [account, id, JSON.stringify(recordWith(["south:south-roamer-2"]))]))[0].r;
   };
   const second = await firstSave(ids.alice, "Second");
-  assert.deepEqual([second.awarded, second.awardCapped], [undefined, 1], "the same account has no room left this minute");
+  assert.deepEqual([second.awarded, second.awardCapped], [undefined, 1], "the same account has no room left this hour");
   assert.equal((await firstSave(ids.bob, "Bob")).awarded, 100, "another account is not affected");
 });
 
 test("a retry that resets the awards starts counting again; toggling awards on and off is bounded by the window", async () => {
-  const { save, earned } = await setup();
+  const { db, save, earned } = await setup();
+  await db.exec("update public.arma_world_config set kills_per_hour = 6");
   assert.equal((await save(ROAMERS.slice(0, 2), 200, 0)).awarded, 200);
   assert.equal((await save([], 200, 0)).awarded, undefined, "a retry resets the awards: nothing to credit");
   assert.equal((await save(ROAMERS.slice(0, 2), 400, 0)).awarded, 200, "killed again in the next life: paid again");
   assert.equal(await earned(), 400);
-  // The forged version of the same thing: farming by toggling the awards stops when the window is full (6 a minute, 4 already used).
+  // The forged version of the same thing: farming by toggling the awards stops when the window is full (6 an hour here, 4 already used).
   let farmed = 0;
   for (let i = 0; i < 6; i++) {
     await save([], 0, 0);
