@@ -22,6 +22,7 @@ import { createBossView } from "./boss-view.js";
 import { createEnemyBars } from "./enemy-bars.js";
 import { createTelegraphView } from "./telegraph-view.js";
 import { createThreatArrows } from "./threat-arrows.js";
+import { createHeatDial } from "./heat-dial.js";
 import { createMinimap } from "./minimap.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
@@ -186,6 +187,7 @@ export function createRunViews(s) {
     trapCrateView = createTrapCrateView(s),
     chainedPitbornView = createChainedPitbornView(s),
     threatArrows = createThreatArrows(s),
+    heatDial = createHeatDial(s), // data/heatDial.json: the heat readout under the run lines; ?nodial=1 hides it
     minimap = createMinimap(s);
   // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
   // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
@@ -452,6 +454,7 @@ export function createRunViews(s) {
       trapCrateView.update();
       chainedPitbornView.update();
       threatArrows.update();
+      heatDial.update();
       minimap.update();
       wantedProjection.update();
       updateInteraction();
@@ -479,6 +482,7 @@ export function createRunViews(s) {
       trapCrateView.dispose();
       chainedPitbornView.dispose();
       threatArrows.dispose();
+      heatDial.dispose();
       minimap.dispose();
       weaponTiles.dispose();
       reaperView.dispose();

@@ -4,6 +4,7 @@ import * as T from "three";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { createEnemyBars, enemyBarsOn } from "../src/engine/enemy-bars.js";
 import { validateEnemyBars } from "../src/engine/game-data-enemy-bars.js";
+import { paletteColour, resetColourBlind, setColourBlindMode } from "../src/engine/colour-blind.js";
 
 // The enemy health bars (data/enemyBars.json): hidden at full HP, shown 3 s after a hit and fading, always on for the aimed-at enemy, star
 // variants and bosses, at most 12 at once, never for the dead, a hard cut under reduced motion, and a fixed pool of elements.
@@ -477,4 +478,23 @@ test("the data validator rejects an unknown field, a fade longer than the hold a
   wide.classes.boss.widthPx.desktop = wide.classes.boss.widthPx.phone - 1;
   assert.throws(() => validateEnemyBars(wide));
   assert.ok(Object.isFrozen(RULES) && Object.isFrozen(RULES.classes.boss));
+});
+
+test("a colour-blind palette recolours the fill live, and Off puts the file's colours back", (t) => {
+  t.after(() => resetColourBlind());
+  const r = rig(),
+    plain = enemy(-2, 0);
+  r.g.enemies.push(plain);
+  r.step();
+  plain.hp = 70;
+  r.step(0.1);
+  const fill = () => r.shown()[0].children[1].style.background;
+  assert.equal(fill(), RULES.colours.fill);
+  setColourBlindMode("protanopia");
+  r.step(0.1);
+  assert.equal(fill(), `#${paletteColour("enemyBars.fill", "protanopia")}`);
+  assert.notEqual(fill(), RULES.colours.fill);
+  setColourBlindMode("off");
+  r.step(0.1);
+  assert.equal(fill(), RULES.colours.fill);
 });

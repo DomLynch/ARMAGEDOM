@@ -1,6 +1,7 @@
 import { Box3, Vector3 } from "three";
 import { GAME_DATA } from "./game-data.js";
 import { combatTargetHeight } from "../pistol-targeting.js";
+import { signalCss } from "./colour-blind.js";
 // The health bar over a hostile (data/enemyBars.json): a small flat bar above the head, hidden at full health. An ordinary bar shows for
 // `holdSeconds` after the last hit; the enemy the player is aiming at gets a thin bar the width of its body that clears `targetHoldSeconds`
 // after its last hit; star variants, hunters and bosses always show. Behind the fill a pale segment trails the real health down (the hit
@@ -104,9 +105,10 @@ export function createEnemyBars(s, options = {}) {
       bar.heightPx = state.heightPx;
       bar.el.style.height = `${state.heightPx}px`;
     }
-    if (bar.colour !== state.colour) {
-      bar.colour = state.colour;
-      bar.fill.style.background = rules.colours[state.colour];
+    const paint = signalCss(`enemyBars.${state.colour}`, rules.colours[state.colour]); // the colour-blind palette may swap it (colour-blind.js)
+    if (bar.colour !== paint) {
+      bar.colour = paint;
+      bar.fill.style.background = paint;
     }
     if (bar.percent !== state.percent) {
       bar.percent = state.percent;

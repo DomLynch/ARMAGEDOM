@@ -1,4 +1,6 @@
 import { GAME_DATA } from "./game-data.js";
+import { signalHex } from "./colour-blind.js";
+import { uiScaleNow } from "./ui-scale.js";
 
 // Edge-of-screen threat arrows (data/threatArrows.json): a small arrow on the screen edge pointing at each hunter that is awake, after the
 // player and outside the camera view. Presentation only: it reads the run and the camera and never changes either.
@@ -161,7 +163,8 @@ export function createThreatArrows(
       y = Math.round(arrow.y - safe.top),
       turn = Math.round(arrow.angle),
       strength = String(Math.round(look.opacity * distanceScale(arrow.dist, data) * 100) / 100),
-      key = `${x} ${y} ${turn} ${look.colour}`;
+      colour = signalHex(arrow.strong ? "threatArrows.marked" : "threatArrows.plain", look.colour), // the colour-blind palette may swap it
+      key = `${x} ${y} ${turn} ${colour}`;
     if (key !== slot.key) {
       slot.key = key;
       Object.assign(slot.el.style, {
@@ -169,7 +172,7 @@ export function createThreatArrows(
         top: `${y}px`,
         width: `${look.sizePx}px`,
         height: `${look.sizePx}px`,
-        background: `#${look.colour}`,
+        background: `#${colour}`,
         transform: `translate(-50%, -50%) rotate(${turn}deg)`,
       });
       slot.el.dataset.kind = arrow.strong ? "marked" : "plain";
@@ -210,7 +213,8 @@ export function createThreatArrows(
         box = threats.length ? safeRect() : null,
         touch = !!doc.body?.classList?.contains("touch"),
         viewport = { width: win.innerWidth, height: win.innerHeight },
-        band = touch ? (viewport.height > viewport.width ? data.touchBandPx.portrait : data.touchBandPx.landscape) : 0,
+        // The bottom band the arrows keep clear of grows and shrinks with the Controls size setting (ui-scale.js).
+        band = touch ? (viewport.height > viewport.width ? data.touchBandPx.portrait : data.touchBandPx.landscape) * uiScaleNow() : 0,
         rect = box ? arrowRect(box, data, band) : null;
       if (rect) {
         camera.updateMatrixWorld();
