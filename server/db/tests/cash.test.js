@@ -4,7 +4,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { call, failure, freshDb, ids, openFor } from "./helpers.js";
 
-const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
+const fixture = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
+// Without its awards: since 000030 a save credits the cash of the placements in progression.awards (award-credit.test.js), and these tests are about the clamp.
+const v18 = { ...fixture, progression: { ...fixture.progression, awards: [] } };
 
 async function setup() {
   const db = await freshDb();

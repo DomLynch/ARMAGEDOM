@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "note": "The daily leaderboard panel on the death screen (engine/daily-board.js, index.html #daily-board). Read only: the writer op named by op answers today's top rows and the player's own rank (server/writer/writer.js leaderboard, migration 20261105000031); the client never sends a score. Names come from the server (a guest is Survivor-NNNN), cleaned and cut to nameMax. maxRows is the most rows drawn, cacheMs how long one answer is reused before the server is asked again. The panel is hidden when the world is offline, and off with enabled false or ?noboard=1. Words are in webText.json (board.*).",
+  "enabled": true,
+  "offSwitch": "noboard",
+  "op": "leaderboard",
+  "maxRows": 20,
+  "cacheMs": 15000,
+  "nameMax": 24
+}

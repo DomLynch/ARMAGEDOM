@@ -93,6 +93,25 @@ export function seedPayoutRows(spawnRows, bossKinds, marked) {
 }
 
 /**
+ * [instance, cash] for every placement the game can award a kill for: the union of the spawn rows of both animal cycles (A and B), each paid the
+ * rate of its kind (seedPayoutRows). A kind may change between cycles (a rat becomes a spider) but a boss never does and the rate is per kind, so
+ * the cash of one instance must be the same in every cycle; a placement that pays differently stops the load instead of picking one.
+ * `cycles` is a list of spawn-row lists. progression.awards name an area and a placement key, so the instance is "<area>:<placementKey>".
+ */
+export function seedPlacementRows(cycles, bossKinds, marked) {
+  const rate = new Map(seedPayoutRows(cycles.flat(), bossKinds, marked));
+  const cash = new Map();
+  for (const rows of cycles)
+    for (const { instance, kind } of rows) {
+      if (typeof instance !== "string" || !INSTANCE.test(instance)) throw new Error(`placement rows: bad instance ${JSON.stringify(instance)}`);
+      const pay = rate.get(kind);
+      if (cash.has(instance) && cash.get(instance) !== pay) throw new Error(`placement ${instance} pays ${cash.get(instance)} in one cycle and ${pay} in another`);
+      cash.set(instance, pay);
+    }
+  return [...cash].sort((a, b) => (a[0] < b[0] ? -1 : 1));
+}
+
+/**
  * The always-drop weapon rows the settle rolls: [lootKey, slot, item, chance]. The loot key is the spawn INSTANCE ("area:placement"), because the game
  * names unique drops by (area, placement) and one creature kind ("hollow-scavenger") is shared by placements with different drops. `sources` is
  * [{ areaId, placementKey, itemId }] taken from the game's data (boss equipment, rifle, unique reward); every source must name a real spawn row, so a
