@@ -7,6 +7,8 @@ import { createShareClip } from "./share-clip.js";
 import { createShareCard } from "./share-card.js";
 import { createRunSummary, createRunTracker } from "./run-summary.js";
 import { createPerkPicker, perksEnabled, stepPerks } from "./perks.js";
+import { stepBossGoals } from "./boss-goals.js";
+import { createBossGoalView } from "./boss-goal-view.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -47,7 +49,8 @@ export function createBrowserLoop(s) {
     // Run summary on the death screen (runSummary.json) and, with ?waves=1 only, the wave perk picks (perks.json).
     tracker = createRunTracker(),
     runSummary = createRunSummary({ tracker }),
-    perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null;
+    perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null,
+    bossGoalView = createBossGoalView(); // ?bossgoals=1 only (bossGoals.json): the ring and the banner; inert without the switch
   let seenGame = null,
     seenArea = null;
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
@@ -226,6 +229,7 @@ export function createBrowserLoop(s) {
         leaveKillDrops(s.game); // coins where enemies fell this step (off until killDrops.enabled)
         stepKillDrops(s.game);
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
+        stepBossGoals(s.game); // ?bossgoals=1: kills in a boss's area fill its goal, then the boss steps in (bossGoals.json)
         armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
         heatFromEvents(s.game); // a defeated boss also raises heat (heat.json valuables)
         stepApocalypseRun(s.game); // the opt-in run: stage clock, raids and end conditions (apocalypseRun.json)
@@ -256,6 +260,7 @@ export function createBrowserLoop(s) {
     }
     tracker.observe(s.game);
     runSummary.frame(s.game);
+    bossGoalView.frame(s.game, s.traveling);
     if (perkPicker) {
       stepPerks(s.game, tracker.cleared(), s.paused ? 0 : realElapsed);
       perkPicker.frame(s.game);

@@ -1383,3 +1383,96 @@ body.desktop-ui:not(.touch) #pistol-interact {
   visibility: hidden;
 }
 
+
+/* Boss unlock goal (engine/boss-goal-view.js, data/bossGoals.json, ?bossgoals=1 only): a small progress ring and label in the HUD column
+   (in the flow, so it cannot cover the vitals, the minimap corner or the menu button), and a banner with a red pulse when the boss comes. */
+#boss-goal {
+  display: grid;
+  grid-template-columns: 36px auto;
+  align-items: center;
+  column-gap: 8px;
+  max-width: 100%;
+  margin: 0;
+  pointer-events: none;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 4px #000;
+}
+#boss-goal[hidden],
+#boss-goal-flash[hidden] {
+  display: none;
+}
+#boss-goal svg {
+  grid-area: 1 / 1;
+  width: 36px;
+  height: 36px;
+  transform: rotate(-90deg);
+}
+#boss-goal circle {
+  fill: none;
+  stroke-width: 4;
+}
+#boss-goal .goal-track {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+#boss-goal .goal-fill {
+  stroke: #d8553b;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 * (1 - var(--goal, 0)));
+}
+#boss-goal-count {
+  grid-area: 1 / 1;
+  justify-self: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #f1d28c;
+}
+#boss-goal-text {
+  grid-area: 1 / 2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: #f1d28c;
+}
+#boss-goal-flash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  padding-top: 26%;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(150, 20, 10, 0.5) 100%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 9;
+}
+#boss-goal-flash strong {
+  max-width: 320px;
+  padding: 10px 16px;
+  background: rgba(8, 15, 17, 0.82);
+  border-top: 2px solid #d8553b;
+  border-bottom: 2px solid #d8553b;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: #f1d28c;
+  text-shadow: 0 1px 3px #000;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #boss-goal .goal-fill {
+    transition: stroke-dashoffset 0.3s ease-out;
+  }
+  #boss-goal-flash:not([hidden]) {
+    animation: boss-goal-pulse 0.9s ease-out;
+  }
+  @keyframes boss-goal-pulse {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
