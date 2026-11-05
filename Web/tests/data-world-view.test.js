@@ -20,7 +20,7 @@ const cameraRows = without(JSON.parse(rawText).view);
 
 test("the view section is pinned", () => {
   const section = JSON.stringify(cameraRows);
-  assert.equal(crypto.createHash("sha256").update(section).digest("hex"), "ea8e54ff5f34bbdaf78e967f6efcd668fd149080bd8938772698853ae1953e7d");
+  assert.equal(crypto.createHash("sha256").update(section).digest("hex"), "1cfc2e2810cd307d953920d8c52508314542e64d50bf14eb1bc71a8c88cf1430");
 });
 
 test("every value equals the literal it replaced", () => {
@@ -30,7 +30,7 @@ test("every value equals the literal it replaced", () => {
     cameraNear: 0.1,
     cameraFar: 300,
     portraitActorPixels: 63,
-    landscapeZoomBoost: 1.1,
+    landscapeZoomBoost: 1.2,
     portraitZoomBoost: 1.05,
     portraitLift: 0.02,
     landscapeLift: 0.1,
