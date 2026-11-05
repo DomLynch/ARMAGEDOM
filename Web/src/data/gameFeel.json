@@ -105,6 +105,12 @@
       "on": ["boss-defeated"],
       "victim": "any",
       "shake": { "magnitude": 5, "seconds": 0.5 }
+    },
+    {
+      "id": "boss-goal-complete",
+      "on": ["boss-goal-complete"],
+      "victim": "any",
+      "shake": { "magnitude": 3, "seconds": 0.5 }
     }
   ]
 }
