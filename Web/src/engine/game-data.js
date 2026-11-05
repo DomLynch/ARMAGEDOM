@@ -69,6 +69,8 @@ import threatArrows from "../data/threatArrows.json" with { type: "json" };
 import { validateThreatArrows } from "./game-data-threat-arrows.js";
 import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
+import enemyBars from "../data/enemyBars.json" with { type: "json" };
+import { validateEnemyBars } from "./game-data-enemy-bars.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -1148,6 +1150,7 @@ const sources = () => ({
   offscreenActors: [offscreenActors, validateOffscreenActors],
   threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
+  enemyBars: [enemyBars, validateEnemyBars],
 });
 
 /**

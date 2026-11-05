@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": { "param": "nobars", "value": "1" },
+  "maxVisible": 12,
+  "holdSeconds": 3,
+  "targetHoldSeconds": 10,
+  "fadeSeconds": 0.4,
+  "lowFraction": 0.5,
+  "liftPx": 6,
+  "half": 0.5,
+  "decay": { "delaySeconds": 0.25, "perSecond": 0.6 },
+  "classes": {
+    "normal": { "always": false, "heightPx": 4, "widthPx": { "phone": 28, "desktop": 36 } },
+    "elite": { "always": true, "heightPx": 4, "widthPx": { "phone": 28, "desktop": 36 } },
+    "boss": { "always": true, "heightPx": 6, "widthPx": { "phone": 56, "desktop": 72 } }
+  },
+  "target": { "heightPx": 2, "minWidthPx": 20, "maxWidthPx": 96 },
+  "colours": {
+    "back": "rgba(12, 18, 18, 0.75)",
+    "decay": "#e9dcc4",
+    "fill": "#c23a32",
+    "low": "#e3a21a",
+    "elite": "#f6e7b0",
+    "follower": "#4b83d6"
+  }
+}
