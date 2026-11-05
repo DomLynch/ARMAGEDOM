@@ -73,6 +73,10 @@ import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
+import uiScale from "../data/uiScale.json" with { type: "json" };
+import colourBlind from "../data/colourBlind.json" with { type: "json" };
+import heatDial from "../data/heatDial.json" with { type: "json" };
+import { validateColourBlind, validateHeatDial, validateUiScale } from "./game-data-ui-options.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -1160,6 +1164,9 @@ const sources = () => ({
   threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  uiScale: [uiScale, validateUiScale],
+  colourBlind: [colourBlind, validateColourBlind],
+  heatDial: [heatDial, validateHeatDial],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],

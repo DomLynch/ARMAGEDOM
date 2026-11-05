@@ -143,7 +143,8 @@ export function heatStarHunter(g, actor, rules = HEAT, stars = STAR_VARIANTS) {
   return actor;
 }
 
-// The heat count now (capped at maxHeat) and the alpha of the newest mark, which dims through the last fadeSeconds before it drops. No HUD draws it.
+// The heat count now (capped at maxHeat) and the alpha of the newest mark, which dims through the last fadeSeconds before it drops.
+// The heat dial (heat-dial.js) draws it.
 export function heatShown(g, rules = HEAT) {
   const h = g.heat;
   if (!h || !h.count) return null;

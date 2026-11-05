@@ -16,6 +16,7 @@ const DYNAMIC_PREFIXES = [
   { prefix: "runCore.refusal.", reason: "run-core.js picks the supply refusal line by the collectSupply reason (pistol-required, reserve-full, health-full)" },
   { prefix: "summary.label.", reason: "engine/run-summary.js names each summary row's label by the stat id of the row in data/runSummary.json" },
   { prefix: "summary.goal.", reason: "engine/run-summary.js names the goal line by the stat id (and .one for a single unit) of the row in data/runSummary.json" },
+  { prefix: "heatDial.tier.", reason: "engine/heat-dial.js names the tier by its 1-based row number in data/heat.json pressure.tiers; heat-dial.test.js checks every tier has a name" },
   { prefix: "hud.keys.", reason: "engine/input-keymap.js builds each key-hint label from the hint row's text in data/inputKeys.json" },
 ];
 

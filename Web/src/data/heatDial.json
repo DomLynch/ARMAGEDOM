@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "offSwitch": { "param": "nodial", "value": "1" },
+  "widthPx": 112,
+  "barHeightPx": 5,
+  "tickWidthPx": 1,
+  "textPx": 11,
+  "gapPx": 3,
+  "topMarginPx": 4,
+  "percentOf": 100,
+  "pulse": { "seconds": 0.9, "scale": 1.12 },
+  "colours": {
+    "back": "rgba(12, 18, 18, 0.65)",
+    "tick": "rgba(238, 233, 223, 0.55)",
+    "text": "#eee9df",
+    "tiers": ["#e3a21a", "#e8782a", "#c23a32"]
+  }
+}

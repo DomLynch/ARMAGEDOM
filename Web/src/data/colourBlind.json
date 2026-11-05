@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "storageKey": "armagedom.colourblind",
+  "default": "off",
+  "slots": {
+    "enemyBars.fill": "hex",
+    "enemyBars.low": "hex",
+    "enemyBars.elite": "hex",
+    "enemyBars.follower": "hex",
+    "threatArrows.plain": "hex",
+    "threatArrows.marked": "hex",
+    "damage.ramp": "list",
+    "damage.crit": "hex",
+    "vignette.flash": "hex",
+    "vignette.lowDark": "hex",
+    "vignette.lowLight": "hex",
+    "rarity.common": "hex",
+    "rarity.uncommon": "hex",
+    "rarity.rare": "hex",
+    "rarity.epic": "hex",
+    "rarity.legendary": "hex",
+    "heatDial.tier1": "hex",
+    "heatDial.tier2": "hex",
+    "heatDial.tier3": "hex"
+  },
+  "modes": [
+    {
+      "id": "off",
+      "slots": {}
+    },
+    {
+      "id": "deuteranopia",
+      "slots": {
+        "threatArrows.marked": "ffffff",
+        "damage.ramp": [ "ffffff", "ffa500", "ff6b6b" ],
+        "damage.crit": "56b4e9",
+        "rarity.rare": "4a90ff",
+        "heatDial.tier1": "ffffff",
+        "heatDial.tier2": "ffe14a",
+        "heatDial.tier3": "ff6b6b"
+      }
+    },
+    {
+      "id": "protanopia",
+      "slots": {
+        "enemyBars.fill": "e0453a",
+        "damage.crit": "56b4e9",
+        "vignette.flash": "ff7a45",
+        "vignette.lowLight": "e69f00",
+        "rarity.rare": "5cc8ff",
+        "heatDial.tier1": "ffffff",
+        "heatDial.tier2": "ffe14a",
+        "heatDial.tier3": "ff6b6b"
+      }
+    },
+    {
+      "id": "tritanopia",
+      "slots": {
+        "rarity.uncommon": "f0e442",
+        "rarity.epic": "ff4fa3",
+        "rarity.legendary": "e69f00",
+        "heatDial.tier1": "f0e442",
+        "heatDial.tier2": "e69f00",
+        "heatDial.tier3": "e0453a"
+      }
+    }
+  ],
+  "text": {
+    "label": "Colour-blind palette",
+    "modes": {
+      "off": "Off",
+      "deuteranopia": "Deuteranopia-safe",
+      "protanopia": "Protanopia-safe",
+      "tritanopia": "Tritanopia-safe"
+    }
+  }
+}

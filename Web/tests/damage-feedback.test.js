@@ -12,6 +12,7 @@ import {
   sizeSteps,
 } from "../src/engine/damage-feedback.js";
 import { validateDamageFeedback } from "../src/engine/damage-feedback-data.js";
+import { paletteColour, resetColourBlind, setColourBlindMode } from "../src/engine/colour-blind.js";
 
 const DATA = GAME_DATA.damageFeedback,
   N = DATA.numbers,
@@ -386,6 +387,24 @@ test("below 33% health a dark-red vignette pulses at 5 x (0.4 - health share) cy
   assert.ok(ui.snapshot().cycles > 0);
   ui.layout({ id: 0, hp: 100, maxHP: 150 });
   assert.equal(pulse.hidden, true, "healing past the line clears it");
+});
+
+test("a colour-blind palette recolours the hurt vignette and the big-hit number, and Off restores them", (t) => {
+  t.after(() => resetColourBlind());
+  setColourBlindMode("protanopia");
+  const toCss = (hex) => `rgb(${hex.match(/../g).map((p) => Number(`0x${p}`))})`;
+  const { ui, hurt, pulse, layer } = rig();
+  assert.equal(hurt.style.color, toCss(paletteColour("vignette.flash", "protanopia")), "the flash is the palette's colour from the start");
+  const low = { id: 0, hp: 30, maxHP: 150 };
+  ui.layout(low);
+  assert.notEqual(pulse.style.color, "", "the low pulse is drawn");
+  const target = enemy(1, 100);
+  ui.observe(game(hit(target, 40, { weapon: "a" })), 1);
+  ui.observe(game(hit(target, 90, { weapon: "a" })), 1);
+  assert.ok(layer.children.some((n) => n.style.color === toCss(paletteColour("damage.crit", "protanopia"))), "the big hit takes the crit colour");
+  setColourBlindMode("off");
+  ui.layout(low);
+  assert.equal(hurt.style.color, `rgb(${FLASH.rgb.join(",")})`, "Off puts the file's red back on the next layout");
 });
 
 test("reduced motion: the low-health vignette is static, numbers fade in 0.4 s without rising, popping or scaling", () => {
