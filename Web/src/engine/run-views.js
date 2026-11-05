@@ -19,6 +19,7 @@ import { createChainedPitbornView } from "./chained-pitborn-view.js";
 import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
+import { createEnemyBars } from "./enemy-bars.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
 import { keySuffix } from "./key-hint.js";
@@ -156,6 +157,7 @@ export function createRunViews(s) {
   const reaperView = createReaperView(s, persistence.dispatchExpedition);
   const bossEquipmentView = createBossEquipmentView(s, persistence.dispatchBossEquipment, () => flameView.equip());
   const bossView = createBossView(s),
+    enemyBars = createEnemyBars(s),
     flameView = createFlameView(s, persistence);
   const rifleView = createRifleView(s, (g, command, allowed) =>
     dispatchEquipmentSelection(g, command, allowed, persistence.dispatchRifle),
@@ -443,6 +445,7 @@ export function createRunViews(s) {
       expeditionView.update();
       uniqueView.update();
       bossView.update();
+      enemyBars.update();
       flameView.update();
       rifleView.update();
       bossEquipmentView.update();
@@ -485,6 +488,7 @@ export function createRunViews(s) {
       flameView.dispose();
       uniqueView.dispose();
       bossView.dispose();
+      enemyBars.dispose();
       expeditionView.dispose();
       clearSupplies();
       clearVestBag();
