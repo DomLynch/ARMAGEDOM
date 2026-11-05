@@ -20,6 +20,7 @@ import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
 import { createEnemyBars } from "./enemy-bars.js";
+import { createTelegraphView } from "./telegraph-view.js";
 import { createThreatArrows } from "./threat-arrows.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
@@ -157,6 +158,7 @@ export function createRunViews(s) {
   const bossEquipmentView = createBossEquipmentView(s, persistence.dispatchBossEquipment, () => flameView.equip());
   const bossView = createBossView(s),
     enemyBars = createEnemyBars(s),
+    telegraphView = createTelegraphView(s),
     flameView = createFlameView(s, persistence);
   const rifleView = createRifleView(s, (g, command, allowed) =>
     dispatchEquipmentSelection(g, command, allowed, persistence.dispatchRifle),
@@ -438,6 +440,7 @@ export function createRunViews(s) {
       uniqueView.update();
       bossView.update();
       enemyBars.update();
+      telegraphView.update();
       flameView.update();
       rifleView.update();
       bossEquipmentView.update();
@@ -482,6 +485,7 @@ export function createRunViews(s) {
       uniqueView.dispose();
       bossView.dispose();
       enemyBars.dispose();
+      telegraphView.dispose();
       expeditionView.dispose();
       clearSupplies();
       clearVestBag();
