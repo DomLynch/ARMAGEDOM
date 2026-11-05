@@ -1561,9 +1561,10 @@
       "scale": 1
     },
     "player-rifle": {
-      "url": "weapons/rifle.glb",
-      "bytes": 110568,
-      "sha256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9",
+      "url": "weapons/rifle-phone.glb",
+      "bytes": 915112,
+      "sha256": "91d389dce86f0dab5e9d84bcb36a7c12a52f29d1cb97454013ae52951e110d20",
+      "textureCapSource": {"file": "weapons/rifle.glb", "bytes": 2394160, "sha256": "8f3fd9277e5ae112db73194b82229d74ae47864af7aebe879d31932c15ed8b2f"},
       "deferred": true,
       "rig": "rigid-equipment",
       "motion": "rigid",
@@ -1657,9 +1658,8 @@
         ]
       },
       "provenance": {
-        "source": "Original ARMAGEDOM procedural rifle",
-        "playerSHA256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
-        "intakeSHA256": "9888d24390461befb354111fc80e104735ef4e7a24e894791acb46cdc1d57b64"
+        "source": "Original ARMAGEDOM battle rifle: modelled and baked (5.9k-tri high detail, 2.6k-tri phone) on the rifle rig",
+        "playerSHA256": "91d389dce86f0dab5e9d84bcb36a7c12a52f29d1cb97454013ae52951e110d20"
       }
     },
     "player-lmg": {
@@ -2286,9 +2286,10 @@
       }
     },
     "player-shotgun": {
-      "url": "weapons/shotgun.glb",
-      "bytes": 111032,
-      "sha256": "82ecc788d9c2d6c7b30951a62de173ce9e98bea189978ae75e2ee10afa158d78",
+      "url": "weapons/shotgun-phone.glb",
+      "bytes": 909716,
+      "sha256": "4abd38ab8344e512315896cc25218e8b38dfe9c7919fb76922f2ef671964a7b5",
+      "textureCapSource": {"file": "weapons/shotgun.glb", "bytes": 2400100, "sha256": "ecee788969bdeb81e621ea4b5f5c5e5393a8de60a7439d1a68989cfe26d9bc5a"},
       "deferred": true,
       "rig": "rigid-equipment",
       "motion": "rigid",
@@ -2382,9 +2383,8 @@
         ]
       },
       "provenance": {
-        "source": "Original ARMAGEDOM twin-barrel Shotgun, shared existing Rifle upper-body tracks",
-        "playerSHA256": "d8aeb2ae0eb5c4b8b9dfa0813d04a41f17623d3d85b5702cd9494967b7fe9769",
-        "intakeSHA256": "f9e5a5dade8a4c69af776f4c8862d38a377f844fb27c151b42309acc50cf65b4"
+        "source": "Original ARMAGEDOM pump-action combat shotgun: modelled and baked (5k-tri high detail, 2.7k-tri phone) on the rifle rig",
+        "playerSHA256": "4abd38ab8344e512315896cc25218e8b38dfe9c7919fb76922f2ef671964a7b5"
       }
     },
     "cash-coin": {
@@ -4816,9 +4816,9 @@
       "sha256": "352533ecf93234b23a69752b266b134eee387c35e5fc87ea0c2230085fa4f1ff"
     },
     "player-rifle": {
-      "file": "weapons/rifle.glb",
-      "bytes": 110568,
-      "sha256": "75f6fb3635e3fc95e64599620deb7e4745245a4e51da9dd2658e7770fe3b2db9",
+      "file": "weapons/rifle-phone.glb",
+      "bytes": 915112,
+      "sha256": "91d389dce86f0dab5e9d84bcb36a7c12a52f29d1cb97454013ae52951e110d20",
       "errors": 0,
       "warnings": 0
     },
