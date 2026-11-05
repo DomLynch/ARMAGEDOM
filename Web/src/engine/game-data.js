@@ -69,12 +69,22 @@ import offscreenActors from "../data/offscreenActors.json" with { type: "json" }
 import { validateOffscreenActors } from "./game-data-offscreen.js";
 import threatArrows from "../data/threatArrows.json" with { type: "json" };
 import { validateThreatArrows } from "./game-data-threat-arrows.js";
+import minimap from "../data/minimap.json" with { type: "json" };
+import { validateMinimap } from "./game-data-minimap.js";
 import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
 import { validateEnemyBars } from "./game-data-enemy-bars.js";
 import safehouseUpgrades from "../data/safehouseUpgrades.json" with { type: "json" };
 import { validateUpgrades } from "./game-data-upgrades.js";
+import uiScale from "../data/uiScale.json" with { type: "json" };
+import colourBlind from "../data/colourBlind.json" with { type: "json" };
+import heatDial from "../data/heatDial.json" with { type: "json" };
+import { validateColourBlind, validateHeatDial, validateUiScale } from "./game-data-ui-options.js";
+import telegraph from "../data/telegraph.json" with { type: "json" };
+import { validateTelegraph } from "./game-data-telegraph.js";
+import lootBeams from "../data/lootBeams.json" with { type: "json" };
+import { validateLootBeams } from "./game-data-loot-beams.js";
 import worldEvents from "../data/worldEvents.json" with { type: "json" };
 import { closed, freeze } from "./content-schema.js";
 import * as extra from "./appearance-extra-validators.js";
@@ -112,6 +122,10 @@ import perks from "../data/perks.json" with { type: "json" };
 import { validatePerks } from "./game-data-perks.js";
 import runSummary from "../data/runSummary.json" with { type: "json" };
 import { validateRunSummary } from "./game-data-run-summary.js";
+import dailyBoard from "../data/dailyBoard.json" with { type: "json" };
+import { validateDailyBoard } from "./game-data-daily-board.js";
+import bossGoals from "../data/bossGoals.json" with { type: "json" };
+import { validateBossGoals } from "./game-data-boss-goals.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1160,12 +1174,20 @@ const sources = () => ({
   spawnVariation: [spawnVariation, validateSpawnVariation],
   offscreenActors: [offscreenActors, validateOffscreenActors],
   threatArrows: [threatArrows, validateThreatArrows],
+  minimap: [minimap, validateMinimap],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
   safehouseUpgrades: [safehouseUpgrades, validateUpgrades],
+  uiScale: [uiScale, validateUiScale],
+  colourBlind: [colourBlind, validateColourBlind],
+  heatDial: [heatDial, validateHeatDial],
+  telegraph: [telegraph, validateTelegraph],
+  lootBeams: [lootBeams, validateLootBeams],
   trashWave: [trashWave, validateTrashWave],
   perks: [perks, validatePerks],
   runSummary: [runSummary, validateRunSummary],
+  dailyBoard: [dailyBoard, validateDailyBoard],
+  bossGoals: [bossGoals, validateBossGoals],
 });
 
 /**

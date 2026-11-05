@@ -7,6 +7,8 @@ import { createShareClip } from "./share-clip.js";
 import { createShareCard } from "./share-card.js";
 import { createRunSummary, createRunTracker } from "./run-summary.js";
 import { createPerkPicker, perksEnabled, stepPerks } from "./perks.js";
+import { stepBossGoals } from "./boss-goals.js";
+import { createBossGoalView } from "./boss-goal-view.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -23,6 +25,8 @@ import { createCorpseRunView } from "./corpse-run-view.js";
 import { createPickupFlash } from "./pickup-flash.js";
 import { createHaptics } from "./haptics.js";
 import { createGameFeel } from "./game-feel.js";
+import { createUiScale } from "./ui-scale.js";
+import { createColourBlind } from "./colour-blind.js";
 import { createBossTaunts, tauntsEnabled } from "./boss-taunts.js";
 import { burnLevel, createSoundHooks, soundHooksEnabled } from "./sound-hooks.js";
 import { burnEnabled } from "./burn-presentation.js";
@@ -32,6 +36,8 @@ export function createBrowserLoop(s) {
     pickupFlash = createPickupFlash(),
     haptics = createHaptics({ listen: s.listen }),
     feel = createGameFeel({ listen: s.listen }), // data/gameFeel.json: hit-stop, camera shake and the View zoom preset
+    uiScale = createUiScale({ listen: s.listen }), // data/uiScale.json: the Controls size setting; sync() runs each frame
+    colourBlind = createColourBlind({ listen: s.listen }), // data/colourBlind.json: the colour-blind palette setting (menu row only)
     taunts = tauntsEnabled() ? createBossTaunts() : null, // data/bossTaunts.json; ?taunts=0 turns them off
     soundHooks = soundHooksEnabled() ? createSoundHooks() : null, // data/soundHooks.json; ?sound=0 turns the hooks off
     burning = !!soundHooks && burnEnabled(); // the crackle follows ?burn=0 too
@@ -47,7 +53,8 @@ export function createBrowserLoop(s) {
     // Run summary on the death screen (runSummary.json) and, with ?waves=1 only, the wave perk picks (perks.json).
     tracker = createRunTracker(),
     runSummary = createRunSummary({ tracker }),
-    perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null;
+    perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null,
+    bossGoalView = createBossGoalView(); // ?bossgoals=1 only (bossGoals.json): the ring and the banner; inert without the switch
   let seenGame = null,
     seenArea = null;
   // Registered through the session's owner registry (s.listen), so dispose() removes it; absent registry = no binding at all.
@@ -156,6 +163,7 @@ export function createBrowserLoop(s) {
         cam.timeScale *
         feel.tick(realElapsed, { paused: s.paused || s.traveling, scripted: providedElapsed !== undefined }),
       dt = Math.min(GAME_DATA.browserSession.maxStepSeconds, elapsed);
+    uiScale.sync(); // a no-op unless the screen size, the layout mode or the chosen step changed
     // Travel holds this frame and simulation. Re-rendering the unchanged rigs
     // consumes the idle budget needed to finish the destination's preparation.
     if (s.traveling) {
@@ -226,6 +234,7 @@ export function createBrowserLoop(s) {
         leaveKillDrops(s.game); // coins where enemies fell this step (off until killDrops.enabled)
         stepKillDrops(s.game);
         grantBossGolden(s.game); // a defeated boss may leave a golden gun (goldenWeapons.json bossChance); persistRun stores it
+        stepBossGoals(s.game); // ?bossgoals=1: kills in a boss's area fill its goal, then the boss steps in (bossGoals.json)
         armPostBossRaid(s.game); // a defeated boss arms one timed hunter raid (postBossRaid.json)
         heatFromEvents(s.game); // a defeated boss also raises heat (heat.json valuables)
         stepApocalypseRun(s.game); // the opt-in run: stage clock, raids and end conditions (apocalypseRun.json)
@@ -256,6 +265,7 @@ export function createBrowserLoop(s) {
     }
     tracker.observe(s.game);
     runSummary.frame(s.game);
+    bossGoalView.frame(s.game, s.traveling);
     if (perkPicker) {
       stepPerks(s.game, tracker.cleared(), s.paused ? 0 : realElapsed);
       perkPicker.frame(s.game);
@@ -317,6 +327,8 @@ export function createBrowserLoop(s) {
     deathCam,
     shareClip,
     feel,
+    uiScale,
+    colourBlind,
     frame,
     intent,
     combatVisibleIds,

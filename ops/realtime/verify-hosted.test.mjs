@@ -44,6 +44,13 @@ test("a function the writer lost fails", async () => {
   assert.match(await verdict((db) => db.exec(`revoke execute on function public.arma_wallet(uuid, text) from arma_writer`)), /arma_writer cannot execute arma_wallet/);
 });
 
+test("a writer that lost the board, or a server role that can call the credit helper, fails (migrations 000030 and 000031)", async () => {
+  assert.match(await verdict((db) => db.exec(`revoke execute on function public.arma_leaderboard(uuid) from arma_writer`)), /arma_writer cannot execute arma_leaderboard/);
+  assert.match(await verdict((db) => db.exec(`grant execute on function public.arma_credit_awards(uuid, text, jsonb, jsonb) to arma_writer`)), /arma_credit_awards is executable by a server role/);
+  assert.match(await verdict((db) => db.exec(`grant execute on function public.arma_leaderboard(uuid) to authenticated`)), /authenticated can execute arma_leaderboard/);
+  assert.match(await verdict((db) => db.exec(`grant insert on public.arma_award_credits to authenticated`)), /authenticated can write arma_award_credits/);
+});
+
 test("a client that can call an internal helper fails", async () => {
   assert.match(await verdict((db) => db.exec(`grant execute on function public.arma_market_trade(uuid, text, text, text, text, int, text) to authenticated`)), /authenticated can execute arma_market_trade/);
 });

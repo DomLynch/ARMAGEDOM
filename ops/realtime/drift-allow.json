@@ -12,7 +12,8 @@
     "arma_loot_table",
     "arma_kill_tiers",
     "arma_pickup_rules",
-    "arma_shop_stock"
+    "arma_shop_stock",
+    "arma_placement_cash"
   ],
   "liveConfigKeys": {
     "arma_enabled": "the live world switch: the migrations ship it false, Dom opened the world on 25 Oct 2026",

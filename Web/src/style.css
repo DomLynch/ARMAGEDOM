@@ -1090,6 +1090,75 @@ summary {
 .hurt-vignette {position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse at center, transparent 45%, currentColor 100%);}
 
+/* Daily board (engine/daily-board.js, data/dailyBoard.json): a read-only list under the run summary on the death screen. The list scrolls inside
+   its own box on a short phone; the button is a full-width touch target. */
+.daily-board {
+  margin: 10px auto;
+  max-width: 340px;
+  text-align: left;
+}
+.daily-board-open {
+  width: 100%;
+  min-height: 44px;
+}
+.daily-board-panel {
+  margin-top: 8px;
+  padding: 8px 12px 10px;
+  background: rgba(8, 12, 14, 0.82);
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+}
+.card .db-heading {
+  margin: 0 0 4px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.db-list {
+  display: grid;
+  gap: 1px;
+  max-height: 40vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.db-list li {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 13px;
+}
+.db-list li.db-you {
+  color: var(--gold);
+}
+.db-rank {
+  color: #c9c3b6;
+  font-variant-numeric: tabular-nums;
+}
+.db-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-score {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.db-me,
+.db-status {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #c9c3b6;
+}
+.db-me:empty,
+.db-status:empty {
+  display: none;
+}
+
 /* Run summary (engine/run-summary.js, data/runSummary.json): a compact card inside the death screen, under the hint. The death card can now
    be taller than a short phone, so the overlay scrolls instead of clipping (auto margins keep it centred while it fits). */
 #ending {
@@ -1305,6 +1374,156 @@ body.touch .perk-key {
 .upgrades-buy,.upgrades-retry{min-height:44px;width:100%;margin-top:6px;}.upgrades-retry{max-width:260px;}
 .upgrades-note{min-height:1.4em;font-size:12px;margin:4px 0 0;}.upgrades-note.error{color:#e3a21a;}.upgrades-note.ok{color:#9ad39a;}
 @media (min-width:560px),(orientation:landscape){.upgrades-list{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}}
+/* Corner minimap (engine/minimap.js, numbers in data/minimap.json): a round map just left of the menu button, in the top band where neither the
+   joystick nor the action buttons ever reach, in portrait, landscape and the desktop layout alike. --minimap-size and --minimap-offset (menu
+   button width plus gap) are set from the data. A large map in portrait hangs below the menu button instead, clear of the vitals block. When
+   hidden it is a 44px chip with the word MAP. */
+#minimap {
+  position: absolute;
+  top: var(--safe-t);
+  right: calc(var(--safe-r) + var(--minimap-offset, 56px));
+  width: var(--minimap-size, 76px);
+  height: var(--minimap-size, 76px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--gold);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+#minimap[hidden] {
+  display: none;
+}
+#minimap canvas {
+  position: static; /* the global canvas rule pins every canvas to the screen */
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#minimap .minimap-chip {
+  display: none;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+}
+#minimap[data-mode="hidden"] {
+  border: 1px solid var(--minimap-chip-border, var(--edge));
+  background: var(--minimap-chip-back, rgba(13, 24, 27, 0.66));
+}
+#minimap[data-mode="hidden"] canvas {
+  display: none;
+}
+#minimap[data-mode="hidden"] .minimap-chip {
+  display: block;
+}
+@media (orientation: portrait) {
+  #minimap[data-mode="large"] {
+    top: calc(var(--safe-t) + var(--minimap-offset, 56px));
+    right: var(--safe-r);
+  }
+}
+.menu-open #minimap {
+  visibility: hidden;
+}
+
+/* Boss unlock goal (engine/boss-goal-view.js, data/bossGoals.json, ?bossgoals=1 only): a small progress ring and label in the HUD column
+   (in the flow, so it cannot cover the vitals, the minimap corner or the menu button), and a banner with a red pulse when the boss comes. */
+#boss-goal {
+  display: grid;
+  grid-template-columns: 36px auto;
+  align-items: center;
+  column-gap: 8px;
+  max-width: 100%;
+  margin: 0;
+  pointer-events: none;
+  text-shadow:
+    0 1px 2px #000,
+    0 0 4px #000;
+}
+#boss-goal[hidden],
+#boss-goal-flash[hidden] {
+  display: none;
+}
+#boss-goal svg {
+  grid-area: 1 / 1;
+  width: 36px;
+  height: 36px;
+  transform: rotate(-90deg);
+}
+#boss-goal circle {
+  fill: none;
+  stroke-width: 4;
+}
+#boss-goal .goal-track {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+#boss-goal .goal-fill {
+  stroke: #d8553b;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 * (1 - var(--goal, 0)));
+}
+#boss-goal-count {
+  grid-area: 1 / 1;
+  justify-self: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #f1d28c;
+}
+#boss-goal-text {
+  grid-area: 1 / 2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: #f1d28c;
+}
+#boss-goal-flash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  padding-top: 26%;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(150, 20, 10, 0.5) 100%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 9;
+}
+#boss-goal-flash strong {
+  max-width: 320px;
+  padding: 10px 16px;
+  background: rgba(8, 15, 17, 0.82);
+  border-top: 2px solid #d8553b;
+  border-bottom: 2px solid #d8553b;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: #f1d28c;
+  text-shadow: 0 1px 3px #000;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #boss-goal .goal-fill {
+    transition: stroke-dashoffset 0.3s ease-out;
+  }
+  #boss-goal-flash:not([hidden]) {
+    animation: boss-goal-pulse 0.9s ease-out;
+  }
+  @keyframes boss-goal-pulse {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */
@@ -1392,4 +1611,3 @@ body.desktop-ui:not(.touch) #pistol-interact {
 .menu-open #key-hints {
   visibility: hidden;
 }
-

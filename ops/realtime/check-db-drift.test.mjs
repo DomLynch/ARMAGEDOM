@@ -44,7 +44,7 @@ test("an untouched database reports zero drift, and the report says what it chec
   assert.deepEqual(report.differences, []);
   assert.equal(
     report.text.replace(/\d+ seeded rows/, "N seeded rows"),
-    `zero drift (${files.length} migrations, N seeded rows, 39 functions, 31 tables, 22 policies)`,
+    `zero drift (${files.length} migrations, N seeded rows, 42 functions, 34 tables, 23 policies)`,
   );
 });
 
@@ -83,13 +83,14 @@ test("the reader role Deploy connects as: read-only, seeded tables and the regis
     await db.exec("reset role");
   }
   // Without the row-level-security policy the grant alone would return nothing: the role must not need BYPASSRLS.
-  assert.equal((await q(`select count(*)::int n from pg_policies where policyname = 'the drift reader reads the seeded rows'`))[0].n, 14);
+  assert.equal((await q(`select count(*)::int n from pg_policies where policyname = 'the drift reader reads the seeded rows'`))[0].n, 15);
 });
 
-test("the seeded table list in the allow-list is the list the drift-reader migrations (000014, 000027) grant (one list, several files)", () => {
-  const listed = files.filter((f) => f.includes("_arma_drift_reader")).flatMap((f) => {
+test("the seeded table list in the allow-list is the list the migrations grant the drift reader (000014, 000027 in arrays, 000030 one table)", () => {
+  const listed = files.flatMap((f) => {
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, f), "utf8");
-    return [...sql.match(/array\[([^\]]+)\]/)[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+    if (f.includes("_arma_drift_reader")) return [...sql.match(/array\[([^\]]+)\]/)[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+    return [...sql.matchAll(/grant select on public\.([a-z_]+) to arma_drift_reader/g)].map((m) => m[1]);
   });
   assert.deepEqual([...listed].sort(), [...ALLOW.seededTables].sort());
 });

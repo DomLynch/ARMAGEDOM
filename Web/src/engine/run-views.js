@@ -20,7 +20,10 @@ import { stopFlame } from "./flame-runtime.js";
 import { createUniqueRewardView } from "../unique-reward-view.js";
 import { createBossView } from "./boss-view.js";
 import { createEnemyBars } from "./enemy-bars.js";
+import { createTelegraphView } from "./telegraph-view.js";
 import { createThreatArrows } from "./threat-arrows.js";
+import { createHeatDial } from "./heat-dial.js";
+import { createMinimap } from "./minimap.js";
 import { createExpeditionView } from "./expedition-runtime.js";
 import { resetMobileControls } from "../combat.js";
 import { keySuffix } from "./key-hint.js";
@@ -157,6 +160,7 @@ export function createRunViews(s) {
   const bossEquipmentView = createBossEquipmentView(s, persistence.dispatchBossEquipment, () => flameView.equip());
   const bossView = createBossView(s),
     enemyBars = createEnemyBars(s),
+    telegraphView = createTelegraphView(s),
     flameView = createFlameView(s, persistence);
   const rifleView = createRifleView(s, (g, command, allowed) =>
     dispatchEquipmentSelection(g, command, allowed, persistence.dispatchRifle),
@@ -182,7 +186,9 @@ export function createRunViews(s) {
     relicView = createCursedRelicView(s),
     trapCrateView = createTrapCrateView(s),
     chainedPitbornView = createChainedPitbornView(s),
-    threatArrows = createThreatArrows(s);
+    threatArrows = createThreatArrows(s),
+    heatDial = createHeatDial(s), // data/heatDial.json: the heat readout under the run lines; ?nodial=1 hides it
+    minimap = createMinimap(s);
   // Everything in reach, pickups (`pickup: true`) and doors/contacts alike. Pickups are claimed by autoPickup as the player walks in;
   // the shared button and G only ever offer the rest (G also still claims a pickup the auto path left alone).
   function interactionCandidates() {
@@ -438,6 +444,7 @@ export function createRunViews(s) {
       uniqueView.update();
       bossView.update();
       enemyBars.update();
+      telegraphView.update();
       flameView.update();
       rifleView.update();
       bossEquipmentView.update();
@@ -447,6 +454,8 @@ export function createRunViews(s) {
       trapCrateView.update();
       chainedPitbornView.update();
       threatArrows.update();
+      heatDial.update();
+      minimap.update();
       wantedProjection.update();
       updateInteraction();
       weaponTiles.update();
@@ -473,6 +482,8 @@ export function createRunViews(s) {
       trapCrateView.dispose();
       chainedPitbornView.dispose();
       threatArrows.dispose();
+      heatDial.dispose();
+      minimap.dispose();
       weaponTiles.dispose();
       reaperView.dispose();
       safehouseView.dispose();
@@ -482,6 +493,7 @@ export function createRunViews(s) {
       uniqueView.dispose();
       bossView.dispose();
       enemyBars.dispose();
+      telegraphView.dispose();
       expeditionView.dispose();
       clearSupplies();
       clearVestBag();

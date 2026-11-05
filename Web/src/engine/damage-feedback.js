@@ -1,4 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
+import { colourBlindMode, signalRgb, signalRgbList } from "./colour-blind.js";
 // Floating damage numbers and the hurt vignette (data/damageFeedback.json). Reads the game's existing "hit" events (effects.js hands them
 // over), so it adds no combat logic: a hit on an enemy that the player dealt becomes a number that rises and fades; a hit on the player
 // flashes a red edge vignette, and low health keeps a pulsing one on. All DOM is created here and removed by dispose().
@@ -20,10 +21,11 @@ export const numberPx = (steps, rules, desktop) =>
 
 // White through orange to red-orange: the ramp's colours spread evenly over the size steps.
 export function rampColour(steps, rules) {
-  const last = rules.colourRamp.length - 1,
+  const ramp = signalRgbList("damage.ramp", rules.colourRamp), // the colour-blind palette may swap it (colour-blind.js)
+    last = ramp.length - 1,
     at = (clamp(steps, 0, rules.sizeSteps) / rules.sizeSteps) * last,
     i = Math.min(last - 1, Math.floor(at));
-  return css(mix(rules.colourRamp[i], rules.colourRamp[i + 1], at - i));
+  return css(mix(ramp[i], ramp[i + 1], at - i));
 }
 
 // The big-hit pop: from `from` at birth up to `peak` and back to `end` across the first lifeShare of the life.
@@ -88,7 +90,8 @@ export function createDamageFeedback({
   hurt.className = "hurt-vignette";
   pulse.className = "hurt-vignette";
   for (const el of [hurt, pulse]) el.hidden = true;
-  hurt.style.color = css(flash.rgb);
+  let paletteSeen = colourBlindMode(); // the vignette colours follow the colour-blind palette, rewritten in layout() when the mode changes
+  hurt.style.color = css(signalRgb("vignette.flash", flash.rgb));
   for (const el of [layer, hurt, pulse]) el.setAttribute("aria-hidden", "true");
   doc.body.append(layer, hurt, pulse);
 
@@ -113,7 +116,7 @@ export function createDamageFeedback({
     const text = String(Math.max(rules.minimumShown, Math.round(s.amount))),
       steps = sizeSteps(s.amount, maxHP, rules);
     s.px = numberPx(steps, rules, isDesktop());
-    const colour = s.big ? css(rules.critColour) : rampColour(steps, rules),
+    const colour = s.big ? css(signalRgb("damage.crit", rules.critColour)) : rampColour(steps, rules),
       size = `${s.px}px`;
     if (text !== s.text) s.el.textContent = s.text = text;
     if (colour !== s.colour) s.el.style.color = s.colour = colour;
@@ -212,6 +215,12 @@ export function createDamageFeedback({
         if (transform !== s.transform) s.el.style.transform = s.transform = transform;
         if (opacity !== s.opacity) s.el.style.opacity = s.opacity = opacity;
       }
+      const palette = colourBlindMode();
+      if (palette !== paletteSeen) {
+        paletteSeen = palette;
+        hurt.style.color = css(signalRgb("vignette.flash", flash.rgb));
+        lowWritten = "";
+      }
       if (flashLevel !== flashWritten) {
         flashWritten = flashLevel;
         hurt.hidden = !(flashLevel > 0);
@@ -224,7 +233,9 @@ export function createDamageFeedback({
         return;
       }
       const wave = Math.sin(Math.PI * phase),
-        colour = css(mix(low.dark, low.light, reduced ? low.staticMix : wave * wave));
+        colour = css(
+          mix(signalRgb("vignette.lowDark", low.dark), signalRgb("vignette.lowLight", low.light), reduced ? low.staticMix : wave * wave),
+        );
       if (colour === lowWritten) return;
       lowWritten = colour;
       pulse.hidden = false;

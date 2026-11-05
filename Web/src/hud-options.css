@@ -1,0 +1,101 @@
+/* Player HUD options, kept apart from style.css so the two stay easy to merge.
+   1) Controls size (engine/ui-scale.js, data/uiScale.json): body.ui-scaled and --ui-user-scale exist only while the scale is not 1. Each
+      control group scales from the corner it is anchored in, so its safe-area margin does not move and it grows into the screen. The weapon
+      strip rides above the move pad, so its bottom offset adds the pad's growth. The knob keeps tracking the finger: its travel is in the
+      pad's scaled space, so it is divided by the scale.
+   2) The heat dial (engine/heat-dial.js, data/heatDial.json). Sizes and colours are written inline from the data; this is the layout. */
+body.ui-scaled #move {
+  transform: scale(var(--ui-user-scale, 1));
+  transform-origin: left bottom;
+}
+body.ui-scaled #move .move-knob {
+  transform: translate(calc(var(--knob-x) / var(--ui-user-scale, 1)), calc(var(--knob-y) / var(--ui-user-scale, 1)));
+}
+body.ui-scaled #action-cluster {
+  transform: scale(var(--ui-user-scale, 1));
+  transform-origin: right bottom;
+}
+body.ui-scaled #menu-button {
+  transform: scale(var(--ui-user-scale, 1));
+  transform-origin: right top;
+}
+body.ui-scaled #weapon-tiles {
+  transform: scale(var(--ui-user-scale, 1));
+  transform-origin: left bottom;
+  bottom: calc(var(--safe-b) + 22px + 136px * var(--ui-user-scale, 1));
+}
+@media (orientation: portrait) {
+  body.ui-scaled #weapon-tiles {
+    bottom: calc(
+      var(--safe-b) + 38px + min(136px, calc(100vw - var(--portrait-actions) - var(--safe-l) - var(--safe-r) - 12px)) *
+        var(--ui-user-scale, 1)
+    );
+  }
+}
+@media (orientation: portrait) and (max-width: 374px) {
+  body.ui-scaled #weapon-tiles {
+    bottom: calc(var(--safe-b) + 232px + 136px * (var(--ui-user-scale, 1) - 1));
+  }
+}
+
+.heat-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  pointer-events: none;
+  transform-origin: left center;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 3px #000;
+}
+.heat-dial-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.heat-dial-bar {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px #0006;
+}
+.heat-dial-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  transition: width 0.25s ease-out;
+}
+.heat-dial-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.heat-dial-pulse {
+  animation: heat-dial-pulse var(--heat-pulse-seconds, 0.9s) ease-out 1;
+}
+@keyframes heat-dial-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  30% {
+    transform: scale(var(--heat-pulse-scale, 1.12));
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heat-dial-fill {
+    transition: none;
+  }
+  .heat-dial-pulse {
+    animation: none;
+    filter: brightness(1.4);
+  }
+}

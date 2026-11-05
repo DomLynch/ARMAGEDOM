@@ -28,6 +28,7 @@ import { CLOSE_REPLACED } from "./presence-client.js";
 import { adoptServerCash, createSaveClient, isRunKey, observeStorage, runIsOver } from "./save-client.js";
 import { createWorldGate } from "./world-gate.js";
 import { createLootSession } from "./loot-session.js";
+import { createDailyBoard } from "./daily-board.js";
 import { ensureSlotModels } from "./slot-models.js";
 import { GAME_DATA } from "./game-data.js";
 import { respawnArea } from "./corpse-run.js";
@@ -414,6 +415,14 @@ export function createBrowserSession(options = {}) {
     getGame: () => context.game,
   });
   listeners.push(() => lootSession.dispose());
+  // The daily board (data/dailyBoard.json): a read-only panel on the death screen, shown only while the online world runs. ?noboard=1 turns it off.
+  const dailyBoard = createDailyBoard({
+    search: location.search,
+    doc: document,
+    request: (op, body) => (saveClient ? saveClient.request(op, body) : Promise.resolve({ error: "offline" })),
+    online: () => !!saveClient,
+  });
+  listeners.push(() => dailyBoard.dispose());
   // The OAuth return parameters never stay in the address bar, whether or not the world starts: keep the query for the code exchange,
   // then strip link, code, the error fields and any #access_token hash at load.
   let returnedSearch = null;

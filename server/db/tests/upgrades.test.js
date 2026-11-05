@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { as, call, failure, freshDb, ids, openFor } from "./helpers.js";
 
-const v18 = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
+const fixture = JSON.parse(fs.readFileSync(new URL("../../../Web/tests/fixtures/navigation203-source202-v18.json", import.meta.url), "utf8"));
+const v18 = { ...fixture, progression: { ...fixture.progression, awards: [] } }; // awards now credit cash on save (migration 30): these tests do not want that
 const down = fs.readFileSync(new URL("../../../supabase/down/20261105000032_arma_safehouse_upgrades_down.sql", import.meta.url), "utf8");
 
 async function setup() {

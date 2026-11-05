@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import * as T from "three";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateThreatArrows } from "../src/engine/game-data-threat-arrows.js";
+import { paletteColour, resetColourBlind, setColourBlindMode } from "../src/engine/colour-blind.js";
+import { createUiScale, uiScaleNow } from "../src/engine/ui-scale.js";
+import { fakeOptionsDoc, fakeStorage } from "./helpers/fake-options-dom.js";
 import {
   arrowRect,
   createThreatArrows,
@@ -382,6 +385,39 @@ test("on a touch phone no arrow reaches the bottom control band; on desktop the 
     bottomOf(true) <= safe.bottom - DATA.touchBandPx.portrait - safe.top + 1,
     "touch: slid up to the top of the band",
   );
+});
+
+test("a colour-blind palette recolours a live arrow, and Off puts the file's colour back", (t) => {
+  t.after(() => resetColourBlind());
+  const dom = fakeDom(),
+    s = liveRun([enemy("h", 45, 0, { markedHunter: true })]),
+    view = createThreatArrows(s, { doc: dom.doc, win: dom.win });
+  const [arrow] = (view.update(), shown(dom.hud.children[0]));
+  assert.equal(arrow.style.background, `#${DATA.marked.colour}`);
+  setColourBlindMode("deuteranopia");
+  view.update();
+  assert.equal(arrow.style.background, `#${paletteColour("threatArrows.marked", "deuteranopia")}`);
+  setColourBlindMode("off");
+  view.update();
+  assert.equal(arrow.style.background, `#${DATA.marked.colour}`);
+});
+
+test("the bottom band the arrows keep clear of follows the Controls size setting", (t) => {
+  const page = fakeOptionsDoc(),
+    scale = createUiScale({ doc: page.doc, win: { innerWidth: 390, innerHeight: 844, localStorage: fakeStorage() } });
+  t.after(() => scale.dispose());
+  const topOf = () => {
+    const dom = fakeDom({ touch: true }),
+      s = liveRun([enemy("h", 0, -60, { markedHunter: true })]);
+    createThreatArrows(s, { doc: dom.doc, win: dom.win }).update();
+    return parseFloat(shown(dom.hud.children[0])[0].style.top);
+  };
+  const normal = topOf();
+  scale.setStep("small");
+  assert.ok(topOf() > normal, "smaller buttons leave a thinner band, so the arrow can sit lower");
+  assert.ok(topOf() <= safe.bottom - DATA.touchBandPx.portrait * uiScaleNow() - safe.top + 1);
+  scale.setStep("normal");
+  assert.equal(topOf(), normal);
 });
 
 test("a host with no size yet is measured again later, and a resize forgets the old measurement", () => {
