@@ -65,6 +65,8 @@ import spawnVariation from "../data/spawnVariation.json" with { type: "json" };
 import { validateSpawnVariation } from "./game-data-spawn-variation.js";
 import offscreenActors from "../data/offscreenActors.json" with { type: "json" };
 import { validateOffscreenActors } from "./game-data-offscreen.js";
+import threatArrows from "../data/threatArrows.json" with { type: "json" };
+import { validateThreatArrows } from "./game-data-threat-arrows.js";
 import qualityTier from "../data/qualityTier.json" with { type: "json" };
 import { validateQualityTier } from "./game-data-quality.js";
 import enemyBars from "../data/enemyBars.json" with { type: "json" };
@@ -1146,6 +1148,7 @@ const sources = () => ({
   trapCrates: [trapCrates, validateTrapCrates],
   spawnVariation: [spawnVariation, validateSpawnVariation],
   offscreenActors: [offscreenActors, validateOffscreenActors],
+  threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
 });
