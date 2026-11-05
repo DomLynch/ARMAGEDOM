@@ -80,6 +80,8 @@ function snapshot() {
 // area's `meshes` digest changed. Intentional; the camera log, layout and first frame are unchanged.
 // Re-pinned 28 Oct 2026 (art/south-clear-crates-hedgehog): only the south `meshes` digest moved, because the painted-out crate stack's depth mask left
 // south/layout.json. Intentional; the camera log, layout values and first frame are unchanged.
+// Re-pinned 5 Nov 2026 (landscapeZoomBoost 1.1 to 1.2, landscape and desktop view only): each area's camera `log` digest and the first frame's centre y
+// moved. Intentional; the `meshes` digests, layouts and portrait framings did not change (tests/fixtures/world-view-pre-data.json: portrait rows are identical).
 test("world camera crop, backdrop quads and spawn are value-identical to the pre-data code", () => {
   const got = snapshot();
   if (process.env.UPDATE_WORLD_DIGEST) fs.writeFileSync(digestPath, `${JSON.stringify(got, null, 1)}\n`);

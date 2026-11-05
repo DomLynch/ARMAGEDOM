@@ -16,7 +16,7 @@
     "cameraNear": 0.1,
     "cameraFar": 300,
     "portraitActorPixels": 63,
-    "landscapeZoomBoost": 1.1,
+    "landscapeZoomBoost": 1.2,
     "portraitZoomBoost": 1.05,
     "portraitLift": 0.02,
     "landscapeLift": 0.1,
