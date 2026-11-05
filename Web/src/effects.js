@@ -10,6 +10,7 @@ import { createDroneLaserBolts } from "./drone-laser.js";
 import { createArcBolts } from "./engine/arc-bolt-view.js";
 import { droneHoverHeight } from "./drone-mechanics.js";
 import { createCombatImpact } from "./combat-impact.js";
+import { createDamageFeedback } from "./engine/damage-feedback.js";
 import { createDonorAudio, requestPlaybackAudioSession } from "./donor-audio.js";
 import * as THREE from "three";
 import { pistolCue } from "./pistol-targeting.js";
@@ -53,6 +54,7 @@ export function createEffects(
   {
     reducedMotion = () => globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
     hitMarker = null,
+    damageDocument = null,
     getView = () => null,
     getFlameSource = () => null,
   } = {},
@@ -91,6 +93,28 @@ export function createEffects(
     }));
   let arcClock = 0;
   const droneY = (actor, time) => getView(actor)?.root?.position?.y ?? droneHoverHeight(time);
+  // Where the hit marker and the damage numbers sit on a struck actor.
+  const confirmHeight = (actor, time) =>
+    targetHeight("confirm", actor.rig, {
+      drone: () => droneY(actor, time),
+      scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
+    });
+  const damagePoint = new THREE.Vector3();
+  // Floating damage numbers and the hurt vignette (engine/damage-feedback.js). Only built when the page hands over its document.
+  const damageUi = damageDocument
+    ? createDamageFeedback({
+        doc: damageDocument,
+        reducedMotion,
+        aim: (actor, event, game) => world.toRender(event.position ?? actor.pos, confirmHeight(actor, game.time)),
+        project: (x, y, z, out) => {
+          if (!world.camera) return false;
+          damagePoint.set(x, y, z).project(world.camera);
+          out.x = THREE.MathUtils.mapLinear(damagePoint.x, -1, 1, 0, viewportWidth);
+          out.y = THREE.MathUtils.mapLinear(damagePoint.y, 1, -1, 0, viewportHeight);
+          return Math.abs(damagePoint.x) <= 1 && Math.abs(damagePoint.y) <= 1 && damagePoint.z < 1;
+        },
+      })
+    : null;
   let confirmation = null,
     poolDirty = true; // the instance buffers hold something the GPU has not been told is gone yet (see tickPool)
   let requestedMode = "high",
@@ -733,6 +757,7 @@ export function createEffects(
       impact.configure({ mode: requestedMode, reducedMotion: !!reducedMotion() });
       clearFinisherBursts();
       clearFeedback();
+      damageUi?.reset();
     },
     advance(dt, { paused = false } = {}) {
       const reduced = !!reducedMotion();
@@ -744,6 +769,7 @@ export function createEffects(
       }
       const visualDt = Math.min(FRAME.maxStep, Math.max(0, Number.isFinite(dt) ? dt : 0));
       feedback = impact.update(visualDt, { paused });
+      damageUi?.advance(visualDt, paused);
       if (!paused) {
         poolTime += visualDt;
         severBlood.update(poolTime);
@@ -809,6 +835,7 @@ export function createEffects(
       }
     },
     events(game) {
+      if (requestedMode !== "off") damageUi?.observe(game);
       const dead = new Set(game.events.filter((e) => e.type === "death").map((e) => e.actor?.id));
       for (const event of game.events) {
         const actor = event.actor,
@@ -858,10 +885,7 @@ export function createEffects(
             confirmation = {
               recipeId: actor.finisher?.recipeId,
               position: { ...(event.position ?? actor.pos) },
-              height: targetHeight("confirm", actor.rig, {
-                drone: () => droneY(actor, game.time),
-                scale: () => getView(actor)?.root.scale.y ?? actor.mobSize ?? 1,
-              }),
+              height: confirmHeight(actor, game.time),
               killed,
               life: EVENT.confirmationSeconds,
             };
@@ -1041,6 +1065,7 @@ export function createEffects(
           hitMarker.textContent = feedback.mode === "high" ? (confirmation.killed ? "DOWN" : "HIT") : "×";
         }
       }
+      damageUi?.layout(game.player);
       const pistol = game.pistol;
       if ((lastEquipped && !active(game)) || game.finished || game.player.hp <= 0) this.clearPistolFeedback();
       lastEquipped = active(game);
@@ -1179,6 +1204,7 @@ export function createEffects(
       transient.length = 0;
       droneLasers.reset();
       arcBolts?.reset();
+      damageUi?.reset();
       for (const map of [loot]) {
         for (const mesh of map.values()) scene.remove(mesh);
         map.clear();
@@ -1213,6 +1239,7 @@ export function createEffects(
       scene.remove(pool);
       droneLasers.dispose();
       arcBolts?.dispose();
+      damageUi?.dispose();
       gem.dispose();
       for (const m of lootMaterials) m.dispose();
     },
