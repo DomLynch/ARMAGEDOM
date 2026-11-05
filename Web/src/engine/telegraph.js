@@ -12,7 +12,7 @@ import { arcKind } from "./telegraph-shape.js";
 //                 as wide as its blast).
 //   area hazard   a poison patch still in its warning: a circle of the patch radius.
 const TELEGRAPH = GAME_DATA.telegraph;
-const SECONDS_PER_TICK = 1 / 60; // tuning-ok: the fixed simulation step
+const SECONDS_PER_TICK = 1 / 60;
 
 // The URL parameter named in the data (offSwitch.param) set to offSwitch.value turns every telegraph off.
 export const telegraphOn = (rules = TELEGRAPH, search = globalThis.location?.search ?? "") =>
@@ -95,7 +95,7 @@ export function collectTelegraphs(
       const windup = def.windupTicks * SECONDS_PER_TICK,
         elapsed = time - swing.start;
       if (elapsed < windup + (def.activeTicks ?? 0) * SECONDS_PER_TICK) {
-        const arc = def.arc ?? 90, // tuning-ok: the arc every creature bite shares when a move names none
+        const arc = def.arc ?? 90,
           row = claim(set, e.id, "swing", distance);
         if (row)
           put(
@@ -161,11 +161,11 @@ export function collectTelegraphs(
             e.pos.z,
             ranged.bearing,
             rule.range,
-            2 * data.rangedFan.shotgun.spreadDegrees,
+            data.rangedFan.shotgun.spreadDegrees + data.rangedFan.shotgun.spreadDegrees,
             0,
             progress,
           );
-        else put(row, "line", e.pos.x, e.pos.z, ranged.bearing, rule.range, 0, 2 * rule.radius, progress);
+        else put(row, "line", e.pos.x, e.pos.z, ranged.bearing, rule.range, 0, rule.radius + rule.radius, progress);
       }
     }
   }

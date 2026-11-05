@@ -10,18 +10,18 @@ import { fillBuffers, pointCapacity, shapePoints, stripBuffers } from "./telegra
 // The meshes are a fixed pool of `maxVisible` slots made on first use and reused for every attack. A slot's buffers are rewritten only
 // when the shape it shows changes (a new attack), never per frame, and one stripe texture is shared by all of them.
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-const MAX_INDEX = 65535; // tuning-ok: the largest vertex a 16-bit index can name
 
 // A diagonal-stripe alpha texture: one solid band and one lighter band per repeat.
-function stripeTexture(pattern) {
+function stripeTexture(pattern, layout) {
   const size = pattern.cells,
-    data = new Uint8Array(size * size * 4); // tuning-ok: four bytes per RGBA pixel
+    alpha = layout.pixelBytes - 1,
+    data = new Uint8Array(size * size * layout.pixelBytes);
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
-      const i = 4 * (y * size + x), // tuning-ok: four bytes per RGBA pixel
+      const i = layout.pixelBytes * (y * size + x),
         solid = ((x + y) % size) / size < pattern.solidShare;
-      data.fill(255, i, i + 3); // tuning-ok: the white colour channels
-      data[i + 3] = Math.round((solid ? 1 : pattern.gapOpacity) * 255); // tuning-ok: byte alpha
+      data.fill(255, i, i + alpha);
+      data[i + alpha] = Math.round((solid ? 1 : pattern.gapOpacity) * 255);
     }
   const texture = new T.DataTexture(data, size, size);
   texture.wrapS = texture.wrapT = T.RepeatWrapping;
@@ -31,13 +31,15 @@ function stripeTexture(pattern) {
   return texture;
 }
 
-function buffered(vertices, indices, uv) {
+// A geometry with room for `vertices` positions (and uvs when asked) and `indices` triangle corners, drawing nothing until written.
+function buffered(vertices, indices, uv, layout) {
   const geometry = new T.BufferGeometry();
-  geometry.setAttribute("position", new T.BufferAttribute(new Float32Array(vertices * 3), 3)); // tuning-ok: x, y, z per vertex
-  if (uv) geometry.setAttribute("uv", new T.BufferAttribute(new Float32Array(vertices * 2), 2)); // tuning-ok: u, v per vertex
-  geometry.setIndex(
-    new T.BufferAttribute(indices <= MAX_INDEX ? new Uint16Array(indices) : new Uint32Array(indices), 1),
+  geometry.setAttribute(
+    "position",
+    new T.BufferAttribute(new Float32Array(vertices * layout.positionSize), layout.positionSize),
   );
+  if (uv) geometry.setAttribute("uv", new T.BufferAttribute(new Float32Array(vertices * layout.uvSize), layout.uvSize));
+  geometry.setIndex(new T.BufferAttribute(new Uint32Array(indices), 1));
   geometry.setDrawRange(0, 0);
   return geometry;
 }
@@ -49,10 +51,12 @@ export function createTelegraphView(s, options = {}) {
   const query = options.matchMedia ?? globalThis.matchMedia?.bind(globalThis),
     motion = query?.(REDUCED_MOTION),
     capacity = pointCapacity(rules),
-    points = new Float32Array(2 * capacity), // tuning-ok: x, z per outline point
+    px = new Float32Array(capacity),
+    pz = new Float32Array(capacity),
     set = createTelegraphSet(rules.maxVisible),
     slots = [],
-    texture = stripeTexture(rules.pattern);
+    texture = stripeTexture(rules.pattern, rules.layout);
+  const L = rules.layout;
   let disposed = false;
 
   function material(colour, map = null) {
@@ -67,17 +71,20 @@ export function createTelegraphView(s, options = {}) {
   }
   function create() {
     const root = new T.Group(),
-      fillGeometry = buffered(capacity + 1, 3 * capacity, true), // tuning-ok: a fan vertex per point plus the origin, three indices a triangle
-      haloGeometry = buffered(2 * capacity, 6 * capacity, false), // tuning-ok: two vertices a point, six indices an edge
-      edgeGeometry = buffered(2 * capacity, 6 * capacity, false), // tuning-ok: two vertices a point, six indices an edge
+      // A fan has a vertex per point plus the origin and a triangle per point; a strip has an inner and an outer vertex per point.
+      fillGeometry = buffered(capacity + 1, L.fanIndices * capacity, true, L),
+      haloGeometry = buffered(L.stripRings * capacity, L.stripIndices * capacity, false, L),
+      edgeGeometry = buffered(L.stripRings * capacity, L.stripIndices * capacity, false, L),
       fill = new T.Mesh(fillGeometry, material(rules.colours.fill, texture)),
       halo = new T.Mesh(haloGeometry, material(rules.colours.halo)),
       edge = new T.Mesh(edgeGeometry, material(rules.colours.edge));
-    fill.renderOrder = rules.renderOrder;
-    halo.renderOrder = rules.renderOrder + 1; // tuning-ok: the halo draws over the fill and under the outline
-    edge.renderOrder = rules.renderOrder + 2; // tuning-ok: the outline draws last
+    // The fill draws first, the halo over it and the outline last.
+    let order = rules.renderOrder;
+    fill.renderOrder = order++;
+    halo.renderOrder = order++;
+    edge.renderOrder = order;
     for (const mesh of [fill, halo, edge]) mesh.frustumCulled = false;
-    root.name = "Attack telegraph"; // text-ok: a scene-graph label for debugging, never shown to the player
+    root.name = "telegraph-slot";
     root.visible = false;
     root.add(fill, halo, edge);
     s.scene.add(root);
@@ -112,15 +119,16 @@ export function createTelegraphView(s, options = {}) {
     slot.reach = r.reach;
     slot.arc = r.arc;
     slot.width = r.width;
-    const count = shapePoints(r.kind, r.reach, r.arc, r.width, points, rules),
+    const count = shapePoints(r.kind, r.reach, r.arc, r.width, px, pz, rules),
       fillGeometry = slot.fill.geometry,
       fillIndex = fillBuffers(
-        points,
+        px,
+        pz,
         count,
         rules.pattern.periodMetres,
-        fillGeometry.attributes.position.array,
-        fillGeometry.attributes.uv.array,
-        fillGeometry.index.array,
+        fillGeometry.attributes.position,
+        fillGeometry.attributes.uv,
+        fillGeometry.index,
       );
     fillGeometry.setDrawRange(0, fillIndex);
     fillGeometry.attributes.position.needsUpdate =
@@ -133,13 +141,14 @@ export function createTelegraphView(s, options = {}) {
     ]) {
       const geometry = mesh.geometry,
         used = stripBuffers(
-          points,
+          px,
+          pz,
           count,
           inside,
           outside,
           rules.miterLimit,
-          geometry.attributes.position.array,
-          geometry.index.array,
+          geometry.attributes.position,
+          geometry.index,
         );
       geometry.setDrawRange(0, used);
       geometry.attributes.position.needsUpdate = geometry.index.needsUpdate = true;

@@ -44,18 +44,19 @@ const game = (extra = {}) => ({
 });
 const collect = (g) => collectTelegraphs(g, createTelegraphSet());
 
-// Point inside a polygon of x, z pairs (ray casting).
-function inside(points, count, x, z) {
+// An outline polygon of a shape, and whether a point is inside it (ray casting).
+function poly(kind, reach, arc, width) {
+  const px = new Float32Array(pointCapacity(RULES)),
+    pz = new Float32Array(pointCapacity(RULES));
+  return { px, pz, n: shapePoints(kind, reach, arc, width, px, pz, RULES) };
+}
+function inside({ px, pz, n }, x, z) {
   let hit = false;
-  for (let i = 0, j = count - 1; i < count; j = i++) {
-    const xi = points[2 * i],
-      zi = points[2 * i + 1],
-      xj = points[2 * j],
-      zj = points[2 * j + 1];
-    if (zi > z !== zj > z && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) hit = !hit;
-  }
+  for (let i = 0, j = n - 1; i < n; j = i++)
+    if (pz[i] > z !== pz[j] > z && x < ((px[j] - px[i]) * (z - pz[i])) / (pz[j] - pz[i]) + px[i]) hit = !hit;
   return hit;
 }
+const attribute = (items, size) => new T.BufferAttribute(new Float32Array(items * size), size);
 const polar = (reach, degrees) => [
   Math.sin((degrees * Math.PI) / 180) * reach,
   Math.cos((degrees * Math.PI) / 180) * reach,
@@ -189,7 +190,6 @@ test("a full-turn swing is a circle, a narrower one a cone", () => {
 });
 
 test("a cone outline holds exactly the points the hit check accepts", () => {
-  const points = new Float32Array(2 * pointCapacity(RULES));
   for (const [reach, arc] of [
     [1.5, 90],
     [3.2, 120],
@@ -198,64 +198,56 @@ test("a cone outline holds exactly the points the hit check accepts", () => {
     [4.86, 30],
     [2, 270],
   ]) {
-    const n = shapePoints("cone", reach, arc, 0, points, RULES);
-    assert.ok(n <= pointCapacity(RULES));
-    assert.ok(signedArea(points, n) !== 0);
+    const shape = poly("cone", reach, arc, 0);
+    assert.ok(shape.n <= pointCapacity(RULES));
+    assert.ok(signedArea(shape.px, shape.pz, shape.n) !== 0);
     const half = arc / 2;
-    assert.ok(inside(points, n, 0, 0.01), "just ahead of the apex");
+    assert.ok(inside(shape, 0, 0.01), "just ahead of the apex");
     // The arc is drawn as chords, so the rim is checked a little inside the reach.
     const rim = Math.cos(Math.PI / RULES.turnSegments);
     for (const frac of [-0.9, -0.5, 0, 0.5, 0.9]) {
       const [x, z] = polar(reach * rim * 0.97, half * frac);
-      assert.ok(inside(points, n, x, z), `inside at ${frac} of the half arc, reach ${reach}, arc ${arc}`);
+      assert.ok(inside(shape, x, z), `inside at ${frac} of the half arc, reach ${reach}, arc ${arc}`);
     }
     for (const outsideAt of [polar(reach * 1.03, 0), polar(reach * 0.9, half + 2), polar(reach * 0.9, -half - 2)])
-      assert.ok(!inside(points, n, ...outsideAt), `outside ${outsideAt}, reach ${reach}, arc ${arc}`);
-    for (let i = 1; i < n; i++)
-      assert.ok(Math.hypot(points[2 * i], points[2 * i + 1]) <= reach + 1e-5, "no point beyond the reach");
+      assert.ok(!inside(shape, ...outsideAt), `outside ${outsideAt}, reach ${reach}, arc ${arc}`);
+    for (let i = 1; i < shape.n; i++)
+      assert.ok(Math.hypot(shape.px[i], shape.pz[i]) <= reach + 1e-5, "no point beyond the reach");
   }
 });
 
 test("a circle is the radius all round and a line is its length and width", () => {
-  const points = new Float32Array(2 * pointCapacity(RULES)),
-    n = shapePoints("circle", 2, RULES.fullArcDegrees, 0, points, RULES);
-  assert.equal(n, RULES.turnSegments);
-  for (let i = 0; i < n; i++) near(Math.hypot(points[2 * i], points[2 * i + 1]), 2, `circle point ${i}`);
-  assert.ok(inside(points, n, -1.9, 0) && inside(points, n, 0, 1.9) && !inside(points, n, 2.1, 0));
-  const m = shapePoints("line", 12, 0, 3, points, RULES);
-  assert.equal(m, 4);
-  assert.ok(
-    inside(points, m, 0, 11.9) &&
-      inside(points, m, 1.4, 0.1) &&
-      !inside(points, m, 1.6, 5) &&
-      !inside(points, m, 0, 12.1),
-  );
+  const circle = poly("circle", 2, RULES.fullArcDegrees, 0);
+  assert.equal(circle.n, RULES.turnSegments);
+  for (let i = 0; i < circle.n; i++) near(Math.hypot(circle.px[i], circle.pz[i]), 2, `circle point ${i}`);
+  assert.ok(inside(circle, -1.9, 0) && inside(circle, 0, 1.9) && !inside(circle, 2.1, 0));
+  const line = poly("line", 12, 0, 3);
+  assert.equal(line.n, 4);
+  assert.ok(inside(line, 0, 11.9) && inside(line, 1.4, 0.1) && !inside(line, 1.6, 5) && !inside(line, 0, 12.1));
 });
 
 test("the outline strip keeps its width inside the shape", () => {
-  const points = new Float32Array(2 * pointCapacity(RULES)),
-    positions = new Float32Array(6 * pointCapacity(RULES)),
-    index = new Uint16Array(6 * pointCapacity(RULES)),
-    n = shapePoints("circle", 3, RULES.fullArcDegrees, 0, points, RULES),
-    used = stripBuffers(points, n, RULES.edgeMetres, 0, RULES.miterLimit, positions, index);
-  assert.equal(used, 6 * n);
-  for (let i = 0; i < n; i++) {
-    near(Math.hypot(positions[6 * i + 3], positions[6 * i + 5]), 3, "outer edge on the rim");
+  const position = attribute(2 * pointCapacity(RULES), 3),
+    index = new T.BufferAttribute(new Uint32Array(6 * pointCapacity(RULES)), 1),
+    circle = poly("circle", 3, RULES.fullArcDegrees, 0),
+    used = stripBuffers(circle.px, circle.pz, circle.n, RULES.edgeMetres, 0, RULES.miterLimit, position, index);
+  assert.equal(used, 6 * circle.n);
+  for (let i = 0; i < circle.n; i++) {
+    near(Math.hypot(position.getX(circle.n + i), position.getZ(circle.n + i)), 3, "outer edge on the rim");
     near(
-      Math.hypot(positions[6 * i], positions[6 * i + 2]),
-      3 - RULES.edgeMetres / Math.cos(Math.PI / n),
+      Math.hypot(position.getX(i), position.getZ(i)),
+      3 - RULES.edgeMetres / Math.cos(Math.PI / circle.n),
       "inner edge one width in",
     );
   }
-  assert.ok(index.slice(0, used).every((v) => v < 2 * n));
+  for (let k = 0; k < used; k++) assert.ok(index.getX(k) < 2 * circle.n);
   // A thin line keeps the same width along its sides.
-  const m = shapePoints("line", 12, 0, 3, points, RULES);
-  stripBuffers(points, m, RULES.edgeMetres, 0, RULES.miterLimit, positions, index);
-  const widths = [0, 1, 2, 3].map((i) =>
-    Math.hypot(positions[6 * i + 3] - positions[6 * i], positions[6 * i + 5] - positions[6 * i + 2]),
-  );
-  for (const w of widths)
+  const line = poly("line", 12, 0, 3);
+  stripBuffers(line.px, line.pz, line.n, RULES.edgeMetres, 0, RULES.miterLimit, position, index);
+  for (let i = 0; i < line.n; i++) {
+    const w = Math.hypot(position.getX(line.n + i) - position.getX(i), position.getZ(line.n + i) - position.getZ(i));
     assert.ok(w >= RULES.edgeMetres - 1e-6 && w <= RULES.edgeMetres * RULES.miterLimit + 1e-6, `corner width ${w}`);
+  }
 });
 
 test("a flame warning fills over its wind-up ticks in the profile's cone", () => {

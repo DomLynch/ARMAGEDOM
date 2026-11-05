@@ -7,7 +7,6 @@ import { createGame, stepGame } from "../src/combat.js";
 import { createHollowEncounter } from "../src/hollow-encounter.js";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { collectTelegraphs, createTelegraphSet } from "../src/engine/telegraph.js";
-import { pointCapacity, shapePoints } from "../src/engine/telegraph-shape.js";
 import { stepBossRanged } from "../src/engine/boss-ranged.js";
 
 // The telegraph over the real simulation: a real boss swing is read from the game's own state, fills to 1 on the tick its hit is
@@ -46,8 +45,7 @@ function setup(distance) {
 
 test("a real boss swing fills to 1 as its hit lands and the player it hurts stands inside the shape", () => {
   const { g, e } = setup(2.2),
-    set = createTelegraphSet(),
-    points = new Float32Array(2 * pointCapacity(RULES));
+    set = createTelegraphSet();
   let last = -1,
     sawFill = false,
     hurtInside = null;
@@ -64,13 +62,12 @@ test("a real boss swing fills to 1 as its hit lands and the player it hurts stan
     assert.ok(r.progress >= last, "never goes backwards");
     last = r.progress;
     if (r.progress > 0 && r.progress < 1) sawFill = true;
-    const count = shapePoints(r.kind, r.reach, r.arc, r.width, points, RULES),
-      // The player in the attack's own frame: x to the side, z along the swing.
-      dx = g.player.pos.x - r.x,
+    // The player in the attack's own frame: x to the side, z along the swing.
+    const dx = g.player.pos.x - r.x,
       dz = g.player.pos.z - r.z,
       along = dx * r.dx + dz * r.dz,
       side = dx * -r.dz + dz * r.dx;
-    if (g.player.hp < 150) hurtInside = { along, side, count, reach: r.reach, arc: r.arc };
+    if (g.player.hp < 150) hurtInside = { along, side, reach: r.reach, arc: r.arc };
   }
   assert.ok(sawFill, "it filled over the wind-up");
   assert.equal(last, 1, "whole by the time the hit lands");

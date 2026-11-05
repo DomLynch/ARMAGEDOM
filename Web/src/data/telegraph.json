@@ -6,6 +6,8 @@
   "groundHeight": 0.035,
   "renderOrder": 3,
   "fullArcDegrees": 360,
+  "half": 0.5,
+  "layout": { "positionSize": 3, "uvSize": 2, "fanIndices": 3, "stripIndices": 6, "stripRings": 2, "pixelBytes": 4 },
   "turnSegments": 48,
   "minArcSegments": 4,
   "edgeMetres": 0.1,

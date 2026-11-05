@@ -18,6 +18,8 @@ export function validateTelegraph(d) {
     "groundHeight",
     "renderOrder",
     "fullArcDegrees",
+    "half",
+    "layout",
     "turnSegments",
     "minArcSegments",
     "edgeMetres",
@@ -42,6 +44,18 @@ export function validateTelegraph(d) {
   count("telegraph", "renderOrder", d.renderOrder, 0, 100);
   if (!(d.fullArcDegrees > 180 && d.fullArcDegrees <= 360))
     fail("telegraph", "fullArcDegrees must be above 180 and at most 360");
+  if (d.half !== 0.5) fail("telegraph", "half must be 0.5");
+  closed(d.layout, ["positionSize", "uvSize", "fanIndices", "stripIndices", "stripRings", "pixelBytes"]);
+  for (const [name, size] of Object.entries({
+    positionSize: 3,
+    uvSize: 2,
+    fanIndices: 3,
+    stripIndices: 6,
+    stripRings: 2,
+    pixelBytes: 4,
+  }))
+    if (d.layout[name] !== size)
+      fail("telegraph", `layout.${name} must be ${size}: it is the width of the buffer the code writes`);
   count("telegraph", "turnSegments", d.turnSegments, 8, 96);
   count("telegraph", "minArcSegments", d.minArcSegments, 1, d.turnSegments);
   number("telegraph", "edgeMetres", d.edgeMetres, 0.01);
