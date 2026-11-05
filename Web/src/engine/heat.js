@@ -1,6 +1,5 @@
 import { GAME_DATA } from "./game-data.js";
 import { applyStarRow, starsEnabled, STAR_VARIANTS } from "./star-variants.js";
-import { seeded } from "./heat-tally-strokes.js";
 import { webText } from "./web-text.js";
 import { runHeatScale } from "./apocalypse-run.js";
 
@@ -8,6 +7,15 @@ import { runHeatScale } from "./apocalypse-run.js";
 // It scales the existing marked hunt (marked-hunters.js) by tier: shorter waits, one more hunter at once, and star hunters at the top tier.
 // State is `g.heat` on the live game only: never saved, never sent. Kills are read from the game's own kill count, so combat.js is untouched.
 const HEAT = GAME_DATA.heat;
+
+// A small seeded linear congruential generator (rng row): the same seed gives the same roll.
+export function seeded(seed, rng = HEAT.rng) {
+  let a = seed >>> 0;
+  return () => {
+    a = (Math.imul(a, rng.multiplier) + rng.increment) >>> 0;
+    return a / rng.modulus;
+  };
+}
 
 // Off switch: the URL parameter named in the data (offSwitch.param) set to offSwitch.value turns heat off. `search` is for tests.
 // The page's own address never changes, so its answer is worked out once per rules row.
@@ -135,7 +143,7 @@ export function heatStarHunter(g, actor, rules = HEAT, stars = STAR_VARIANTS) {
   return actor;
 }
 
-// What the tally shows now: the count and the alpha of the newest mark, which dims through the last fadeSeconds before it drops.
+// The heat count now (capped at maxHeat) and the alpha of the newest mark, which dims through the last fadeSeconds before it drops. No HUD draws it.
 export function heatShown(g, rules = HEAT) {
   const h = g.heat;
   if (!h || !h.count) return null;

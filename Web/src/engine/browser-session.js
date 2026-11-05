@@ -353,9 +353,6 @@ export function createBrowserSession(options = {}) {
     updateSupplies() {
       resources.updateSupplies();
     },
-    updateHeatTally() {
-      resources.updateHeatTally();
-    },
     updateRunHud() {
       resources.updateRunHud();
     },

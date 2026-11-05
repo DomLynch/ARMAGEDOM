@@ -339,7 +339,6 @@ function rig() {
     collectNearbyVest() {},
     updateSupplies() {},
     updateVestBag() {},
-    updateHeatTally() {},
     emit() {},
   };
   return { s, world, game: g, updates, renders, loop: createBrowserLoop(s) };

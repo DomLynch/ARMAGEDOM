@@ -45,7 +45,6 @@ function rig(listen) {
     collectNearbyVest() {},
     updateSupplies() {},
     updateVestBag() {},
-    updateHeatTally() {},
     emit() {},
     listen,
   };
