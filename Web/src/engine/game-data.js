@@ -103,6 +103,8 @@ import { validateHeat } from "./game-data-heat.js";
 import { validateCorpseRun } from "./game-data-corpse-run.js";
 import apocalypseRun from "../data/apocalypseRun.json" with { type: "json" };
 import { validateApocalypseRun } from "./game-data-run.js";
+import trashWave from "../data/trashWave.json" with { type: "json" };
+import { validateTrashWave } from "./game-data-trash-wave.js";
 import {
   validateChainedPitborn,
   validateRatKing,
@@ -1154,6 +1156,7 @@ const sources = () => ({
   threatArrows: [threatArrows, validateThreatArrows],
   qualityTier: [qualityTier, validateQualityTier],
   enemyBars: [enemyBars, validateEnemyBars],
+  trashWave: [trashWave, validateTrashWave],
 });
 
 /**

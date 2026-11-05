@@ -1,6 +1,8 @@
 import { GAME_DATA, fillText } from "./game-data.js";
 import { grantCash, claimCash } from "./world-pickups-core.js";
 import { starDropTier } from "./star-variants.js";
+import { TRASH_WAVE, wavesEnabled } from "./trash-wave-core.js";
+import { onWaveKill } from "./trash-wave-rewards.js";
 // Coins an enemy leaves when it dies (data/killDrops.json). Rules only: which tier a kill is, the cash it rolls, walk-over pickup,
 // the carry-cap refusal and the claim noted for the server. Nothing here is drawn (engine/kill-drops-view.js) or saved: drops live on
 // the run (`g.killDrops`) and are gone when the area changes. Off until `enabled` is true (the server must accept the `kill:*` sources).
@@ -27,14 +29,22 @@ function killDropState(g) {
   return (g.killDrops ??= { list: [], serial: 0, notice: 0 });
 }
 // After each step: every enemy that died in that step's events leaves one drop where it fell. A marked hunter pays its bounty instead.
-export function leaveKillDrops(g, rules = KILL_DROPS) {
-  if (!killDropsOn(rules)) return 0;
-  const state = killDropState(g);
-  let left = 0;
+// A wave mob (trash-wave.js, ?waves=1) is the one exception while drops are off for everyone else: it asks onWaveKill, which scores the kill
+// and says yes only for the elite and the last mob of a wave, at the wave tier and with a short despawn so the claim queue cannot back up.
+export function leaveKillDrops(g, rules = KILL_DROPS, waves = TRASH_WAVE) {
+  const open = killDropsOn(rules),
+    onWaves = !!g.trashWave && wavesEnabled(waves);
+  if (!open && !onWaves) return 0;
+  let state = open ? killDropState(g) : null,
+    left = 0;
   for (const ev of g.events ?? []) {
     const e = ev.type === "death" ? ev.actor : null;
     if (!e?.pos || e.markedHunter || e === g.player) continue;
-    const tier = tierOf(e, rules);
+    const mob = e.waveMob === true;
+    if (mob ? !onWaves || !onWaveKill(g, e, waves) : !open) continue;
+    state ??= killDropState(g);
+    if (mob) state.wave = true;
+    const tier = mob ? waves.drops.tier : tierOf(e, rules);
     state.list.push({
       id: ++state.serial,
       areaId: g.world.areaId,
@@ -44,17 +54,18 @@ export function leaveKillDrops(g, rules = KILL_DROPS) {
       amount: rollKillCash(g, tier, e.placementKey ?? e.id ?? "", rules),
       enemy: e.rig ?? "", // the creature kind the server keys rare loot on (docs/MARKET-CONTRACT.md)
       killId: killIdFor(g, state.serial),
-      until: g.time + rules.despawnSeconds,
+      until: g.time + (mob ? waves.drops.despawnSeconds : rules.despawnSeconds),
+      ...(mob ? { wave: true } : {}),
     });
     left++;
   }
   // Oldest first out, so a crowd never leaves more than maxDrops lying about.
-  while (state.list.length > rules.maxDrops) state.list.shift();
+  while (state && state.list.length > rules.maxDrops) state.list.shift();
   return left;
 }
 // One fixed step: drop the expired and other-area rows, then take any the player stands on. A full wallet leaves the coins lying there.
 export function stepKillDrops(g, rules = KILL_DROPS) {
-  if (!killDropsOn(rules) || !g.killDrops) return;
+  if (!g.killDrops || (!killDropsOn(rules) && !g.killDrops.wave)) return; // wave drops (state.wave) run while the rest stay off
   const state = g.killDrops,
     p = g.player,
     area = g.world.areaId,
