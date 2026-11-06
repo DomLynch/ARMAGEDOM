@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "note": "Device quality tiers, presentation only (sim, hits, saves and spawns never read it). A signal is weak when the device value passes its limit; a signal the browser does not report is not counted. The tier is the row with the most weakSignals not above the count of weak signals, so a device needs at least two weak signals before it leaves full. Pixel ratio is deliberately NOT a signal (every current iPhone is 3). frameMs is the median over a long sample after warmupFrames, taken once; its limit is far worse than a 30 fps cap (iOS Low Power Mode is about 33 ms), so a capped but healthy phone stays on full. Frames longer than maxFrameMs (hidden tab, loading) are skipped. The device probe runs once per session and the tier never moves back up. Row caps are ceilings: full is deliberately permissive so the older data files stay the source for the full game. ?quality=auto|full|mid|low forces a tier (full is the off switch). distanceScale divides the distance used by the off-screen throttle and the hostile LOD, so weak devices thin and hide far actors sooner; shadowScale does the same for the ground blob shadow. desktopBackdrop (opt-in): a device gets the 1.5x desktop backdrop of an area (areas.json desktopBackdropRef) only when its tier row says desktopBackdrop true AND the tier has settled AND every need holds (min/max against the probe value; whenMissing is the verdict for a value the browser does not report; touchPoints is navigator.maxTouchPoints so phones and tablets never pass). ?desktop=1 skips the needs and the settle wait (the tier row still gates), ?desktop=0 turns it off. desktopSharpness (desktop only): a device that passes the desktopBackdrop tier row and needs (no settle wait, so it applies from the first frame and is dropped again if the frame sample lowers the tier) renders at up to pixelRatio instead of browserSession.maxPixelRatio, and its desktop backdrop gets trilinear mipmaps with up to anisotropy samples (capped by what the GPU reports). Phones, tablets and the mid and low tiers keep the old ceilings. globalName is a read-only window property showing the tier and its reasons.",
+  "note": "Device quality tiers, presentation only (sim, hits, saves and spawns never read it). A signal is weak when the device value passes its limit; a signal the browser does not report is not counted. The tier is the row with the most weakSignals not above the count of weak signals, so a device needs at least two weak signals before it leaves full. Pixel ratio is deliberately NOT a signal (every current iPhone is 3). frameMs is the median over a long sample after warmupFrames, taken once; its limit is far worse than a 30 fps cap (iOS Low Power Mode is about 33 ms), so a capped but healthy phone stays on full. Frames longer than maxFrameMs (hidden tab, loading) are skipped. The device probe runs once per session and the tier never moves back up. Row caps are ceilings: full is deliberately permissive so the older data files stay the source for the full game. ?quality=auto|full|mid|low forces a tier (full is the off switch). distanceScale divides the distance used by the off-screen throttle and the hostile LOD, so weak devices thin and hide far actors sooner; shadowScale does the same for the ground blob shadow. desktopBackdrop (opt-in): a device gets the 1.5x desktop backdrop of an area (areas.json desktopBackdropRef) only when its tier row says desktopBackdrop true AND the tier has settled AND every need holds (min/max against the probe value; whenMissing is the verdict for a value the browser does not report; touchPoints is navigator.maxTouchPoints so phones and tablets never pass). ?desktop=1 skips the needs and the settle wait (the tier row still gates), ?desktop=0 turns it off. desktopSharpness (desktop only): a device that passes the desktopBackdrop tier row and needs (no settle wait, so it applies from the first frame and is dropped again if the frame sample lowers the tier) renders at up to pixelRatio instead of browserSession.maxPixelRatio, and its desktop backdrop gets trilinear mipmaps with up to anisotropy samples (capped by what the GPU reports). Phones, tablets and the mid and low tiers keep the old ceilings. materialPolish (opt-in, desktop only): a full-tier device with every need met (cores and texture size reported and large, no touch points, so a phone or tablet never passes even when it stays on full) gets texture anisotropy, a roughness floor and a metalness ceiling on actor and weapon materials, applied once the device probe has landed and undone if the tier later drops; ?nopolish=1 turns it off. globalName is a read-only window property showing the tier and its reasons.",
   "enabled": true,
   "param": "quality",
   "autoValue": "auto",
@@ -18,6 +18,18 @@
     ]
   },
   "desktopSharpness": { "pixelRatio": 2, "anisotropy": 8 },
+  "materialPolish": {
+    "param": "nopolish",
+    "offValue": "1",
+    "needs": [
+      { "name": "cores", "min": 8, "whenMissing": false },
+      { "name": "textureSize", "min": 8192, "whenMissing": false },
+      { "name": "touchPoints", "max": 0, "whenMissing": true }
+    ],
+    "anisotropy": 8,
+    "roughnessMin": 0.18,
+    "metalnessMax": 0.9
+  },
   "signals": [
     { "name": "cores", "weak": "atMost", "limit": 4 },
     { "name": "memoryGb", "weak": "atMost", "limit": 3 },
@@ -25,8 +37,8 @@
     { "name": "frameMs", "weak": "atLeast", "limit": 45 }
   ],
   "tiers": [
-    { "name": "full", "weakSignals": 0, "desktopBackdrop": true, "pixelRatio": 4, "ragdolls": 12, "crowdBodies": 12, "distanceScale": 1, "shadowScale": 1 },
-    { "name": "mid", "weakSignals": 2, "desktopBackdrop": false, "pixelRatio": 1.25, "ragdolls": 3, "crowdBodies": 2, "distanceScale": 0.8, "shadowScale": 0.75 },
-    { "name": "low", "weakSignals": 3, "desktopBackdrop": false, "pixelRatio": 1, "ragdolls": 1, "crowdBodies": 1, "distanceScale": 0.6, "shadowScale": 0.5 }
+    { "name": "full", "weakSignals": 0, "desktopBackdrop": true, "materialPolish": true, "pixelRatio": 4, "ragdolls": 12, "crowdBodies": 12, "distanceScale": 1, "shadowScale": 1 },
+    { "name": "mid", "weakSignals": 2, "desktopBackdrop": false, "materialPolish": false, "pixelRatio": 1.25, "ragdolls": 3, "crowdBodies": 2, "distanceScale": 0.8, "shadowScale": 0.75 },
+    { "name": "low", "weakSignals": 3, "desktopBackdrop": false, "materialPolish": false, "pixelRatio": 1, "ragdolls": 1, "crowdBodies": 1, "distanceScale": 0.6, "shadowScale": 0.5 }
   ]
 }

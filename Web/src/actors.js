@@ -94,6 +94,7 @@ import { DonorMotion, equipDonorPlayer, donorSwingPhase } from "./donor-motion.j
 import { setRigBones } from "./rig-bones.js";
 import { disposeActorSources } from "./actor-resources.js";
 import { shareIdenticalTextures } from "./actor-texture-share.js";
+import { createMaterialPolish } from "./engine/material-polish.js";
 import { hollowLocomotionFor, AREA_MOB_SPAWNS, slotAppearanceRefs } from "./area-mob-spawns.js";
 import { CrookedHollowMotion } from "./crooked-hollow.js";
 import { createFaceAppearanceLibrary } from "./face-appearance.js";
@@ -137,7 +138,8 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
   let pistolAsset = null;
   const urls = new Map();
   const sources = new Set(),
-    sharedTextures = new Map();
+    sharedTextures = new Map(),
+    polish = createMaterialPolish(); // desktop full tier only (qualityTier.json materialPolish); a no-op elsewhere
   function load(url) {
     if (!urls.has(url)) {
       const pending = loader
@@ -148,6 +150,7 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
             disposeActorSources(new Set([gltf]));
             throw Error("Actor library disposed");
           }
+          polish.track(gltf);
           sources.add(gltf);
           return gltf;
         })
@@ -163,6 +166,7 @@ export async function loadActors(baseUrl, onProgress = () => {}, manifestPath = 
   const dispose = () => {
     if (disposed) return;
     disposed = true;
+    polish.dispose();
     disposeActorSources(sources);
     sources.clear();
     sharedTextures.clear();
