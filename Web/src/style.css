@@ -1309,6 +1309,107 @@ body.touch .perk-key {
   }
 }
 
+/* Daily contract (engine/daily-contract.js, data/dailyContract.json): three goals with progress bars in the field menu's settings page, and
+   the cleared line on top of the run summary card. Text stays at 12px or more; the summary row is a 52px tap target for the open/close. */
+.run-summary {
+  display: flex;
+  flex-direction: column;
+}
+.card .rs-crown {
+  order: -1;
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+#daily-panel {
+  margin: 0 0 12px;
+}
+#daily-panel summary {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  cursor: pointer;
+}
+#daily-hint,
+#daily-bonus {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #c9c3b6;
+}
+#daily-bonus {
+  color: var(--gold);
+}
+#daily-list {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.dc-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "tier goal check"
+    "bar bar count";
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 52px;
+  font-size: 14px;
+}
+.dc-tier {
+  grid-area: tier;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--edge);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #c9c3b6;
+}
+.dc-goal {
+  grid-area: goal;
+  line-height: 1.3;
+}
+.dc-check {
+  grid-area: check;
+  min-width: 16px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.dc-count {
+  grid-area: count;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #c9c3b6;
+}
+.dc-bar {
+  grid-area: bar;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.dc-bar i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+  transform: scaleX(var(--p, 0));
+}
+.dc-done .dc-goal {
+  color: var(--gold);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dc-bar i {
+    transition: transform 0.3s ease-out;
+  }
+}
+
 /* Desktop layout (engine/desktop-layout.js sets body.desktop-ui for a mouse window wide enough, and --ui-scale from the window height;
    numbers in data/inputKeys.json `layout`). A first touch adds body.touch, which switches every rule below off: the phone layout above is
    untouched. Corners: vitals top-left, menu top-right, objective top-centre, weapon bar and key hints bottom-centre. */

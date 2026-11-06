@@ -7,6 +7,7 @@ import { createShareClip } from "./share-clip.js";
 import { createShareCard } from "./share-card.js";
 import { createRunSummary, createRunTracker } from "./run-summary.js";
 import { createPerkPicker, perksEnabled, stepPerks } from "./perks.js";
+import { createDailyContract } from "./daily-contract.js";
 import { grantBossGolden } from "./golden-weapons.js";
 import { leaveKillDrops, stepKillDrops } from "./kill-drops.js";
 import { pickTouchTarget, touchTargetVisible } from "./touch-target.js";
@@ -46,7 +47,8 @@ export function createBrowserLoop(s) {
     shareCard = createShareCard({ share: shareClip }),
     // Run summary on the death screen (runSummary.json) and, with ?waves=1 only, the wave perk picks (perks.json).
     tracker = createRunTracker(),
-    runSummary = createRunSummary({ tracker }),
+    contract = createDailyContract({ tracker }), // data/dailyContract.json: three daily goals in the menu, tracked from the same tracker
+    runSummary = createRunSummary({ tracker, title: contract.title }),
     perkPicker = perksEnabled() ? createPerkPicker({ listen: s.listen }) : null;
   let seenGame = null,
     seenArea = null;
@@ -224,6 +226,7 @@ export function createBrowserLoop(s) {
         shareClip.observe(s.game.events, s.game);
         audioEvents.push(...s.game.events);
         taunts?.observe(s.game, s.game.events);
+        tracker.events(s.game, s.game.events);
         pickupFlash.observe(s.game.events);
         haptics.observe(s.game.events, s.game);
         s.emit(s.game.events);
@@ -240,6 +243,7 @@ export function createBrowserLoop(s) {
       }
     }
     tracker.observe(s.game);
+    contract.frame(s.game);
     runSummary.frame(s.game);
     if (perkPicker) {
       stepPerks(s.game, tracker.cleared(), s.paused ? 0 : realElapsed);

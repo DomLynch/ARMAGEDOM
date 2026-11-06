@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "note": "The daily contract (engine/daily-contract.js). Client only: each UTC date a seeded draw picks one easy, one medium and one hard goal from `goals`, the same for everyone on that date (the draw is the day-seeded generator of spawnVariation.json, seeded with the date, `seed.salt` and the tier). Goals are tracked from the run tracker (run-summary.js) and kept in the browser's localStorage under storage.key (a versioned record that resets when the date changes, every access guarded), never in the server save; there is no streak. A goal row: tier; source, the run figure it reads (hollows = hollow kills, time = seconds survived in the run, cleared = waves cleared, elite = elite or marked-hunter kills, calm = seconds survived while never dodging, weapon = kills with the weapon named in `weapon`, looked up in `weapons` to the weapon id on the death event); target in the source's own unit; mode (total adds up over the date's runs, best keeps the best single run); needs (always, or waves = only offered with ?waves=1). Within one draw each source is used once, so every tier lists at least three sources that are always on. Clearing all three gives the session-only Contract bonus: one free extra pick at the next wave-clear perk offer with ?waves=1, otherwise a title line on the run summary card. dayCheckSeconds is how often the date is re-read while playing (real seconds).",
+  "storage": { "key": "armagedom.dailyContract", "version": 1 },
+  "seed": { "salt": "daily-contract", "separator": ":" },
+  "tiers": ["easy", "medium", "hard"],
+  "dayCheckSeconds": 20,
+  "messageSeconds": 4,
+  "hollowRig": "hollow-scavenger",
+  "weapons": { "pistol": "pistol", "rifle": "rifle", "lmg": "railgun", "knife": "knife" },
+  "goals": [
+    { "id": "kills-15", "tier": "easy", "source": "hollows", "target": 15, "mode": "total", "needs": "always" },
+    { "id": "time-3", "tier": "easy", "source": "time", "target": 180, "mode": "best", "needs": "always" },
+    { "id": "waves-2", "tier": "easy", "source": "cleared", "target": 2, "mode": "best", "needs": "waves" },
+    { "id": "pistol-3", "tier": "easy", "source": "weapon", "weapon": "pistol", "target": 3, "mode": "total", "needs": "always" },
+    { "id": "calm-2", "tier": "easy", "source": "calm", "target": 120, "mode": "best", "needs": "always" },
+    { "id": "kills-25", "tier": "medium", "source": "hollows", "target": 25, "mode": "total", "needs": "always" },
+    { "id": "time-5", "tier": "medium", "source": "time", "target": 300, "mode": "best", "needs": "always" },
+    { "id": "waves-4", "tier": "medium", "source": "cleared", "target": 4, "mode": "best", "needs": "waves" },
+    { "id": "knife-10", "tier": "medium", "source": "weapon", "weapon": "knife", "target": 10, "mode": "total", "needs": "always" },
+    { "id": "calm-4", "tier": "medium", "source": "calm", "target": 240, "mode": "best", "needs": "always" },
+    { "id": "elite-1", "tier": "medium", "source": "elite", "target": 1, "mode": "total", "needs": "always" },
+    { "id": "kills-40", "tier": "hard", "source": "hollows", "target": 40, "mode": "total", "needs": "always" },
+    { "id": "time-8", "tier": "hard", "source": "time", "target": 480, "mode": "best", "needs": "always" },
+    { "id": "waves-6", "tier": "hard", "source": "cleared", "target": 6, "mode": "best", "needs": "waves" },
+    { "id": "rifle-15", "tier": "hard", "source": "weapon", "weapon": "rifle", "target": 15, "mode": "total", "needs": "always" },
+    { "id": "lmg-20", "tier": "hard", "source": "weapon", "weapon": "lmg", "target": 20, "mode": "total", "needs": "always" },
+    { "id": "calm-6", "tier": "hard", "source": "calm", "target": 360, "mode": "best", "needs": "always" },
+    { "id": "elite-3", "tier": "hard", "source": "elite", "target": 3, "mode": "total", "needs": "always" }
+  ]
+}

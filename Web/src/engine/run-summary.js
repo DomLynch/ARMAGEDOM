@@ -117,6 +117,8 @@ export function describeGoal(result) {
   return webText(`summary.goal.${goal.id}${one}`, { n: more, target: goal.prior + 1 });
 }
 
+const freshTally = () => ({ hollows: 0, elite: 0, dodges: 0, weapons: {} });
+
 // Reads the live game once a frame and keeps what the card needs after the run has ended: the waves' state is cleared on death, so the wave
 // counters (folded in when the state is replaced by an area change) and the heat peak are noted while the player is alive. Kills and time are
 // read from the game itself. A new game object (a retry) starts a new life.
@@ -128,7 +130,8 @@ export function createRunTracker() {
     last = { cleared: 0, score: 0 },
     best = 0,
     peak = 0,
-    heat = false;
+    heat = false,
+    tally = freshTally();
   const reset = (g) => {
     game = g;
     base = g.kills ?? 0; // a restored save counts earlier kills; this life starts from there
@@ -137,7 +140,24 @@ export function createRunTracker() {
     last = { cleared: 0, score: 0 };
     best = peak = 0;
     heat = false;
+    tally = freshTally();
   };
+  // Fills `out` (a caller-owned object, so the daily contract's per-frame read allocates nothing) with the life's figures, the summary's
+  // and the contract's (kills and dodges counted from the step events). snapshot is the summary card's own, smaller row.
+  function fill(g, out) {
+    out.time = g.time;
+    out.kills = Math.max(0, (g.kills ?? 0) - base);
+    out.cleared = carry.cleared + last.cleared;
+    out.wave = best;
+    out.score = carry.score + last.score;
+    out.heat = peak;
+    out.hasHeat = heat;
+    out.hollows = tally.hollows;
+    out.elite = tally.elite;
+    out.dodges = tally.dodges;
+    out.weapons = tally.weapons;
+    return out;
+  }
   return {
     observe(g) {
       if (g !== game) reset(g);
@@ -156,8 +176,25 @@ export function createRunTracker() {
         peak = Math.max(peak, g.heat.count);
       }
     },
+    // The step's events (the loop passes g.events after each step): this life's player kills and dodges, for the daily contract.
+    events(g, list, rig = GAME_DATA.dailyContract.hollowRig) {
+      if (g !== game) reset(g);
+      const me = g.player;
+      for (const ev of list) {
+        const actor = ev.actor;
+        if (ev.type === "dodge") {
+          if (actor === me) tally.dodges++;
+        } else if (ev.type === "death" && actor && actor !== me && (ev.attackerId ?? me.id) === me.id) {
+          // The player's kill: ranged and trap kills carry no attacker, a melee kill names its attacker.
+          if (actor.rig === rig && !actor.bossProfile) tally.hollows++;
+          if (actor.elite === true || actor.markedHunter === true) tally.elite++;
+          if (ev.weapon) tally.weapons[ev.weapon] = (tally.weapons[ev.weapon] ?? 0) + 1;
+        }
+      }
+    },
     // The session's waves cleared so far (what the perk offers count).
     cleared: () => carry.cleared + last.cleared,
+    fill,
     snapshot: (g) => ({
       time: g.time,
       kills: Math.max(0, (g.kills ?? 0) - base),
@@ -173,18 +210,21 @@ export function createRunTracker() {
 const inert = { frame() {}, dispose() {} };
 
 // The card. The loop calls tracker.observe(g) and then `frame(g)` once a frame with the live game; the card shows while the player is dead
-// and is filled again for each death from a pool of rows made once. `store` is for tests.
+// and is filled again for each death from a pool of rows made once. `title()` is an optional cosmetic line above the heading (the daily
+// contract's cleared line). `store` is for tests.
 export function createRunSummary({
   tracker = createRunTracker(),
   doc = globalThis.document,
   store = undefined,
   rules = RULES,
   waves = () => wavesEnabled(),
+  title = () => "",
 } = {}) {
   const el = (id) => (typeof doc?.getElementById === "function" ? doc.getElementById(id) : null),
     card = el("run-summary");
   if (!card) return inert;
-  const heading = doc.createElement("p"),
+  const crown = doc.createElement("p"),
+    heading = doc.createElement("p"),
     list = doc.createElement("ul"),
     goal = doc.createElement("p"),
     cells = rules.stats.map((stat) => {
@@ -203,10 +243,11 @@ export function createRunSummary({
       list.append(item);
       return { stat, item, label, value, tag, words };
     });
+  crown.className = "rs-crown";
   heading.className = "rs-heading";
   goal.className = "rs-goal";
   list.className = "rs-list";
-  card.replaceChildren(heading, list, goal);
+  card.replaceChildren(heading, list, goal, crown); // the crown is last in the tree and first on screen (style.css order)
   let shown = null;
   function show(g) {
     const storage = store === undefined ? defaultStorage() : store,
@@ -220,6 +261,8 @@ export function createRunSummary({
         rules,
       );
     if (storage) writeBest(storage, mergeBest(best, result), rules);
+    crown.textContent = title();
+    crown.hidden = !crown.textContent;
     heading.textContent = webText("summary.heading");
     for (const c of cells) {
       const row = result.rows.find((r) => r.id === c.stat.id);

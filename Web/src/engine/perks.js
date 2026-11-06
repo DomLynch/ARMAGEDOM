@@ -2,6 +2,7 @@ import { GAME_DATA } from "./game-data.js";
 import { webText } from "./web-text.js";
 import { TRASH_WAVE, wavesEnabled } from "./trash-wave-core.js";
 import { activeDay, seededRandom } from "./spawn-variation.js";
+import { claimContractBonus, contractBonusReady } from "./daily-contract.js";
 
 // WAVE PERKS (data/perks.json). Opt-in with the waves: with ?waves=1 off (the default) nothing here creates state or touches a stat.
 // On: every everyWaves-th wave clear offers a few different perks; one is taken by tap, click or the 1-2-3 keys (the first is taken when
@@ -22,25 +23,28 @@ function newState(rules) {
   return { picks: {}, granted: 0, offer: null, mods, shield: 0, credit: 0, dropRand: null };
 }
 
+const pickTotal = (state) => Object.values(state.picks).reduce((n, v) => n + v, 0);
+
 // Up to `choices` different perks that can still stack, drawn by a day-seeded shuffle (offer number n always draws the same on a given day).
-function draw(state, rules) {
+// The Contract bonus offer (daily-contract.js) is drawn the same way with the number of picks so far added to the seed.
+function draw(state, rules, bonus = false) {
   const ids = rules.perks.filter((p) => (state.picks[p.id] ?? 0) < p.maxStacks).map((p) => p.id),
     take = Math.min(rules.choices, ids.length),
-    random = seededRandom(
-      [activeDay() ?? rules.seed.fallbackDay, rules.seed.salt, state.granted].join(rules.seed.separator),
-    );
+    parts = [activeDay() ?? rules.seed.fallbackDay, rules.seed.salt, state.granted],
+    random = seededRandom((bonus ? [...parts, pickTotal(state)] : parts).join(rules.seed.separator));
   for (let i = 0; i < take; i++) {
     const j = i + Math.floor(random() * (ids.length - i));
     [ids[i], ids[j]] = [ids[j], ids[i]];
   }
-  return take ? { ids: ids.slice(0, take), left: rules.autoPickSeconds, total: rules.autoPickSeconds } : null;
+  return take ? { ids: ids.slice(0, take), left: rules.autoPickSeconds, total: rules.autoPickSeconds, bonus } : null;
 }
 
 // Takes `id` from the open offer. Returns false (and changes nothing) when there is no offer or it is not one of the offered, so a tap,
 // a key and the timer can all arrive and the perk still counts once.
 export function pickPerk(g, id, rules = PERKS) {
   const state = g.perks,
-    perk = state?.offer?.ids.includes(id) ? rules.perks.find((p) => p.id === id) : null;
+    offer = state?.offer,
+    perk = offer?.ids.includes(id) ? rules.perks.find((p) => p.id === id) : null;
   if (!perk) return false;
   state.offer = null;
   state.picks[id] = (state.picks[id] ?? 0) + 1;
@@ -54,6 +58,9 @@ export function pickPerk(g, id, rules = PERKS) {
   if (perk.stat === "staminaRegen") p.staminaRegen = (p.staminaRegen ?? 1) * perk.value; // the player's own multiplier, once per pick
   g.message = webText("perk.picked", { name: perk.name });
   g.messageUntil = g.time + rules.messageSeconds;
+  // The Contract bonus (all three daily goals cleared this session): the first pick after it is earned is followed by one free extra offer.
+  const extra = !offer.bonus && contractBonusReady() ? draw(state, rules, true) : null;
+  if (extra && claimContractBonus()) state.offer = extra;
   return true;
 }
 
@@ -185,7 +192,7 @@ export function createPerkPicker({ doc = globalThis.document, listen, rules = PE
   }
   listen?.(globalThis.window ?? doc, "keydown", onKey, { capture: true });
   function show(offer) {
-    heading.textContent = webText("perk.heading");
+    heading.textContent = webText(offer.bonus ? "perk.headingBonus" : "perk.heading");
     cards.forEach((c, i) => {
       const perk = rules.perks.find((p) => p.id === offer.ids[i]);
       c.card.hidden = !perk;

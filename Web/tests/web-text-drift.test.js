@@ -16,6 +16,9 @@ const DYNAMIC_PREFIXES = [
   { prefix: "runCore.refusal.", reason: "run-core.js picks the supply refusal line by the collectSupply reason (pistol-required, reserve-full, health-full)" },
   { prefix: "summary.label.", reason: "engine/run-summary.js names each summary row's label by the stat id of the row in data/runSummary.json" },
   { prefix: "summary.goal.", reason: "engine/run-summary.js names the goal line by the stat id (and .one for a single unit) of the row in data/runSummary.json" },
+  { prefix: "daily.goal.", reason: "engine/daily-contract.js names each goal's words by the row's source in data/dailyContract.json" },
+  { prefix: "daily.goal.weapon.", reason: "engine/daily-contract.js names a weapon goal's words by the row's weapon key in data/dailyContract.json" },
+  { prefix: "daily.tier.", reason: "engine/daily-contract.js names each row's tier tag by the tier (easy, medium, hard) in data/dailyContract.json" },
   { prefix: "hud.keys.", reason: "engine/input-keymap.js builds each key-hint label from the hint row's text in data/inputKeys.json" },
 ];
 
