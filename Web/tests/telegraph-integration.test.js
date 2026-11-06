@@ -11,7 +11,7 @@ import { stepBossRanged } from "../src/engine/boss-ranged.js";
 
 // The telegraph over the real simulation: a real boss swing is read from the game's own state, fills to 1 on the tick its hit is
 // allowed to land, and the player it hurts is standing inside the drawn shape.
-const RULES = GAME_DATA.telegraph;
+const RULES = { ...GAME_DATA.telegraph, enabled: true };
 const registry = createAreaRegistry();
 const raw = () => JSON.parse(fs.readFileSync(new URL("../public/world/area-content.json", import.meta.url)));
 

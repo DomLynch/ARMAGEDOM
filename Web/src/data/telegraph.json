@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "enabled": true,
+  "enabled": false,
   "offSwitch": { "param": "notelegraph", "value": "1" },
   "maxVisible": 8,
   "groundHeight": 0.035,
