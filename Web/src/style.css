@@ -189,7 +189,8 @@ summary:focus-visible {
   position: absolute;
   top: var(--safe-t);
   left: 36%;
-  right: 22%;
+  /* Clear of the minimap and menu button (menu offset 56px + map 76px + gap) when the screen is narrow. */
+  right: max(22%, calc(var(--safe-r) + 140px));
   text-align: center;
   font-size: 12px;
   line-height: 1.1;
