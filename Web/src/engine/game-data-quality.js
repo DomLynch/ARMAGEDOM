@@ -3,7 +3,20 @@ import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
 export function validateQualityTier(d) {
-  closed(d, ["schema_version", "note", "enabled", "param", "autoValue", "globalName", "probe", "desktopBackdrop", "desktopSharpness", "materialPolish", "signals", "tiers"]);
+  closed(d, [
+    "schema_version",
+    "note",
+    "enabled",
+    "param",
+    "autoValue",
+    "globalName",
+    "probe",
+    "desktopBackdrop",
+    "desktopSharpness",
+    "materialPolish",
+    "signals",
+    "tiers",
+  ]);
   if (d.schema_version !== 1) fail("qualityTier", "schema_version must be 1");
   if (typeof d.enabled !== "boolean") fail("qualityTier", "enabled must be true or false");
   if (!d.param || !d.autoValue) fail("qualityTier", "param and autoValue are required");
