@@ -3,6 +3,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 // The page asks for the waves (?waves=1) before any module reads the address.
+// The spawn roll is seeded by the UTC day the session started; pin that day so the expectations below do not drift with the date.
+const RealDate = Date;
+globalThis.Date = class extends RealDate {
+  constructor(...args) {
+    super(...(args.length ? args : ["2026-11-05T12:00:00Z"]));
+  }
+};
 globalThis.location = { search: "?waves=1" };
 const { GAME_DATA } = await import("../src/engine/game-data.js");
 const { validateTrashWave } = await import("../src/engine/game-data-trash-wave.js");
