@@ -222,3 +222,98 @@ test("the real budget refuses a desktop texture that does not fit and evicts par
   w.admitTexture(bytesOf(VIEW.desktopArtSize), budget);
   assert.ok(!cache.stages.has("a"), "a parked area is evicted to make room");
 });
+
+// Desktop sharpness (data qualityTier.desktopSharpness): pixel ratio, mipmaps and anisotropy for the desktop class only.
+const sharp = rules.desktopSharpness,
+  mippedBytes = (size) => (bytesOf(size) * 4) / 3; // a full mip chain adds a third
+
+test("sharpness: only the desktop class gets it, from the probe alone (no settle wait), and it is gone on a lower tier", () => {
+  const early = createQualityTier(rules, "");
+  early.probe(strong);
+  assert.deepEqual(early.sharpness(), sharp, "applies at the first resize, before the frame sample lands");
+  assert.equal(early.desktopBackdrop(), false, "the backdrop itself still waits to settle");
+  assert.deepEqual(tier(safari).sharpness(), sharp);
+  for (const [name, env] of [["phone", phone], ["tablet", tablet], ["few cores", { ...strong, cores: 4 }], ["small texture limit", { ...strong, textureSize: 4096 }]])
+    assert.equal(tier(env).sharpness(), null, name);
+  for (const name of ["mid", "low"]) assert.equal(tier(strong, `?${rules.param}=${name}`).sharpness(), null, name);
+  const slow = createQualityTier(rules, "");
+  slow.probe({ ...strong, cores: 4, memoryGb: 2 });
+  assert.equal(settle(slow, {}).sharpness(), null);
+  assert.equal(tier(strong, `?${rules.desktopBackdrop.param}=${rules.desktopBackdrop.offValue}`).sharpness(), null, "?desktop=0 is off");
+  assert.equal(createQualityTier({ ...rules, enabled: false }, "").sharpness(), null, "nothing probed");
+});
+
+test("sharpness data: the full tier ceiling admits it, the old cap and the lower tiers stay", () => {
+  const [full, mid, low] = rules.tiers;
+  assert.equal(sharp.pixelRatio, 2);
+  assert.ok(sharp.pixelRatio > GAME_DATA.browserSession.maxPixelRatio);
+  assert.ok(full.pixelRatio >= sharp.pixelRatio, "the full tier row does not cap it back down");
+  assert.equal(GAME_DATA.browserSession.maxPixelRatio, 1.5);
+  assert.deepEqual([mid.pixelRatio, low.pixelRatio], [1.25, 1]);
+  assert.throws(() => validateQualityTier({ ...rules, desktopSharpness: { ...sharp, extra: 1 } }));
+  assert.throws(() => validateQualityTier({ ...rules, desktopSharpness: { ...sharp, pixelRatio: 0.5 } }));
+  assert.throws(() => validateQualityTier({ ...rules, desktopSharpness: { ...sharp, anisotropy: 0 } }));
+  assert.throws(() => validateQualityTier({ ...rules, desktopSharpness: undefined }));
+});
+
+test("GPU math with mipmaps: 18 MiB per desktop backdrop; active + the parked bytes limit + one entering fits the 64 MiB desktop budget", () => {
+  const each = mippedBytes(VIEW.desktopArtSize),
+    parked = GAME_DATA.areaRuntime.parkedAreas,
+    budget = VIEW.desktopTextureBudgetMiB * MIB;
+  assert.ok(Math.abs(each / MIB - 18) < 0.01);
+  const heldParked = Math.min(parked.maxAreas, Math.floor(parked.maxBytes / each));
+  assert.equal(heldParked, 1, "the 30 MiB parked limit now holds one mipped desktop area (it held two unmipped)");
+  assert.ok(each + heldParked * each + each <= budget, "active + parked + the one entering");
+});
+
+test("sharp desktop backdrop: mipmaps, anisotropy capped by the GPU, charged 4/3; the phone file stays unmipped", async (t) => {
+  const old = globalThis.fetch;
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => read("../public/" + new URL(url).pathname.slice(1)) });
+  t.after(() => (globalThis.fetch = old));
+  const make = async (maxAniso, gate, sharpness) => {
+    const textures = [];
+    class Loader {
+      async loadAsync(url) {
+        const [width, height] = url.includes("desktop") ? VIEW.desktopArtSize : VIEW.artSize,
+          texture = new T.Texture({ width, height });
+        textures.push(texture);
+        return texture;
+      }
+    }
+    const w = await createWorld({
+      THREE: { ...T, TextureLoader: Loader },
+      renderer: { capabilities: { getMaxAnisotropy: () => maxAniso } },
+      scene: new T.Scene(),
+      camera: new T.PerspectiveCamera(),
+      baseUrl: "https://fixture.invalid/",
+      desktopBackdrop: gate,
+      desktopSharpness: sharpness,
+    });
+    t.after(() => w.dispose());
+    return { w, textures };
+  };
+  const on = await make(16, () => true, () => sharp),
+    stage = await on.w.prepareArea(desktopId),
+    tex = on.textures.at(-1);
+  assert.equal(tex.generateMipmaps, true);
+  assert.equal(tex.minFilter, T.LinearMipmapLinearFilter);
+  assert.equal(tex.magFilter, T.LinearFilter);
+  assert.equal(tex.anisotropy, sharp.anisotropy);
+  assert.equal(stage.textureBytes(), mippedBytes(VIEW.desktopArtSize));
+  assert.equal(stage.texture, tex, "the stage constructor does not undo it");
+  const weak = await make(2, () => true, () => sharp);
+  await weak.w.prepareArea(desktopId);
+  assert.equal(weak.textures.at(-1).anisotropy, 2, "capped by what the GPU reports");
+  for (const [label, sharpness] of [["no sharpness gate", undefined], ["gate says no", () => null]]) {
+    const off = await make(16, () => true, sharpness),
+      s = await off.w.prepareArea(desktopId);
+    assert.equal(off.textures.at(-1).generateMipmaps, false, label);
+    assert.equal(off.textures.at(-1).minFilter, T.LinearFilter, label);
+    assert.equal(s.textureBytes(), bytesOf(VIEW.desktopArtSize), label);
+  }
+  const phoneOnly = await make(16, () => false, () => sharp),
+    ps = await phoneOnly.w.prepareArea(desktopId);
+  assert.equal(phoneOnly.textures.at(-1).generateMipmaps, false, "the phone backdrop path is unchanged");
+  assert.equal(phoneOnly.textures.at(-1).anisotropy, 1);
+  assert.equal(ps.textureBytes(), bytesOf(VIEW.artSize));
+});

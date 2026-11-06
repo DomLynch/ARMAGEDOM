@@ -742,7 +742,7 @@ export function createBrowserSession(options = {}) {
         textureSize: renderer.capabilities?.maxTextureSize,
         touchPoints: navigator.maxTouchPoints,
       });
-      renderer.setPixelRatio(QUALITY.cap(Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio), "pixelRatio"));
+      renderer.setPixelRatio(QUALITY.cap(Math.min(devicePixelRatio, QUALITY.sharpness()?.pixelRatio ?? GAME_DATA.browserSession.maxPixelRatio), "pixelRatio"));
       renderer.setSize(innerWidth, innerHeight, false);
       world?.update(game?.player.pos ?? world.spawn, 0, innerWidth, innerHeight, true);
       atmosphere?.update(0, { paused: true });
@@ -777,6 +777,7 @@ export function createBrowserSession(options = {}) {
         viewZoomMultiplier,
         content: privateContent,
         desktopBackdrop: () => QUALITY.desktopBackdrop(),
+        desktopSharpness: () => QUALITY.sharpness(),
       }),
       loadActors(baseUrl, () => (lastLoadProgress = performance.now()), actorManifest),
     ]).then((settled) => (preloadPhysicsDeath(), settled)));

@@ -29,6 +29,18 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     current = next;
     for (const fn of listeners) fn(current);
   };
+  const desktopClass = (needSettled) => {
+    const rule = rules.desktopBackdrop,
+      asked = new URLSearchParams(search).get(rule.param);
+    if (!current.desktopBackdrop || asked === rule.offValue) return false;
+    if (asked === rule.forceValue) return true;
+    if (!(probed || forced) || (needSettled && !sampled)) return false;
+    return rule.needs.every((n) => {
+      const v = values[n.name];
+      if (!Number.isFinite(v)) return n.whenMissing;
+      return (n.min === undefined || v >= n.min) && (n.max === undefined || v <= n.max);
+    });
+  };
   if (forced) current = forced;
   return {
     row: () => current,
@@ -40,18 +52,10 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     // Opt-in 1.5x desktop backdrop: only a tier row that allows it, once settled, with every need met. A missing reading follows its
     // need's whenMissing (cores and texture size must be reported; deviceMemory and touch points may be absent). ?desktop=0 is off;
     // ?desktop=1 skips the needs and the settle wait but never the tier row, so a low or mid tier can never be forced onto it.
-    desktopBackdrop() {
-      const rule = rules.desktopBackdrop,
-        asked = new URLSearchParams(search).get(rule.param);
-      if (!current.desktopBackdrop || asked === rule.offValue) return false;
-      if (asked === rule.forceValue) return true;
-      if (!(probed || forced) || !sampled) return false;
-      return rule.needs.every((n) => {
-        const v = values[n.name];
-        if (!Number.isFinite(v)) return n.whenMissing;
-        return (n.min === undefined || v >= n.min) && (n.max === undefined || v <= n.max);
-      });
-    },
+    desktopBackdrop: () => desktopClass(true),
+    // Desktop sharpness (data desktopSharpness): the same device class as the desktop backdrop but without the settle wait, so the higher
+    // pixel ratio applies from the first resize. Null for phones, tablets and mid or low tiers; a later tier drop (onChange) turns it off.
+    sharpness: () => (desktopClass(false) ? rules.desktopSharpness : null),
     // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
     report: () =>
       Object.freeze({

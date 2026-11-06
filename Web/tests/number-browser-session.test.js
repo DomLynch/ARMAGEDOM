@@ -46,7 +46,7 @@ test("the session source reads each value from the data rows", () => {
     "sun.position.set(...lights.sunPosition)",
     "new THREE.PointLight(lights.rimColor, lights.rimIntensity, lights.rimDistance, lights.rimDecay)",
     "game.messageUntil = game.time + GAME_DATA.browserSession.syncedNoticeSeconds",
-    "Math.min(devicePixelRatio, GAME_DATA.browserSession.maxPixelRatio)",
+    "Math.min(devicePixelRatio, QUALITY.sharpness()?.pixelRatio ?? GAME_DATA.browserSession.maxPixelRatio)",
     "[1000, 1001, CLOSE_REPLACED]",
   ])
     assert(src.includes(use), use);

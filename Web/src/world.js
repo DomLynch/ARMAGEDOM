@@ -12,7 +12,8 @@ const MIB = 1024 * 1024; // tuning-ok: bytes in a MiB, a unit conversion
 const ASPECT = VIEW.artSize[0] / VIEW.artSize[1];
 const DESKTOP_BUDGET = VIEW.desktopTextureBudgetMiB * MIB; // admits the 1.5x desktop backdrops (data/areaRuntime.json)
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-// GPU bytes of an RGBA backdrop: 1x its pixels because it is uploaded without mipmaps (a full mip chain would add a third, 4/3 in all).
+// GPU bytes of an RGBA backdrop: 1x its pixels when uploaded without mipmaps (the phone path); a full mip chain (the sharp desktop
+// backdrop) adds a third, 4/3 in all.
 export const backdropTextureBytes = (texture, mipped = false) =>
   (texture.image?.width ?? 0) * (texture.image?.height ?? 0) * 4 * (mipped ? 4 / 3 : 1); // tuning-ok: RGBA bytes; a mip chain adds a third
 // Unity SmoothDamp's critically damped crop; the calibrated camera never moves.
@@ -31,6 +32,7 @@ function initialSpawn(geometry, registry) {
 export class LondonWorld {
   constructor({
     THREE,
+    renderer = null,
     scene,
     camera,
     layout,
@@ -41,6 +43,7 @@ export class LondonWorld {
     registry = null,
     textureBudgetBytes = VIEW.textureBudgetMiB * MIB,
     desktopBackdrop = null,
+    desktopSharpness = null,
     validatedLayouts = null,
     residentPlacements = null,
     areaAtmosphere = null,
@@ -88,10 +91,12 @@ export class LondonWorld {
     this.validatedLayouts = validatedLayouts;
     this.textureBudgetBytes = textureBudgetBytes;
     this.desktopBackdrop = desktopBackdrop;
+    this.desktopSharpness = desktopSharpness;
     this.viewZoomMultiplier = viewZoomMultiplier;
     this.THREE = THREE;
     this.scene = scene;
     this.camera = camera;
+    this.renderer = renderer;
     this.layout = layout;
     this.texture = texture;
     this.geometry = createGeometry(layout);
@@ -126,8 +131,11 @@ export class LondonWorld {
     texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
     // The backdrop is never drawn smaller than its pixels (view zoom is at least 1), so it needs no mip chain: no generation at area
     // preparation and a third less GPU memory. See textureBytes().
-    texture.generateMipmaps = false;
-    texture.minFilter = texture.magFilter = THREE.LinearFilter;
+    // A sharp desktop backdrop (sharpenDesktopBackdrop) arrives already mipmapped and is left alone.
+    if (!texture.userData?.desktopSharp) {
+      texture.generateMipmaps = false;
+      texture.minFilter = texture.magFilter = THREE.LinearFilter;
+    }
     this.backdrop = this.quad(
       [
         { x: 0, y: 1 },
@@ -356,6 +364,18 @@ export class LondonWorld {
       return false;
     }
   }
+  // Desktop backdrop only: trilinear mipmaps plus anisotropy (data qualityTier desktopSharpness, capped by the GPU's own maximum).
+  // Returns true when the mip chain was enabled, so the caller counts the extra third against the desktop budget.
+  sharpenDesktopBackdrop(texture) {
+    const rule = this.desktopSharpness?.();
+    if (!rule) return false;
+    texture.generateMipmaps = true;
+    texture.minFilter = this.THREE.LinearMipmapLinearFilter;
+    texture.magFilter = this.THREE.LinearFilter;
+    texture.anisotropy = Math.min(rule.anisotropy, this.renderer?.capabilities?.getMaxAnisotropy?.() ?? rule.anisotropy);
+    texture.userData.desktopSharp = true;
+    return true;
+  }
   // Layout and backdrop files a later prepareArea would fetch; empty once the stage is prepared.
   areaPrefetchUrls(areaId) {
     const row = this.registry.get(areaId);
@@ -428,7 +448,7 @@ export class LondonWorld {
         try {
           texture = await loadBackdrop(row.desktopBackdropRef);
           if (cache.disposed) throw Error("London cache disposed");
-          this.admitTexture(backdropTextureBytes(texture), DESKTOP_BUDGET);
+          this.admitTexture(backdropTextureBytes(texture, this.sharpenDesktopBackdrop(texture)), DESKTOP_BUDGET);
         } catch (error) {
           if (texture) {
             texture.dispose();
@@ -454,7 +474,9 @@ export class LondonWorld {
           baseUrl: this.baseUrl,
           viewZoomMultiplier: this.viewZoomMultiplier,
           textureBudgetBytes: this.textureBudgetBytes,
+          renderer: this.renderer,
           desktopBackdrop: this.desktopBackdrop,
+          desktopSharpness: this.desktopSharpness,
           validatedLayouts: this.validatedLayouts,
           residentPlacements: this.residentPlacements,
           areaAtmosphere: this.areaAtmosphere,
@@ -501,7 +523,7 @@ export class LondonWorld {
     }
   }
   textureBytes() {
-    return backdropTextureBytes(this.texture);
+    return backdropTextureBytes(this.texture, this.texture.userData?.desktopSharp === true);
   }
   preparationStats() {
     const c = this.areaCache;
@@ -650,6 +672,7 @@ export async function createWorld({
   viewZoomMultiplier = 1,
   content = null,
   desktopBackdrop = null, // () => boolean: the device gate for the 1.5x desktop backdrops (the initial area always loads its phone file)
+  desktopSharpness = null, // () => {anisotropy} | null: mipmaps and anisotropy for those desktop backdrops
 }) {
   let manifest = content?.manifest;
   if (!manifest) {
@@ -708,6 +731,7 @@ export async function createWorld({
       viewZoomMultiplier,
       textureBudgetBytes: content?.textureBudgetBytes,
       desktopBackdrop,
+      desktopSharpness,
       validatedLayouts: content?.layouts,
       residentPlacements: content?.residents,
       areaAtmosphere: content?.atmosphere,

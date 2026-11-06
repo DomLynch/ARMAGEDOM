@@ -3,7 +3,7 @@ import { closed } from "./content-schema.js";
 import { count, fail, number } from "./game-data-checks.js";
 
 export function validateQualityTier(d) {
-  closed(d, ["schema_version", "note", "enabled", "param", "autoValue", "globalName", "probe", "desktopBackdrop", "signals", "tiers"]);
+  closed(d, ["schema_version", "note", "enabled", "param", "autoValue", "globalName", "probe", "desktopBackdrop", "desktopSharpness", "signals", "tiers"]);
   if (d.schema_version !== 1) fail("qualityTier", "schema_version must be 1");
   if (typeof d.enabled !== "boolean") fail("qualityTier", "enabled must be true or false");
   if (!d.param || !d.autoValue) fail("qualityTier", "param and autoValue are required");
@@ -22,6 +22,9 @@ export function validateQualityTier(d) {
     if (n.min === undefined && n.max === undefined) fail("qualityTier", `${n.name} needs a min or a max`);
     for (const f of ["min", "max"]) if (n[f] !== undefined) number("qualityTier", `${n.name}.${f}`, n[f], 0);
   }
+  closed(d.desktopSharpness, ["pixelRatio", "anisotropy"]);
+  number("qualityTier", "desktopSharpness.pixelRatio", d.desktopSharpness.pixelRatio, 1);
+  count("qualityTier", "desktopSharpness.anisotropy", d.desktopSharpness.anisotropy, 1, 16);
   if (!Array.isArray(d.signals) || !d.signals.length) fail("qualityTier", "signals must be a list");
   for (const s of d.signals) {
     closed(s, ["name", "weak", "limit"]);
