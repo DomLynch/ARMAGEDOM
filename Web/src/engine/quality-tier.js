@@ -42,6 +42,14 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     });
   };
   if (forced) current = forced;
+  const probeListeners = new Set();
+  // Every need of a rule list holds against the probe readings (a missing reading follows the need's whenMissing).
+  const needsMet = (needs) =>
+    needs.every((n) => {
+      const v = values[n.name];
+      if (!Number.isFinite(v)) return n.whenMissing;
+      return (n.min === undefined || v >= n.min) && (n.max === undefined || v <= n.max);
+    });
   return {
     row: () => current,
     // A ceiling from the tier row: the smaller of the data's own value and the tier's.
@@ -56,6 +64,16 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
     // Desktop sharpness (data desktopSharpness): the same device class as the desktop backdrop but without the settle wait, so the higher
     // pixel ratio applies from the first resize. Null for phones, tablets and mid or low tiers; a later tier drop (onChange) turns it off.
     sharpness: () => (desktopClass(false) ? rules.desktopSharpness : null),
+    // Desktop-only material polish (qualityTier.json materialPolish): the rule when the tier row allows it, the device probe has landed
+    // (or the tier is forced) and every need holds, else null. It does not wait for the frame sample; if the tier later drops this
+    // returns null and onChange fires. ?nopolish=1 is off. A phone or tablet fails the touchPoints need even on the full tier.
+    materialPolish() {
+      const rule = rules.materialPolish;
+      if (!current.materialPolish || new URLSearchParams(search).get(rule.param) === rule.offValue) return null;
+      return (probed || forced) && needsMet(rule.needs) ? rule : null;
+    },
+    // Called once when the device probe lands (the readings are then known).
+    onProbe: (fn) => probeListeners.add(fn),
     // The chosen tier and why, as plain data a phone can show: the tier name, the readings, the signals that were weak, and how it was chosen.
     report: () =>
       Object.freeze({
@@ -71,6 +89,7 @@ export function createQualityTier(rules, search = globalThis.location?.search ??
       probed = true;
       Object.assign(values, env);
       choose();
+      for (const fn of probeListeners) fn(current);
     },
     // Called with each real frame's timestamp (ms). After warmup the median of a long sample becomes the frameMs signal, once.
     frame(ms) {
