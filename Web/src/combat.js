@@ -1228,7 +1228,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
       const scale =
         (p.guarding ? (g.pilot ? R.guardSpeed : LEGACY.player.guardMoveScale) : 1) *
         (p.saw?.active ? BONE_SAW_RULES.moveScale : 1) *
-        perkMove(g); // the wave perks (?waves=1); 1 without them
+        perkMove(g); // the wave perks (on unless ?nowaves=1); 1 without them
       const vel = { x: m.x * speed * scale, z: m.z * speed * scale },
         difference = sub(vel, p.velocity),
         n = mag(difference),
@@ -1273,7 +1273,7 @@ export function stepGame(g, intent = {}, dt = 1 / 60, services = {}) {
     }
     stepMarkedHunters(g, (p, c) => markedHunter(g, p, c));
     stepCursedRelic(g, (p, c) => markedHunter(g, p, c));
-    stepTrashWave(g, dt, services); // opt-in timed trash-mob waves (?waves=1); returns at once when off
+    stepTrashWave(g, dt, services); // timed trash-mob waves (on unless ?nowaves=1); returns at once when off
     if (g.respawn) reviveAreaResidents(g);
     stepCreatureAI(g, dt, services);
     if (p.hp <= 0 || g.finished || g.time < p.hurtUntil || g.time < p.dodgeUntil) stopBoneSaw(g, p, "interrupted");

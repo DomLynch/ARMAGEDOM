@@ -92,6 +92,7 @@ export function validateTrashWave(d) {
     "enabled",
     "wavesEnabledDefault",
     "startSwitch",
+    "offSwitch",
     "excludedAreas",
     "seed",
     "clockSeconds",
@@ -108,10 +109,12 @@ export function validateTrashWave(d) {
   ]);
   bool("enabled", d.enabled);
   bool("wavesEnabledDefault", d.wavesEnabledDefault);
-  closed(d.startSwitch, ["param", "value"]);
-  for (const k of ["param", "value"])
-    if (typeof d.startSwitch[k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d.startSwitch[k]))
-      fail("trashWave", `startSwitch.${k}`);
+  for (const name of ["startSwitch", "offSwitch"]) {
+    closed(d[name], ["param", "value"]);
+    for (const k of ["param", "value"])
+      if (typeof d[name][k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d[name][k])) fail("trashWave", `${name}.${k}`);
+  }
+  if (d.startSwitch.param === d.offSwitch.param) fail("trashWave", "the start and off switches need different parameters");
   if (!Array.isArray(d.excludedAreas) || d.excludedAreas.some((a) => typeof a !== "string" || !a))
     fail("trashWave", "excludedAreas must list area ids");
   closed(d.seed, ["fallbackDay", "separator", "salt"]);

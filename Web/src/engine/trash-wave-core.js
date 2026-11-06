@@ -5,12 +5,13 @@ import { QUALITY } from "./quality-tier.js";
 // live count. Nothing here touches the game state or the scene, so kill-drops.js and the tests can use it without loading actors.
 export const TRASH_WAVE = GAME_DATA.trashWave;
 
-// The page's switch, worked out once per rules row (the address never changes in a page). `search` is for tests. Waves are off unless the
-// data says wavesEnabledDefault or the address carries the start switch (?waves=1).
+// The page's switch, worked out once per rules row (the address never changes in a page). `search` is for tests. Waves are on when the data says
+// wavesEnabledDefault (or the address carries the start switch, ?waves=1) unless the address carries the off switch (?nowaves=1).
 const pageOn = new WeakMap();
 export function wavesEnabled(rules = TRASH_WAVE, search = undefined) {
   const read = (query) =>
     rules.enabled &&
+    new URLSearchParams(query).get(rules.offSwitch.param) !== rules.offSwitch.value &&
     (rules.wavesEnabledDefault || new URLSearchParams(query).get(rules.startSwitch.param) === rules.startSwitch.value);
   if (search !== undefined) return read(search);
   if (!pageOn.has(rules)) pageOn.set(rules, read(globalThis.location?.search ?? ""));

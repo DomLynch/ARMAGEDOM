@@ -17,16 +17,19 @@ export function validateBossGoals(d) {
     "enabled",
     "bossGoalsEnabledDefault",
     "startSwitch",
+    "offSwitch",
     "summon",
     "flourish",
     "goals",
   ]);
   for (const f of ["enabled", "bossGoalsEnabledDefault"])
     if (typeof d[f] !== "boolean") fail("bossGoals", `${f} must be true or false`);
-  closed(d.startSwitch, ["param", "value"]);
-  for (const k of ["param", "value"])
-    if (typeof d.startSwitch[k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d.startSwitch[k]))
-      fail("bossGoals", `startSwitch.${k}`);
+  for (const name of ["startSwitch", "offSwitch"]) {
+    closed(d[name], ["param", "value"]);
+    for (const k of ["param", "value"])
+      if (typeof d[name][k] !== "string" || !/^[a-z0-9]{1,16}$/.test(d[name][k])) fail("bossGoals", `${name}.${k}`);
+  }
+  if (d.startSwitch.param === d.offSwitch.param) fail("bossGoals", "the start and off switches need different parameters");
   closed(d.summon, ["distance", "attempts"]);
   number("bossGoals", "summon.distance", d.summon.distance, 1);
   count("bossGoals", "summon.attempts", d.summon.attempts, 1, 64);

@@ -226,12 +226,13 @@ test("the medic stall sells its own items through the same controller", async ()
 
 test("the off switch is named in data and turns the shops off", () => {
   assert.equal(DATA.offParam, "noshop");
-  assert.equal(shopsOn(""), DATA.enabled);
+  assert.equal(DATA.enabled, true, "shops ship on");
+  assert.equal(shopsOn(""), true);
   assert.equal(shopsOn(`?${DATA.offParam}=${DATA.offValue}`), false);
 });
 
-test("the shops ship OFF in data until the market server (PR #483) is live", () => {
-  assert.equal(DATA.enabled, false);
+test("the shops ship ON in data (Dom, 6 Nov 2026); ?noshop=1 removes them", () => {
+  assert.equal(DATA.enabled, true);
 });
 
 // A screen with the hub, the player and a camera whose projection keeps boxes predictable.

@@ -1,7 +1,7 @@
 // Source-only browser gate. Packaging/browser/device acceptance is separate.
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { asDataProblems, constantTableProblems, dataDebt, dataImportProblems, numberLiteralProblems, tuningMarkProblems } from "./as-data-gate.mjs";
 import { textLiteralProblems } from "./text-literal-gate.mjs";
@@ -133,8 +133,11 @@ export function verifyWeb(root, { quiet = false, shard = null } = {}) {
   if (shard && !/^\d+\/\d+$/.test(shard))
     throw Error(`VERIFY_WEB_SHARD must be <index>/<total>, got ${shard}`);
   delete env.VERIFY_WEB_SHARD;
+  // The suite's page-switch preload (the gate fixtures in the tests have none).
+  const preload = join(root, "Web/tests/setup-legacy-switches.mjs");
   run("tests", [
     "--test",
+    ...(existsSync(preload) ? ["--import", pathToFileURL(preload).href] : []),
     "--test-concurrency=2",
     ...(shard ? [`--test-shard=${shard}`] : []),
     ...tests,

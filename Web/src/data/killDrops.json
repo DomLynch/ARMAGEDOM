@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "enabled": false,
+  "enabled": true,
   "pickupRadius": 1,
   "despawnSeconds": 45,
   "maxDrops": 10,
@@ -329,5 +329,6 @@
     "hashC": 43758.5453,
     "burstArc": 1
   },
-  "classicSwitch": { "param": "classiccoins", "value": "1" }
+  "classicSwitch": { "param": "classiccoins", "value": "1" },
+  "offSwitch": { "param": "nokilldrops", "value": "1" }
 }
