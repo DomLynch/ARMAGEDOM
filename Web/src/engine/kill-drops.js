@@ -5,7 +5,8 @@ import { TRASH_WAVE, wavesEnabled } from "./trash-wave-core.js";
 import { onWaveKill } from "./trash-wave-rewards.js";
 // Coins an enemy leaves when it dies (data/killDrops.json). Rules only: which tier a kill is, the cash it rolls, walk-over pickup,
 // the carry-cap refusal and the claim noted for the server. Nothing here is drawn (engine/kill-drops-view.js) or saved: drops live on
-// the run (`g.killDrops`) and are gone when the area changes. On by default (6 Nov 2026); ?nokilldrops=1 turns it off. The server accepts the `kill:*` sources (migrations 18 and 25).
+// the run (`g.killDrops`) and are gone when the area changes. On by default (6 Nov 2026); ?nokilldrops=1 turns it off.
+// The server accepts the `kill:*` sources (migrations 18 and 25).
 // Each function takes the rules as its last argument so a test can pass an enabled copy of the frozen data.
 export const KILL_DROPS = GAME_DATA.killDrops;
 // The off switch for the treasure-pile look (data/killDrops.json `classicSwitch`, e.g. ?classiccoins=1): the plain coins come back, here and on the
