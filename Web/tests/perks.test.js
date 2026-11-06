@@ -24,7 +24,7 @@ import {
 import { make } from "./helpers/marked-fixture.js";
 
 const ON = "?waves=1";
-const OFF = "";
+const OFF = "?nowaves=1";
 const EVERY = PERKS.everyWaves;
 const raw = () => structuredClone(JSON.parse(fs.readFileSync(new URL("../src/data/perks.json", import.meta.url))));
 const game = (extra = {}) => ({
@@ -69,7 +69,7 @@ test("data: eight perks with names and texts, a validator that refuses bad rows"
 
 test("flag off: perks are never offered and no state is created", () => {
   const g = game();
-  for (const search of [OFF, "?waves=0", "?x=1"]) {
+  for (const search of [OFF, "?waves=1&nowaves=1", "?x=1&nowaves=1"]) {
     assert.equal(perksEnabled(search), false);
     assert.equal(stepPerks(g, EVERY * 10, 1, PERKS, search), null);
   }

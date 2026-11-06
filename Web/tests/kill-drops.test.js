@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { GAME_DATA } from "../src/engine/game-data.js";
 import { validateKillDrops } from "../src/engine/game-data-kill-drops.js";
-import { KILL_DROPS, leaveKillDrops, rollKillCash, stepKillDrops, tierOf } from "../src/engine/kill-drops.js";
+import { KILL_DROPS, killDropsOn, leaveKillDrops, rollKillCash, stepKillDrops, tierOf } from "../src/engine/kill-drops.js";
 
 const ON = { ...KILL_DROPS, enabled: true };
 const run = (over = {}) => ({
@@ -17,12 +17,14 @@ const run = (over = {}) => ({
 });
 const die = (g, actor) => g.events.push({ type: "death", actor: { pos: { x: 5, z: 5 }, ...actor } });
 
-test("kill drops ship switched off and the data is valid", () => {
-  assert.equal(GAME_DATA.killDrops.enabled, false);
+test("kill drops ship switched on, ?nokilldrops=1 turns them off, and the data is valid", () => {
+  assert.equal(GAME_DATA.killDrops.enabled, true);
+  assert.equal(killDropsOn(KILL_DROPS, ""), true);
+  assert.equal(killDropsOn(KILL_DROPS, `?${KILL_DROPS.offSwitch.param}=${KILL_DROPS.offSwitch.value}`), false);
   validateKillDrops(structuredClone(KILL_DROPS));
   const g = run();
   die(g, { rig: "original-rat" });
-  assert.equal(leaveKillDrops(g), 0);
+  assert.equal(leaveKillDrops(g, { ...KILL_DROPS, enabled: false }), 0);
   assert.equal(g.killDrops, undefined);
 });
 test("tiers: boss profile is boss, a salamander a creature, a rat and an unknown body trash", () => {

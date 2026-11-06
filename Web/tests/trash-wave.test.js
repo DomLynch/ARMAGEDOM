@@ -114,22 +114,25 @@ test("the data validates, refuses broken rows, and ships switched off with its t
     mutate(d);
     assert.throws(() => validateTrashWave(d));
   }
-  assert.equal(DATA.wavesEnabledDefault, false);
+  assert.equal(DATA.wavesEnabledDefault, true);
   assert.deepEqual(
     Object.keys(DATA.tiers),
     GAME_DATA.qualityTier.tiers.map((t) => t.name),
   );
   assert.ok(GAME_DATA.killDrops.tiers[DATA.drops.tier], "the wave drop tier is a killDrops tier");
-  assert.equal(GAME_DATA.killDrops.enabled, false, "the shared coin drops stay off for everyone else");
+  assert.equal(GAME_DATA.killDrops.enabled, true, "the shared coin drops are on for every enemy too");
   for (const id of ["wave.announce", "wave.elite", "wave.boss", "wave.cleared"])
     assert.ok(webText(id, { wave: 1, hp: 25, score: 0 }));
 });
 
-test("the switch: off unless ?waves=1 (or the data default), and the whole row can be disabled", () => {
-  assert.equal(wavesEnabled(DATA, ""), false);
-  assert.equal(wavesEnabled(DATA, "?waves=0"), false);
-  assert.equal(wavesEnabled(DATA, "?quality=low&waves=1"), true);
-  assert.equal(wavesEnabled({ ...DATA, wavesEnabledDefault: true }, ""), true);
+test("the switch: on by default, ?nowaves=1 turns it off, and the whole row can be disabled", () => {
+  assert.equal(wavesEnabled(DATA, ""), true);
+  assert.equal(wavesEnabled(DATA, "?waves=0"), true);
+  assert.equal(wavesEnabled(DATA, "?nowaves=1"), false);
+  assert.equal(wavesEnabled(DATA, "?quality=low&waves=1&nowaves=1"), false, "the off switch wins");
+  const optIn = { ...DATA, wavesEnabledDefault: false };
+  assert.equal(wavesEnabled(optIn, ""), false);
+  assert.equal(wavesEnabled(optIn, "?quality=low&waves=1"), true);
   assert.equal(wavesEnabled({ ...DATA, enabled: false }, "?waves=1"), false);
 });
 
@@ -165,7 +168,7 @@ test("flag off: no state is created and nothing changes, even over a long run", 
     list = g.enemies;
   for (let i = 0; i < 2000; i++) {
     g.time += 0.1;
-    stepTrashWave(g, 0.1, { pointOnScreen: nowhere }, DATA, "");
+    stepTrashWave(g, 0.1, { pointOnScreen: nowhere }, DATA, "?nowaves=1");
   }
   assert.equal("trashWave" in g && g.trashWave != null, false);
   assert.deepEqual(Object.keys(g).sort(), keys);
@@ -173,7 +176,7 @@ test("flag off: no state is created and nothing changes, even over a long run", 
   assert.equal(g.events.length, 0);
   const after = JSON.stringify({ ...g, world: undefined, events: undefined });
   assert.equal(after.replace(/"time":[\d.e+-]+/, ""), before.replace(/"time":[\d.e+-]+/, ""));
-  assert.equal(leaveKillDrops(g), 0);
+  assert.equal(leaveKillDrops(g, KILL_OFF), 0);
   assert.equal(g.killDrops, undefined);
 });
 
@@ -504,17 +507,19 @@ const kill = (g, e) => {
   g.events = [{ type: "death", actor: e }];
 };
 
+// The shared coin drops switched off (they ship on), for the tests that look at the wave-only path.
+const KILL_OFF = { ...KILL_DROPS, enabled: false };
 test("flag filter: with shared coin drops off, only a wave mob that is the elite or last of its wave drops, as a $1-10 trash coin", () => {
   const g = area();
   const [a, b, c] = wave(g, [1, 2, 3]);
   g.time = 100;
   for (const e of [a, b]) {
     kill(g, e);
-    assert.equal(leaveKillDrops(g), 0, "neither of the first two kills pays");
+    assert.equal(leaveKillDrops(g, KILL_OFF), 0, "neither of the first two kills pays");
   }
   assert.equal(g.killDrops, undefined, "no drop state until something pays");
   kill(g, c);
-  assert.equal(leaveKillDrops(g), 1, "the last mob of the wave pays");
+  assert.equal(leaveKillDrops(g, KILL_OFF), 1, "the last mob of the wave pays");
   const [drop] = g.killDrops.list;
   assert.equal(drop.tier, "trash");
   assert.ok(drop.amount >= KILL_DROPS.tiers.trash.min && drop.amount <= KILL_DROPS.tiers.trash.max);
@@ -524,7 +529,7 @@ test("flag filter: with shared coin drops off, only a wave mob that is the elite
   assert.ok(DATA.drops.despawnSeconds < KILL_DROPS.despawnSeconds);
   // An ordinary enemy still drops nothing while the shared switch is off.
   g.events = [{ type: "death", actor: { id: 1, pos: { x: 1, z: 1 }, rig: "original-rat", hp: 0 } }];
-  assert.equal(leaveKillDrops(g), 0);
+  assert.equal(leaveKillDrops(g, KILL_OFF), 0);
   // The drop is walkable like any other (the claim goes through the normal path) and the view/step gate lets it run.
   g.player.pos = { x: drop.x, z: drop.z };
   g.marked ??= { carried: 0, bank: 0 };
@@ -538,13 +543,13 @@ test("flag off: a wave mob's death drops nothing and awards nothing", () => {
   g.time = 100;
   kill(g, a);
   const off = { ...DATA, enabled: false };
-  assert.equal(leaveKillDrops(g, KILL_DROPS, off), 0);
+  assert.equal(leaveKillDrops(g, KILL_OFF, off), 0);
   assert.equal(g.killDrops, undefined);
   assert.equal(g.trashWave.score, 0, "no kill score either");
   const plain = area();
   const x = { id: 1, waveMob: true, waveId: 1, hp: 0, pos: { x: 1, z: 1 }, rig: "hollow-scavenger" };
   plain.events = [{ type: "death", actor: x }];
-  assert.equal(leaveKillDrops(plain), 0, "no wave state at all: nothing");
+  assert.equal(leaveKillDrops(plain, KILL_OFF), 0, "no wave state at all: nothing");
   assert.equal(plain.killDrops, undefined);
   assert.equal(onWaveKill(plain, x), false);
 });

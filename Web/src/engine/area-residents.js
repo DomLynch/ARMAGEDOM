@@ -140,7 +140,7 @@ function buildResidents(g, area, revived, onlyRevived) {
         revived.has(p.key) ||
         (!onlyRevived &&
           !dead.has(p.key) &&
-          !bossGoalLocks(g, p.key) && // ?bossgoals=1: a boss with an unmet goal is not placed yet (boss-goals.js brings it in)
+          !bossGoalLocks(g, p.key) && // boss goals (on unless ?nobossgoals=1): a boss with an unmet goal is not placed yet (boss-goals.js brings it in)
           (!(area === "westminster" || (g.supplies?.version === 2 && g.lootRules?.[p.key]?.areaId === area)) || // tuning-ok: supplies save version
             !g.supplies?.issued.includes(p.key)) &&
           (p.foundationRef !== DRONE_RIG || !(g.droneDeaths ?? []).includes(p.key))),

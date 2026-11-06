@@ -5,12 +5,13 @@ import { GAME_DATA } from "./game-data.js";
 // it and the tests can use it without loading actors. With ?bossgoals=1 absent every answer below is "no goal, nothing locked".
 export const BOSS_GOALS = GAME_DATA.bossGoals;
 
-// The page's switch, worked out once per rules row (the address never changes in a page). `search` is for tests. Goals are off unless the
-// data says bossGoalsEnabledDefault or the address carries the start switch (?bossgoals=1).
+// The page's switch, worked out once per rules row (the address never changes in a page). `search` is for tests. Goals are on when the data
+// says bossGoalsEnabledDefault (or the address carries the start switch, ?bossgoals=1) unless the address carries ?nobossgoals=1.
 const pageOn = new WeakMap();
 export function bossGoalsEnabled(rules = BOSS_GOALS, search = undefined) {
   const read = (query) =>
     rules.enabled &&
+    new URLSearchParams(query).get(rules.offSwitch.param) !== rules.offSwitch.value &&
     (rules.bossGoalsEnabledDefault ||
       new URLSearchParams(query).get(rules.startSwitch.param) === rules.startSwitch.value);
   if (search !== undefined) return read(search);

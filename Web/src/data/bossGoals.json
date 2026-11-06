@@ -1,11 +1,15 @@
 {
   "schema_version": 1,
-  "note": "Boss unlock goals (opt-in). OFF by default: bossGoalsEnabledDefault is false and the page turns them on only with ?bossgoals=1 (startSwitch). With the flag off nothing here reads or changes the game: every area boss stands in its pocket as before. On, each listed boss is not placed when its area is set up; the kills that count (counts: resident = a placed resident, wave = a ?waves=1 wave mob, hunter = a marked or raid hunter; never a boss) made in that boss's own area fill a counter, shown as a ring on the HUD, and the boss steps in beside the player when it is full. Progress is session state on the live game (never saved, never sent); a reload starts it again. engine/boss-goal-core.js is the pure part (switch, lock, count), engine/boss-goals.js the step, engine/boss-goal-view.js the ring. A goal's lines are the webText.json ids bossGoal.<id>.hud (the ring's label) and bossGoal.<id>.arrive (the announcement and the banner).",
+  "note": "Boss unlock goals (ON by default since 6 Nov 2026, Dom). bossGoalsEnabledDefault is true; ?nobossgoals=1 (offSwitch) turns them off and ?bossgoals=1 (startSwitch) still turns them on if the default is set back to false. With the flag off nothing here reads or changes the game: every area boss stands in its pocket as before. On, each listed boss is not placed when its area is set up; the kills that count (counts: resident = a placed resident, wave = a ?waves=1 wave mob, hunter = a marked or raid hunter; never a boss) made in that boss's own area fill a counter, shown as a ring on the HUD, and the boss steps in beside the player when it is full. Progress is session state on the live game (never saved, never sent); a reload starts it again. engine/boss-goal-core.js is the pure part (switch, lock, count), engine/boss-goals.js the step, engine/boss-goal-view.js the ring. A goal's lines are the webText.json ids bossGoal.<id>.hud (the ring's label) and bossGoal.<id>.arrive (the announcement and the banner).",
   "note2": "kills must stay below the area's living residents (a placed boss area holds 8 to 9 others, the Westminster tutorial 7 and never respawns them), so a goal can be met with no waves at all; with ?waves=1 it fills much faster.",
   "enabled": true,
-  "bossGoalsEnabledDefault": false,
+  "bossGoalsEnabledDefault": true,
   "startSwitch": {
     "param": "bossgoals",
+    "value": "1"
+  },
+  "offSwitch": {
+    "param": "nobossgoals",
     "value": "1"
   },
   "summon": {

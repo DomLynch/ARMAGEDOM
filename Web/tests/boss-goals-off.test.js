@@ -51,10 +51,15 @@ function game(area) {
   });
 }
 
-test("the shipped default is off and the page switch is absent", () => {
-  assert.equal(RULES.bossGoalsEnabledDefault, false);
-  assert.equal(bossGoalsEnabled(), false);
-  assert.equal(bossGoalsEnabled(RULES, ""), false);
+test("the shipped default is on, ?nobossgoals=1 turns it off and a data default of false needs ?bossgoals=1", () => {
+  assert.equal(RULES.bossGoalsEnabledDefault, true);
+  assert.equal(bossGoalsEnabled(RULES, ""), true);
+  const off = `?${RULES.offSwitch.param}=${RULES.offSwitch.value}`;
+  assert.equal(bossGoalsEnabled(RULES, off), false);
+  assert.equal(bossGoalsEnabled(RULES, `${off}&${RULES.startSwitch.param}=${RULES.startSwitch.value}`), false, "the off switch wins");
+  const optIn = { ...RULES, bossGoalsEnabledDefault: false };
+  assert.equal(bossGoalsEnabled(optIn, ""), false);
+  assert.equal(bossGoalsEnabled(optIn, `?${RULES.startSwitch.param}=${RULES.startSwitch.value}`), true);
 });
 
 test("every boss is placed with its area, as before", () => {

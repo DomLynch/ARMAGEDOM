@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 // Boss unlock goals (data/bossGoals.json), ?bossgoals=1 on. The page switch is read once per page from the address, so it is set before
-// the engine loads; tests/boss-goals-off.test.js covers the default (switch absent) in its own process.
+// the engine loads; tests/boss-goals-off.test.js covers the off switch in its own process.
 globalThis.location = { search: "?bossgoals=1" };
 const { createGame, stepGame } = await import("../src/combat.js");
 const { createAreaRegistry } = await import("../src/area-registry.js");
@@ -108,7 +108,7 @@ test("the shipped data validates and matches the content: real boss keys, real t
       others = area.activePlacementIds.filter((k) => k !== place.key && !k.includes("drone")).length;
     assert.ok(row.kills >= 1 && row.kills <= others, `${row.id}: ${row.kills} kills against ${others} residents`);
   }
-  assert.equal(RULES.bossGoalsEnabledDefault, false, "off by default");
+  assert.equal(RULES.bossGoalsEnabledDefault, true, "on by default");
   validateBossGoals(structuredClone(RULES));
 });
 
@@ -136,12 +136,14 @@ test("the validator rejects a bad row, an unknown kind, a duplicate and an unkno
 });
 
 test("the switch, the lock and the kill kinds", () => {
-  assert.equal(core.bossGoalsEnabled(RULES, ""), false);
-  assert.equal(core.bossGoalsEnabled(RULES, "?bossgoals=0"), false);
+  assert.equal(core.bossGoalsEnabled(RULES, ""), true, "on by default");
+  assert.equal(core.bossGoalsEnabled(RULES, "?nobossgoals=1"), false);
+  assert.equal(core.bossGoalsEnabled({ ...RULES, bossGoalsEnabledDefault: false }, ""), false);
+  assert.equal(core.bossGoalsEnabled({ ...RULES, bossGoalsEnabledDefault: false }, "?bossgoals=0"), false);
   assert.equal(core.bossGoalsEnabled(RULES, "?bossgoals=1"), true);
   assert.equal(core.bossGoalsEnabled({ ...RULES, enabled: false }, "?bossgoals=1"), false);
   assert.equal(core.bossGoalsEnabled(RULES), true, "this process carries ?bossgoals=1");
-  assert.equal(core.bossGoalLocks({}, KEY, RULES, ""), false);
+  assert.equal(core.bossGoalLocks({}, KEY, RULES, "?nobossgoals=1"), false);
   assert.equal(core.bossGoalLocks({}, KEY, RULES, "?bossgoals=1"), true);
   assert.equal(core.bossGoalLocks({ bossGoals: { done: { [KEY]: true } } }, KEY, RULES, "?bossgoals=1"), false);
   assert.equal(

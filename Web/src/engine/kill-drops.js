@@ -5,13 +5,16 @@ import { TRASH_WAVE, wavesEnabled } from "./trash-wave-core.js";
 import { onWaveKill } from "./trash-wave-rewards.js";
 // Coins an enemy leaves when it dies (data/killDrops.json). Rules only: which tier a kill is, the cash it rolls, walk-over pickup,
 // the carry-cap refusal and the claim noted for the server. Nothing here is drawn (engine/kill-drops-view.js) or saved: drops live on
-// the run (`g.killDrops`) and are gone when the area changes. Off until `enabled` is true (the server must accept the `kill:*` sources).
+// the run (`g.killDrops`) and are gone when the area changes. On by default (6 Nov 2026); ?nokilldrops=1 turns it off.
+// The server accepts the `kill:*` sources (migrations 18 and 25).
 // Each function takes the rules as its last argument so a test can pass an enabled copy of the frozen data.
 export const KILL_DROPS = GAME_DATA.killDrops;
 // The off switch for the treasure-pile look (data/killDrops.json `classicSwitch`, e.g. ?classiccoins=1): the plain coins come back, here and on the
 // world cash pickups. Read once, the page does not change it.
 export const CLASSIC_COINS = new URLSearchParams(globalThis.location?.search ?? "").get(KILL_DROPS.classicSwitch.param) === KILL_DROPS.classicSwitch.value;
-export const killDropsOn = (rules = KILL_DROPS) => rules.enabled === true;
+// On when the data says enabled, unless the address carries the off switch (data `offSwitch`, ?nokilldrops=1). `search` is for tests.
+export const killDropsOn = (rules = KILL_DROPS, search = globalThis.location?.search ?? "") =>
+  rules.enabled === true && new URLSearchParams(search).get(rules.offSwitch.param) !== rules.offSwitch.value;
 export const tierOf = (e, rules = KILL_DROPS) =>
   starDropTier(e, e.bossProfile ? "boss" : (rules.rigTiers[e.rig] ?? rules.defaultTier), Object.keys(rules.tiers));
 // A repeatable whole number in [min, max] from the kill's own labels and the run's counters, so one run state always rolls the same sum.

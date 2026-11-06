@@ -28,11 +28,13 @@ export function validateKillDrops(d) {
     "looks",
     "fxStyle",
     "classicSwitch",
+    "offSwitch",
   ]);
-  closed(d.classicSwitch, ["param", "value"]);
-  for (const k of ["param", "value"]) {
-    if (typeof d.classicSwitch[k] !== "string" || !/^[a-z0-9]{1,24}$/.test(d.classicSwitch[k]))
-      fail("killDrops", `classicSwitch.${k}`);
+  for (const name of ["classicSwitch", "offSwitch"]) {
+    closed(d[name], ["param", "value"]);
+    for (const k of ["param", "value"]) {
+      if (typeof d[name][k] !== "string" || !/^[a-z0-9]{1,24}$/.test(d[name][k])) fail("killDrops", `${name}.${k}`);
+    }
   }
   if (typeof d.enabled !== "boolean") fail("killDrops", "enabled must be true or false");
   number("killDrops", "pickupRadius", d.pickupRadius, 0.2);
