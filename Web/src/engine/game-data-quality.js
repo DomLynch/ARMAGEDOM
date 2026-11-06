@@ -39,7 +39,10 @@ export function validateQualityTier(d) {
   number("qualityTier", "desktopSharpness.pixelRatio", d.desktopSharpness.pixelRatio, 1);
   count("qualityTier", "desktopSharpness.anisotropy", d.desktopSharpness.anisotropy, 1, 16);
   const m = d.materialPolish;
-  closed(m, ["param", "offValue", "needs", "anisotropy", "roughnessMin", "metalnessMax"]);
+  closed(m, ["param", "offValue", "needs", "anisotropy", "textureSlots", "roughnessMin", "metalnessMax"]);
+  const names = m.textureSlots;
+  if (!Array.isArray(names) || !names.length || names.some((n) => typeof n !== "string"))
+    fail("qualityTier", "materialPolish.textureSlots must be a list of names");
   if (!m.param || !m.offValue) fail("qualityTier", "materialPolish.param and offValue are required");
   if (m.param === d.param || m.param === d.desktopBackdrop.param) fail("qualityTier", "materialPolish.param must be its own parameter");
   if (!Array.isArray(m.needs)) fail("qualityTier", "materialPolish.needs must be a list");

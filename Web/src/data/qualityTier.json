@@ -27,6 +27,7 @@
       { "name": "touchPoints", "max": 0, "whenMissing": true }
     ],
     "anisotropy": 8,
+    "textureSlots": ["map", "normalMap", "emissiveMap", "roughnessMap", "metalnessMap", "aoMap"],
     "roughnessMin": 0.18,
     "metalnessMax": 0.9
   },

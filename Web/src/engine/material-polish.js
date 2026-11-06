@@ -3,9 +3,8 @@
 // original values; refresh() applies the rule while it holds and puts the originals back when it stops (the tier dropped after the probe).
 // Presentation only: no geometry, texture bytes, shadow or post-processing change, and no new GPU memory beyond sampling the mip chain
 // that is already there. Actors cloned before a revert keep what they copied; the tier can only drop once, in the first seconds.
+import { GAME_DATA } from "./game-data.js";
 import { QUALITY } from "./quality-tier.js";
-
-const TEXTURE_SLOTS = ["map", "normalMap", "emissiveMap", "roughnessMap", "metalnessMap", "aoMap"];
 
 export function createMaterialPolish(quality = QUALITY) {
   const tracked = new Map(); // material -> its original roughness, metalness and texture anisotropy
@@ -45,7 +44,7 @@ export function createMaterialPolish(quality = QUALITY) {
         for (const material of [object.material].flat()) {
           if (!material || tracked.has(material)) continue;
           const textures = new Map();
-          for (const slot of TEXTURE_SLOTS)
+          for (const slot of GAME_DATA.qualityTier.materialPolish.textureSlots)
             if (material[slot]?.isTexture) textures.set(material[slot], material[slot].anisotropy);
           tracked.set(material, { roughness: material.roughness, metalness: material.metalness, textures });
         }
