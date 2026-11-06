@@ -18,7 +18,7 @@ import { arcKind, pointCapacity, shapePoints, signedArea, stripBuffers } from ".
 
 // Attack telegraphs (data/telegraph.json): a ground shape that fills as an enemy's wind-up runs and is whole when the hit lands. The
 // shape numbers are the ones the damage check uses, the pool never grows past maxVisible, and reduced motion shows a static fill.
-const RULES = GAME_DATA.telegraph;
+const RULES = { ...GAME_DATA.telegraph, enabled: true };
 const near = (a, b, why = "") => assert.ok(Math.abs(a - b) < 1e-6, `${why}: ${a} vs ${b}`);
 const FRAME = 1 / 60;
 
@@ -63,7 +63,7 @@ const polar = (reach, degrees) => [
 ];
 
 test("the shipped data is valid and a bad row is refused", () => {
-  assert.equal(RULES.enabled, true);
+  assert.equal(GAME_DATA.telegraph.enabled, false);
   assert.equal(RULES.offSwitch.param, "notelegraph");
   validateTelegraph(structuredClone(RULES));
   const edits = [
@@ -106,7 +106,7 @@ test("on by default, off with ?notelegraph=1 and by the data switch", () => {
   assert.equal(telegraphOn(RULES, "?notelegraph=1"), false);
   assert.equal(telegraphOn({ ...RULES, enabled: false }, ""), false);
   const scene = new T.Scene(),
-    off = createTelegraphView({ game: game(), scene, loaded: true }, { search: "?notelegraph=1" });
+    off = createTelegraphView({ game: game(), scene, loaded: true }, { rules: RULES, search: "?notelegraph=1" });
   off.update();
   off.dispose();
   assert.equal(scene.children.length, 0);
@@ -336,7 +336,7 @@ function rig({ reduced = false, count = 1 } = {}) {
     g = game({ enemies }),
     scene = new T.Scene(),
     s = { game: g, scene, loaded: true, contextLost: false, traveling: false },
-    view = createTelegraphView(s, { search: "", matchMedia: () => ({ matches: reduced }) });
+    view = createTelegraphView(s, { rules: RULES, search: "", matchMedia: () => ({ matches: reduced }) });
   return { g, s, scene, view, def, enemies, shown: () => view.slots.filter((slot) => slot.root.visible) };
 }
 
