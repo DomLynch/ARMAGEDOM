@@ -7627,8 +7627,7 @@
           "east-roamer-8",
           "east-roamer-10",
           "east-roamer-11",
-          "east-roamer-5",
-          "east-roamer-12"
+          "east-roamer-5"
         ],
         "creatureSlot": {
           "placementKey": "east-roamer-4",
@@ -7775,7 +7774,6 @@
           "area7-resident-4",
           "area7-resident-5",
           "area7-resident-6",
-          "area7-resident-7",
           "area7-resident-8"
         ],
         "creatureSlot": {
@@ -7808,8 +7806,7 @@
           "area8-resident-6",
           "area8-resident-7",
           "area8-resident-8",
-          "area8-resident-9",
-          "area8-resident-10"
+          "area8-resident-9"
         ],
         "creatureSlot": {
           "placementKey": "area8-resident-4",
