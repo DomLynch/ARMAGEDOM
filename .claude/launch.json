@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dgf-dev",
+      "runtimeExecutable": "C:\\arma-work\\node22\\node.exe",
+      "runtimeArgs": ["Web/node_modules/vite/bin/vite.js", "Web", "--host", "127.0.0.1", "--port", "8893"],
+      "port": 8893
+    }
+  ]
+}
