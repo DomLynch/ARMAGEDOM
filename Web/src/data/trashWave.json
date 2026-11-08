@@ -61,7 +61,7 @@
       "pauseSeconds": 0
     },
     "trash": { "healthScale": 1, "speedScale": 1 },
-    "elite": { "healthScale": 2, "speedScale": 1, "stars": 1 }
+    "elite": { "healthScale": 1.5, "speedScale": 1, "stars": 1 }
   },
   "spawn": {
     "perFrame": 4,

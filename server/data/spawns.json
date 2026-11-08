@@ -29,11 +29,6 @@
     "area": "area7",
     "maxHp": 40
   },
-  "area7:area7-resident-7": {
-    "kind": "hollow-scavenger",
-    "area": "area7",
-    "maxHp": 40
-  },
   "area7:area7-resident-8": {
     "kind": "hollow-scavenger",
     "area": "area7",
@@ -50,11 +45,6 @@
     "maxHp": 120
   },
   "area8:area8-resident-1": {
-    "kind": "hollow-scavenger",
-    "area": "area8",
-    "maxHp": 40
-  },
-  "area8:area8-resident-10": {
     "kind": "hollow-scavenger",
     "area": "area8",
     "maxHp": 40
@@ -160,11 +150,6 @@
     "maxHp": 40
   },
   "east:east-roamer-11": {
-    "kind": "hollow-scavenger",
-    "area": "east",
-    "maxHp": 40
-  },
-  "east:east-roamer-12": {
     "kind": "hollow-scavenger",
     "area": "east",
     "maxHp": 40

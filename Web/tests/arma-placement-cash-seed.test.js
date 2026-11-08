@@ -29,14 +29,16 @@ function migratedPlacements() {
 test("the seeded placements equal the game's: both cycles, bosses at bossCash, the rest at cashPerKill", () => {
   const expected = seedPlacementRows(cycles(), bossKinds(), content.markedData);
   const seeded = migratedPlacements();
-  assert.deepEqual([...seeded.keys()].sort(), expected.map(([instance]) => instance).sort(), "a new or moved placement needs a seed migration");
+  // Placements taken out of the live rosters (data/map-density change): their seeded rows stay in the table, unused, so no destructive migration is needed.
+  const retired = ["area7:area7-resident-7", "area8:area8-resident-10", "east:east-roamer-12"];
+  assert.deepEqual([...seeded.keys()].sort(), [...expected.map(([instance]) => instance), ...retired].sort(), "a new or moved placement needs a seed migration");
   for (const [instance, cash] of expected) assert.equal(seeded.get(instance), cash, `${instance}: generate the next seed migration`);
 });
 
 test("cycle B names the same placements as cycle A, and a creature kind that changes between them never changes the cash", () => {
   const [a, b] = cycles().map((rows) => new Map(rows.map((row) => [row.instance, row.kind])));
-  assert.equal(a.size, 78);
-  assert.deepEqual([...b.keys()].sort(), [...a.keys()].sort(), "the same 78 placements in both cycles");
+  assert.equal(a.size, 75);
+  assert.deepEqual([...b.keys()].sort(), [...a.keys()].sort(), "the same 75 placements in both cycles");
   const changed = [...a.keys()].filter((instance) => a.get(instance) !== b.get(instance));
   assert.ok(changed.length > 0, "the cycles do differ in kind (a rat becomes a spider), so the same-cash check below is meaningful");
   for (const instance of changed) assert.ok(!bossKinds().has(a.get(instance)) && !bossKinds().has(b.get(instance)), `${instance}: a boss never changes kind`);

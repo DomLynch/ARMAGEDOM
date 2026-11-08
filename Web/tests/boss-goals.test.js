@@ -164,7 +164,7 @@ test("the switch, the lock and the kill kinds", () => {
 
 test("the boss is not placed while its goal is open", () => {
   const f = fixture();
-  assert.equal(ordinary(f.g).length, 9);
+  assert.equal(ordinary(f.g).length, 8);
   assert.ok(!f.g.enemies.some((e) => e.placementKey === KEY), "no boss in the area yet");
   assert.ok(!f.g.enemies.some((e) => e.bossProfile));
 });
